@@ -3,6 +3,7 @@
 
 /*TODO : 
 1. Handle all math functions
+2. Clean up shadow
 */
 
 extern "C" Real* getReal(void *Addr){

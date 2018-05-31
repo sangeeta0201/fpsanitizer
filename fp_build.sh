@@ -4,8 +4,14 @@ root_cwd="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )" #
 echo $root_cwd
 
 echo "***** Building LLVM *****"
-cd build
+if [ -d "build" ]; then
 make
+else
+mkdir build
+cd build
+cmake -G "Unix Makefiles" ../llvm
+make
+fi
 cd ..
 source llvmvars.sh
 
