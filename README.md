@@ -14,3 +14,5 @@ To run benchmarks follow below steps
 ```
 
 Pass is here - fpsanitizer/llvm/lib/Transforms/FPInstrument/FPInstrument.cpp
+
+To instrument functions, please list them in functions.txt inside bench dir
