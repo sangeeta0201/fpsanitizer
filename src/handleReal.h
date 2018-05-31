@@ -15,11 +15,16 @@ double getDouble(Real *real);
 unsigned long ulpd(double x, double y);
 void handleOp(size_t opCode, mpfr_t *res, mpfr_t *op1, mpfr_t *op2);
 double updateError(Real *realVal, double computedVal);
+void printError(size_t result_A, double y);
 
 extern "C" void* handleOp_1(size_t opCode, void *op1, void *op2);
-extern "C" void* handleOp_2(size_t opCode, float op1, void *op2);
+extern "C" void* handleOp_2_f(size_t opCode, float op1, void *op2);
+extern "C" void* handleOp_2_d(size_t opCode, double op1, void *op2);
 extern "C" void* handleOp_3(size_t opCode, void *op1, float op2);
-extern "C" void* handleOp_4(size_t opCode, float op1, float op2);
+extern "C" void* handleOp_4_ff(size_t opCode, float op1, float op2);
+extern "C" void* handleOp_4_fd(size_t opCode, float op1, double op2);
+extern "C" void* handleOp_4_df(size_t opCode, double op1, float op2);
+extern "C" void* handleOp_4_dd(size_t opCode, double op1, double op2);
 /*
 When we compute any floating point operation on real, we save the result in shadow map with its value 
 and return the address of this saved value to LLVM Pass. LLVM pass creates the mapping of real result and 

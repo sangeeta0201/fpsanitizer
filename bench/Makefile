@@ -1,14 +1,13 @@
 ifneq (,$(shell which clang++ 2>/dev/null))
-CXX=clang++ -Xclang -load -Xclang /home/sangeeta/project/float_p/herculean/build/lib/LLVMFPInstrument.so
+CXX=clang++ -Xclang -load -Xclang /home/sangeeta/project/float_p/fpsanitizer/build/lib/LLVMFPInstrument.so
 #CXX=clang++ 
-CXXFLAGS =  -I$(TBBROOT)/include  
+CXXFLAGS =  -I$(FPROOT)
 else
 CXX=g++
-CXXFLAGS = -I$(TBBROOT)/include -O1
+CXXFLAGS = -I$(FPROOT) -O1
 endif # clang++
 
-#LIBS = -L$(TBBROOT)/obj -ltbb -L$(TD_ROOT)/obj -ltdebug
-LIBS =  -lherculean -lmpfr
+LIBS = -L$(FPROOT)/obj -lfpsanitizer -lmpfr
 
 SRCS = $(wildcard *.cpp)
 

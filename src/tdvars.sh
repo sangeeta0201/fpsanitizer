@@ -1,11 +1,11 @@
 #!/bin/bash
 cwd="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )" #
-export TD_ROOT="$cwd" #
+export FPROOT="$cwd" #
 td_obj="$cwd/obj" #
 if [ -z "$CPATH" ]; then #
-    export CPATH="${TD_ROOT}/include" #
+    export CPATH="${FPROOT}" #
 else #
-    export CPATH="${TD_ROOT}/include:$CPATH" #
+    export CPATH="${FPROOT}/include:$CPATH" #
 fi #
 if [ -z "$LIBRARY_PATH" ]; then #
     export LIBRARY_PATH="${td_obj}" #

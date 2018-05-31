@@ -30,6 +30,12 @@
 #include "llvm/IR/Constants.h"
 #include <fstream>
 
+/* TODO
+1. Handle conversions
+2. Handle read write from registers
+3. Handle taint tracking
+4. Handle error aggregation
+*/
 bool ret = true;
 bool FPInstrument::runOnModule(Module &M) {
   errs() << "Running FPInstrument\n";
@@ -41,17 +47,10 @@ bool FPInstrument::runOnModule(Module &M) {
     StringRef funcName = F.getName();
     AllFuncList.push_back(&F);
   }
- 
   std::queue<llvm::Argument*> arglist;
-/*
-  Function::arg_iterator formal_param = F->arg_begin();
-  Function::arg_iterator FE = F->arg_end();
-  for(;formal_param != FE; ++formal_param){ 
-    arglist.push(formal_param);
-  }
- */
   for (Function *F : reverse(AllFuncList)) {
     errs()<<"********"<<F->getName()<<"*****\n";
+
     for (Use &U : F->uses()) {
       User *UR = U.getUser();
       // Ignore blockaddress uses.
@@ -81,26 +80,28 @@ bool FPInstrument::runOnModule(Module &M) {
         funArgMap.insert(std::pair<Value*, Value*>(V2, V1)); //old instruction, new instruction
       }
     }
+
     for (auto &BB : *F) {
       for (auto &I : BB) {
         if (LoadInst *Load = dyn_cast<LoadInst>(&I)){
           Value *Addr = Load->getPointerOperand();
           errs()<<"loadMap insert:"<<*Addr<<":"<<I<<"\n";
-          loadMap.insert(std::pair<Instruction*, Value*>(&I, Addr)); //old instruction, new instruction
+          loadMap.insert(std::pair<Instruction*, Value*>(&I, Addr)); //we maintain list of variables mapped to instructions,
+                                                                     //can say that its like mapping temporaries
         }
         else if (StoreInst *Store = dyn_cast<StoreInst>(&I)){
           Value *Addr = Store->getPointerOperand();
-          setReal(&I, Addr, Store->getOperand(0), *F);
+          setReal(&I, Addr, Store->getOperand(0), *F); //For every store we set real value in shadowmap
         }
         else if (BinaryOperator* binOp = dyn_cast<BinaryOperator>(&I)){
-          handleOp(&I, binOp, *F); 
+          handleOp(&I, binOp, *F);  // we handle binary operations on fp
         }
         else if (CallInst *callInst = dyn_cast<CallInst>(&I)){ //handle math library functions
           Function *callee = callInst->getCalledFunction();
           if (callee) {
             string name = callee->getName();
               if(name == "sqrt") 
-                handleMathFunc(&I, callInst, *F);
+                handleMathFunc(&I, callInst, *F);  //we handle math functions for fp
           }
         }
       }
@@ -149,6 +150,7 @@ Instruction* FPInstrument::getReal(Instruction *I, Value *Addr, Function &F){
   
   return newI;
 }
+
 void FPInstrument::setReal(Instruction *I, Value *Addr, Value *op0, Function &F){
   IRBuilder<> IRB(I);
   errs()<<"setReal Instruction :"<<*I<<"\n";
@@ -187,19 +189,18 @@ void FPInstrument::setReal(Instruction *I, Value *Addr, Value *op0, Function &F)
       Value *op0_i = dyn_cast<Value>(I->getOperand(0));
       errs()<<"setReal: not found in loadMap:"<<*(op0_i)<<"\n";
       SetRealTemp = M->getOrInsertFunction("setRealTemp", voidTy, void_ptr_ty, void_ptr_ty);
-      errs()<<funArgMap.size()<<"\n";
-//      if(funArgMap.count(op0_i) != 0){
-  //      errs()<<"setReal:found in funArgMap:"<<"\n";
-    //    Value *realI = funArgMap.at(op0_i);
-      //  Type *realI_type = realI->getType();
-        errs()<<"op0_type->getTypeID():"<<op0_type->getTypeID()<<"\n"; 
-        if(op0_type->getTypeID() == Type::PointerTyID){
-          BitCastInst* bitcast1 = new BitCastInst(op0,PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
-          Instruction* newI = IRB.CreateCall(SetRealTemp, {bitcast, bitcast1});
-        }
-        else{
-          errs()<<"setReal: not a pointer, not a constant, not in load map, means its loaded from func arg";
-          if(funArgMap.count(op0_i) != 0){
+      errs()<<"op0_type->getTypeID():"<<op0_type->getTypeID()<<"\n"; 
+      if(op0_type->getTypeID() == Type::PointerTyID){
+        BitCastInst* bitcast1 = new BitCastInst(op0,PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
+        Instruction* newI = IRB.CreateCall(SetRealTemp, {bitcast, bitcast1});
+      }
+      else{
+        errs()<<"setReal: not a pointer, not a constant, not in load map, means its loaded from func arg";
+/*
+        SetRealConstant = M->getOrInsertFunction("setRealConstant_double", voidTy, void_ptr_ty, double_ty);
+        Instruction* newI = IRB.CreateCall(SetRealConstant, {bitcast, op0});
+*/
+        if(funArgMap.count(op0_i) != 0){
             errs()<<"setReal:found in funArgMap:"<<"\n";
             Value *realI = funArgMap.at(op0_i);
             Instruction *op0_ii = dyn_cast<Instruction>(realI);
@@ -215,9 +216,7 @@ void FPInstrument::setReal(Instruction *I, Value *Addr, Value *op0, Function &F)
              // }
             }
         }
-        }
-      //}  
-      
+      }
     }
   }
 }
@@ -276,10 +275,6 @@ void FPInstrument::handleOp(Instruction *I, BinaryOperator* binOp, Function &F){
   IRBuilder<> IRB(I);
   Module *M = F.getParent();
   Type* void_ty = Type::getVoidTy(M->getContext());;
-  //BitCastInst* bitcast = new BitCastInst(Addr,PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
-//  BitCastInst* bitcast1 = new BitCastInst(v1,PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
-  //BitCastInst* bitcast1 = new BitCastInst(v1, Type::getFloatTy(M->getContext()),"", I);
-  //have to generalize, here operand 0 is constant
   Type* int_ty = Type::getInt32Ty(M->getContext());
   Constant* opCode = ConstantInt::get(Type::getInt32Ty(M->getContext()), binOp->getOpcode());
 
@@ -333,27 +328,27 @@ void FPInstrument::handleOp(Instruction *I, BinaryOperator* binOp, Function &F){
     Type* double_ty = Type::getDoubleTy(M->getContext());
   if(op_0_cons && op_1_cons){
     if (fpConstant_op0->getTypeID() == Type::FloatTyID && fpConstant_op1->getTypeID() == Type::FloatTyID)
-      HandleOp = M->getOrInsertFunction("handleOp_4", void_ptr_ty, int_ty, float_ty, float_ty);
+      HandleOp = M->getOrInsertFunction("handleOp_4_ff", void_ptr_ty, int_ty, float_ty, float_ty);
     else if (fpConstant_op0->getTypeID() == Type::FloatTyID && fpConstant_op1->getTypeID() == Type::DoubleTyID)
-      HandleOp = M->getOrInsertFunction("handleOp_4", void_ptr_ty, int_ty, float_ty, double_ty);
+      HandleOp = M->getOrInsertFunction("handleOp_4_fd", void_ptr_ty, int_ty, float_ty, double_ty);
     else if (fpConstant_op0->getTypeID() == Type::DoubleTyID && fpConstant_op1->getTypeID() == Type::FloatTyID)
-      HandleOp = M->getOrInsertFunction("handleOp_4", void_ptr_ty, int_ty, double_ty, float_ty);
+      HandleOp = M->getOrInsertFunction("handleOp_4_df", void_ptr_ty, int_ty, double_ty, float_ty);
     else if (fpConstant_op0->getTypeID() == Type::DoubleTyID && fpConstant_op1->getTypeID() == Type::DoubleTyID)
-      HandleOp = M->getOrInsertFunction("handleOp_4", void_ptr_ty, int_ty, double_ty, double_ty);
+      HandleOp = M->getOrInsertFunction("handleOp_4_dd", void_ptr_ty, int_ty, double_ty, double_ty);
   }
   else if(op_0_cons){
     errs()<<"op 0\n";
     if(fpConstant_op0->getTypeID() == Type::FloatTyID)
-      HandleOp = M->getOrInsertFunction("handleOp_2", void_ptr_ty, int_ty, float_ty, void_ptr_ty);
+      HandleOp = M->getOrInsertFunction("handleOp_2_f", void_ptr_ty, int_ty, float_ty, void_ptr_ty);
     else if(fpConstant_op0->getTypeID() == Type::DoubleTyID)
-      HandleOp = M->getOrInsertFunction("handleOp_2", void_ptr_ty, int_ty, double_ty, void_ptr_ty);
+      HandleOp = M->getOrInsertFunction("handleOp_2_d", void_ptr_ty, int_ty, double_ty, void_ptr_ty);
     else
       errs()<<"Unknown Type\n";
   }else if(op_1_cons){
     if(fpConstant_op1->getTypeID() == Type::FloatTyID)
-      HandleOp = M->getOrInsertFunction("handleOp_3_float", void_ptr_ty, int_ty, void_ptr_ty, float_ty);
+      HandleOp = M->getOrInsertFunction("handleOp_3_f", void_ptr_ty, int_ty, void_ptr_ty, float_ty);
     else if(fpConstant_op1->getTypeID() == Type::DoubleTyID)
-      HandleOp = M->getOrInsertFunction("handleOp_3_double", void_ptr_ty, int_ty, void_ptr_ty, double_ty);
+      HandleOp = M->getOrInsertFunction("handleOp_3_d", void_ptr_ty, int_ty, void_ptr_ty, double_ty);
   }
   else{
     HandleOp = M->getOrInsertFunction("handleOp_1", void_ptr_ty, int_ty, void_ptr_ty, void_ptr_ty);

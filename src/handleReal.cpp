@@ -1,6 +1,9 @@
 #include "handleReal.h"
 #include <string.h>
 
+/*TODO : 
+1. Handle all math functions
+*/
 
 extern "C" Real* getReal(void *Addr){
   std::cout<<"getReal starts *********\n";
@@ -127,7 +130,8 @@ extern "C" void* handleOp_1(size_t opCode, void *op1, void *op2){
   std::cout<<"handleOp ends 1*********\n";
   return real_res;
 }
-extern "C" void* handleOp_2(size_t opCode, float op1, void *op2){
+
+extern "C" void* handleOp_2_f(size_t opCode, float op1, void *op2){
   std::cout<<"handleOp called 2*********\n";
   mpfr_t op1_mpfr;
   //struct Real* real_res = new Real;
@@ -150,7 +154,31 @@ extern "C" void* handleOp_2(size_t opCode, float op1, void *op2){
   std::cout<<"handleOp 2 ends*********\n";
   return real_res;
 }
-extern "C" void* handleOp_3_float(size_t opCode, void *op1, float op2){
+
+extern "C" void* handleOp_2_d(size_t opCode, double op1, void *op2){
+  std::cout<<"handleOp called 2*********\n";
+  mpfr_t op1_mpfr;
+  //struct Real* real_res = new Real;
+  struct Real* real_res = (struct Real*) malloc (sizeof(struct Real));
+  std::cout<<"op1:"<<op1<<"\n";
+  mpfr_init2 (op1_mpfr, PRECISION); 
+  mpfr_init2 (real_res->mpfr_val, PRECISION); 
+
+  size_t AddrInt = (size_t) op2;
+  std::cout<<"Addr:"<<AddrInt<<"\n";
+  Real *real = getReal(op2);
+  mpfr_set_d (op1_mpfr, op1, MPFR_RNDD);
+  handleOp(opCode, &(real_res->mpfr_val), &(real->mpfr_val), &(op1_mpfr));
+ // mpfr_add (real_res->mpfr_val, real->mpfr_val, op1_mpfr, MPFR_RNDD);
+  //mpfr_out_str (stdout, 10, 0, real_res->mpfr_val, MPFR_RNDD);
+  std::cout<<"\n"; 
+  size_t Addr = (size_t) real_res;
+  shadowMap.insert(std::pair<size_t, struct Real*>(Addr, real_res));
+  std::cout<<"handleOp_2 addr real:"<<Addr<<"\n";
+  std::cout<<"handleOp 2 ends*********\n";
+  return real_res;
+}
+extern "C" void* handleOp_3_f(size_t opCode, void *op1, float op2){
   std::cout<<"handleOp called 3*********\n";
   mpfr_t op2_mpfr;
   mpfr_t res_mpfr;
@@ -177,7 +205,7 @@ extern "C" void* handleOp_3_float(size_t opCode, void *op1, float op2){
   std::cout<<"handleOp ends 3*********\n";
   return real_res;
 }
-extern "C" void* handleOp_3_double(size_t opCode, void *op1, double op2){
+extern "C" void* handleOp_3_d(size_t opCode, void *op1, double op2){
   std::cout<<"handleOp called 3*********\n";
   mpfr_t op2_mpfr;
   mpfr_t res_mpfr;
@@ -205,7 +233,7 @@ extern "C" void* handleOp_3_double(size_t opCode, void *op1, double op2){
   return real_res;
 }
 
-extern "C" void* handleOp_4(size_t opCode, float op1, float op2){
+extern "C" void* handleOp_4_ff(size_t opCode, float op1, float op2){
   std::cout<<"handleOp called 4*********\n";
   mpfr_t op1_mpfr;
   mpfr_t op2_mpfr;
@@ -229,6 +257,75 @@ extern "C" void* handleOp_4(size_t opCode, float op1, float op2){
   std::cout<<"\n**********handleOp 4 ends*********\n";
 }
 
+extern "C" void* handleOp_4_fd(size_t opCode, float op1, double op2){
+  std::cout<<"handleOp called 4*********\n";
+  mpfr_t op1_mpfr;
+  mpfr_t op2_mpfr;
+  //struct Real* real_res = new Real;
+  struct Real* real_res = (struct Real*) malloc (sizeof(struct Real));
+
+  mpfr_init2 (op1_mpfr, PRECISION); 
+  mpfr_init2 (op2_mpfr, PRECISION); 
+  mpfr_init2 (real_res->mpfr_val, PRECISION); 
+  mpfr_set_d (op1_mpfr, op1, MPFR_RNDD);
+  mpfr_set_d (op2_mpfr, op2, MPFR_RNDD);
+  handleOp(opCode, &(real_res->mpfr_val), &(op1_mpfr), &(op2_mpfr));
+  //mpfr_add (real_res->mpfr_val, op1_mpfr, op2_mpfr, MPFR_RNDD);
+  //mpfr_out_str (stdout, 10, 0, real_res->mpfr_val, MPFR_RNDD);
+  std::cout<<"\n"; 
+
+  size_t AddrInt = (size_t) real_res;
+  shadowMap.insert(std::pair<size_t, struct Real*>(AddrInt, real_res)); 
+
+  return real_res;
+  std::cout<<"\n**********handleOp 4 ends*********\n";
+}
+extern "C" void* handleOp_4_df(size_t opCode, double op1, float op2){
+  std::cout<<"handleOp called 4*********\n";
+  mpfr_t op1_mpfr;
+  mpfr_t op2_mpfr;
+  //struct Real* real_res = new Real;
+  struct Real* real_res = (struct Real*) malloc (sizeof(struct Real));
+
+  mpfr_init2 (op1_mpfr, PRECISION); 
+  mpfr_init2 (op2_mpfr, PRECISION); 
+  mpfr_init2 (real_res->mpfr_val, PRECISION); 
+  mpfr_set_d (op1_mpfr, op1, MPFR_RNDD);
+  mpfr_set_d (op2_mpfr, op2, MPFR_RNDD);
+  handleOp(opCode, &(real_res->mpfr_val), &(op1_mpfr), &(op2_mpfr));
+  //mpfr_add (real_res->mpfr_val, op1_mpfr, op2_mpfr, MPFR_RNDD);
+  //mpfr_out_str (stdout, 10, 0, real_res->mpfr_val, MPFR_RNDD);
+  std::cout<<"\n"; 
+
+  size_t AddrInt = (size_t) real_res;
+  shadowMap.insert(std::pair<size_t, struct Real*>(AddrInt, real_res)); 
+
+  return real_res;
+  std::cout<<"\n**********handleOp 4 ends*********\n";
+}
+extern "C" void* handleOp_4_dd(size_t opCode, double op1, double op2){
+  std::cout<<"handleOp called 4*********\n";
+  mpfr_t op1_mpfr;
+  mpfr_t op2_mpfr;
+  //struct Real* real_res = new Real;
+  struct Real* real_res = (struct Real*) malloc (sizeof(struct Real));
+
+  mpfr_init2 (op1_mpfr, PRECISION); 
+  mpfr_init2 (op2_mpfr, PRECISION); 
+  mpfr_init2 (real_res->mpfr_val, PRECISION); 
+  mpfr_set_d (op1_mpfr, op1, MPFR_RNDD);
+  mpfr_set_d (op2_mpfr, op2, MPFR_RNDD);
+  handleOp(opCode, &(real_res->mpfr_val), &(op1_mpfr), &(op2_mpfr));
+  //mpfr_add (real_res->mpfr_val, op1_mpfr, op2_mpfr, MPFR_RNDD);
+  //mpfr_out_str (stdout, 10, 0, real_res->mpfr_val, MPFR_RNDD);
+  std::cout<<"\n"; 
+
+  size_t AddrInt = (size_t) real_res;
+  shadowMap.insert(std::pair<size_t, struct Real*>(AddrInt, real_res)); 
+
+  return real_res;
+  std::cout<<"\n**********handleOp 4 ends*********\n";
+}
 extern "C" void setRealTemp(void *toAddr, void *fromAddr){
   std::cout<<"setRealTemp start***********\n";
   size_t fromAddrInt = (size_t) fromAddr;
@@ -260,7 +357,7 @@ extern "C" void setRealTemp(void *toAddr, void *fromAddr){
       shadowMap.insert(std::pair<size_t, struct Real*>(toAddrInt, toReal)); 
     }
     else
-      std::cout<<"Neither fromAddr nor toAddr in map\n"; //TODO check what to do here
+      std::cout<<"fromAddr and toAddr not found in map\n"; //TODO check what to do here
   }  
   std::cout<<"setRealTemp ends**********8\n";
 }
@@ -398,7 +495,7 @@ double updateError(Real *realVal, double computedVal){
   return bitsError;
 }
 
-void printError(size_t result_A){
+void printError(size_t result_A, double y){
   if(shadowMap.count(result_A) != 0){
       Real* resReal = shadowMap.at(result_A);
       std::cout<<"Result using mpfr:\n";

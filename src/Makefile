@@ -1,4 +1,4 @@
-TARGET   = libherculean
+TARGET   = libfpsanitizer
 mkfile_path := $(abspath $(lastword $(MAKEFILE_LIST)))
 TD_ROOT := $(notdir $(patsubst %/,%,$(dir $(mkfile_path))))
 CXX=g++
