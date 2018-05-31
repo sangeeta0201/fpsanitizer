@@ -12,3 +12,5 @@ To run benchmarks follow below steps
 1. cd fpsanitizer/bench
 2. make
 ```
+
+Pass is here - fpsanitizer/llvm/lib/Transforms/FPInstrument/FPInstrument.cpp
