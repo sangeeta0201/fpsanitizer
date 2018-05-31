@@ -458,4 +458,4 @@ RegisterStandardPasses S(PassManagerBuilder::EP_EnabledOnOptLevel0,
                          addFPPass);
 
 char FPInstrument::ID = 0;
-static const RegisterPass<FPInstrument> Y("fp", "Change the precision of variables", false, false);
+static const RegisterPass<FPInstrument> Y("fp", "instrument fp operations", false, false);
