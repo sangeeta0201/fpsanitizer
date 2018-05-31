@@ -1,0 +1,17 @@
+Result @ sum-50.c:6 in main (addr 40057D)
+2.000000 bits average error
+2.000000 bits max error
+Aggregated over 1 instances
+Influenced by erroneous expression:
+
+No influences found!
+
+
+compare @ sum-50.c:5 in main (addr 400554)
+1% incorrect
+1 incorrect values
+52 total instances
+Influenced by erroneous expressions:
+
+No influences found!
+

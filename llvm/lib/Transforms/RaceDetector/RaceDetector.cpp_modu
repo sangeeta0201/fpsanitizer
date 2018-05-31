@@ -1,0 +1,388 @@
+#include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/InstVisitor.h"
+#include "llvm/IR/LegacyPassManager.h"
+#include "llvm/Transforms/IPO/PassManagerBuilder.h"
+
+#include "llvm/ADT/SmallSet.h"
+#include "llvm/ADT/SmallString.h"
+#include "llvm/ADT/SmallVector.h"
+#include "llvm/ADT/Statistic.h"
+#include "llvm/ADT/StringExtras.h"
+#include "llvm/Analysis/CaptureTracking.h"
+#include "llvm/Analysis/TargetLibraryInfo.h"
+#include "llvm/Analysis/ValueTracking.h"
+#include "llvm/IR/DataLayout.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/IntrinsicInst.h"
+#include "llvm/IR/Intrinsics.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Metadata.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/Type.h"
+#include "llvm/ProfileData/InstrProf.h"
+#include "llvm/Support/CommandLine.h"
+#include "llvm/Support/Debug.h"
+#include "llvm/Support/MathExtras.h"
+#include "llvm/Transforms/Instrumentation.h"
+#include "llvm/Transforms/Utils/BasicBlockUtils.h"
+#include "llvm/Transforms/Utils/EscapeEnumerator.h"
+#include "llvm/Transforms/Utils/Local.h"
+#include "llvm/Transforms/Utils/ModuleUtils.h"
+#include "llvm/Analysis/MemoryDependenceAnalysis.h"
+
+#include "llvm/Pass.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/Support/raw_ostream.h"
+#include "llvm/Analysis/AliasAnalysis.h"
+
+using namespace llvm;
+
+namespace {
+
+struct RaceDetector : public ModulePass {
+  RaceDetector() : ModulePass(ID) {}
+  StringRef getPassName() const override;
+  void getAnalysisUsage(AnalysisUsage &AU) const override;
+  bool runOnModule(Module &M) override;
+  static char ID;  // Pass identification, replacement for typeid.
+
+ private:
+  void initializeCallbacks(Module &M);
+  bool instrumentLoadOrStore(Instruction *I, const DataLayout &DL, Function &F);
+  bool checkForAlias(Instruction *I);
+  bool instrumentAliasLoadOrStore(Instruction *I, const DataLayout &DL, Function &F);
+  void chooseInstructionsToInstrument(
+    SmallVectorImpl<Instruction *> &Local, SmallVectorImpl<Instruction *> &All,
+    const DataLayout &DL);
+  bool addrPointsToConstantData(Value *Addr);
+  bool instrumentFunctions(StringRef fn_name);
+  bool hasAnnotation(Instruction* i, Value *V, StringRef Ann, uint8_t level);
+  SmallVector<Instruction*, 8> AnnotatedLoadsAndStores;
+  SmallVector<Instruction*, 8> AliasLoadsAndStores;
+  Value *Print;
+  Value *GetCurTid;
+  Value* MyRecordMem;
+  AliasAnalysis *AA;
+};
+}  // namespace
+
+
+void RaceDetector::getAnalysisUsage(AnalysisUsage &AU) const {
+    AU.addRequired<AAResultsWrapperPass>();
+    AU.addRequired<TargetLibraryInfoWrapperPass>();
+    AU.addRequired<MemoryDependenceWrapperPass>();
+  }
+char RaceDetector::ID = 0;
+static RegisterPass<RaceDetector> X("ins", "Instrument Read Write Pass");
+/*
+INITIALIZE_PASS_BEGIN(
+    RaceDetector, "rdetector",
+    "RaceDetector: data race detector.",
+    false, false)
+INITIALIZE_PASS_END(
+    RaceDetector, "rdetector",
+    "RaceDetector: data race detector.",
+    false, false)
+
+FunctionPass *llvm::createRaceDetectorPass() {
+  return new RaceDetector();
+}
+*/
+
+/// This function is called by the PassManagerBuilder to add the pass to the
+/// pass manager.  You can query the builder for the optimisation level and so
+/// on to decide whether to insert the pass.
+void addRDPass(const PassManagerBuilder &Builder, legacy::PassManagerBase &PM) {
+  PM.add(new RaceDetector());
+}
+
+/// Register the pass with the pass manager builder.  This instructs the
+/// builder to call the `addRDPass` function at the end of adding other
+/// optimisations, so that we can insert the pass.  See the
+/// `PassManagerBuilder` documentation for other extension points.
+RegisterStandardPasses SOpt(PassManagerBuilder::EP_OptimizerLast,
+                        addRDPass);
+/// Register the pass to run at -O0.  This is useful for debugging the pass,
+/// though modifications to this pass will typically want to disable this, as
+/// most passes don't make sense to run at -O0.
+RegisterStandardPasses S(PassManagerBuilder::EP_EnabledOnOptLevel0,
+                         addRDPass);
+
+StringRef RaceDetector::getPassName() const { return "RaceDetector"; }
+
+
+
+void RaceDetector::initializeCallbacks(Module &M) {
+  IRBuilder<> IRB(M.getContext());
+  AttributeList Attr;
+  Attr = Attr.addAttribute(M.getContext(), AttributeList::FunctionIndex,
+                           Attribute::NoUnwind);
+   //MyRecordMem = M.getOrInsertFunction("RecordMem", IRB.getVoidTy());
+
+  Type* VoidTy = Type::getVoidTy(M.getContext());
+  Type* void_ptr_ty = PointerType::getUnqual(Type::getInt8Ty(M.getContext()));
+  Type* size_ty = Type::getInt64Ty(M.getContext());
+  Type* int_ty = Type::getInt32Ty(M.getContext());
+
+  GetCurTid  = M.getOrInsertFunction("get_cur_tid", size_ty);
+
+  MyRecordMem = M.getOrInsertFunction("RecordMem", VoidTy, size_ty, void_ptr_ty, int_ty);
+}
+
+bool RaceDetector::runOnModule(Module &M) {
+  initializeCallbacks(M);
+  
+  bool Res = false;
+  const DataLayout &DL = M.getDataLayout();
+  int flag = 0;
+  SmallVector<Instruction*, 8> AllLoadsAndStores;
+  SmallVector<Instruction*, 8> LocalLoadsAndStores;
+  SmallVector<Instruction*, 8> MemIntrinCalls;
+  for (auto &F : M) {
+    for (auto &BB : F) {
+      for (auto &Inst : BB) {
+        if (isa<LoadInst>(Inst) || isa<StoreInst>(Inst))
+          LocalLoadsAndStores.push_back(&Inst);
+          chooseInstructionsToInstrument(LocalLoadsAndStores, AllLoadsAndStores,
+                                       DL);
+      }
+      chooseInstructionsToInstrument(LocalLoadsAndStores, AllLoadsAndStores, DL);
+    }
+    for (auto Inst : AllLoadsAndStores) {
+      AA = &getAnalysis<AAResultsWrapperPass>().getAAResults();
+      Res |= instrumentLoadOrStore(Inst, DL, F);
+    }
+  }
+  return Res;
+}
+
+
+static bool shouldInstrumentReadWriteFromAddress(const Module *M, Value *Addr) {
+  // Peel off GEPs and BitCasts.
+  Addr = Addr->stripInBoundsOffsets();
+
+  if (GlobalVariable *GV = dyn_cast<GlobalVariable>(Addr)) {
+    return false;
+   
+    if (GV->hasSection()) {
+      StringRef SectionName = GV->getSection();
+      // Check if the global is in the PGO counters section.
+      auto OF = Triple(M->getTargetTriple()).getObjectFormat();
+      if (SectionName.endswith(
+              getInstrProfSectionName(IPSK_cnts, OF, /*AddSegmentInfo=*/false)))
+        return false;
+    }
+
+    // Check if the global is private gcov data.
+    if (GV->getName().startswith("__llvm_gcov") ||
+        GV->getName().startswith("__llvm_gcda"))
+      return false;
+  }
+
+  // Do not instrument acesses from different address spaces; we cannot deal
+  // with them.
+  if (Addr) {
+    Type *PtrTy = cast<PointerType>(Addr->getType()->getScalarType());
+    if (PtrTy->getPointerAddressSpace() != 0)
+      return false;
+  }
+
+  return true;
+}
+static bool isVtableAccess(Instruction *I) {
+  if (MDNode *Tag = I->getMetadata(LLVMContext::MD_tbaa))
+    return Tag->isTBAAVtableAccess();
+  return false;
+}
+bool RaceDetector::addrPointsToConstantData(Value *Addr) {
+  // If this is a GEP, just analyze its pointer operand.
+  if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(Addr))
+    Addr = GEP->getPointerOperand();
+
+  if (GlobalVariable *GV = dyn_cast<GlobalVariable>(Addr)) {
+    if (GV->isConstant()) {
+      // Reads from constant globals can not race with any writes.
+      //NumOmittedReadsFromConstantGlobals++;
+      return true;
+    }
+  } else if (LoadInst *L = dyn_cast<LoadInst>(Addr)) {
+    if (isVtableAccess(L)) {
+      // Reads from a vtable pointer can not race with any writes.
+      //NumOmittedReadsFromVtable++;
+      return true;
+    }
+  }
+  return false;
+}
+void RaceDetector::chooseInstructionsToInstrument(
+    SmallVectorImpl<Instruction *> &Local, SmallVectorImpl<Instruction *> &All,
+    const DataLayout &DL) {
+  SmallSet<Value*, 8> WriteTargets;
+  // Iterate from the end.
+  for (Instruction *I : reverse(Local)) {
+    if (StoreInst *Store = dyn_cast<StoreInst>(I)) {
+      Value *Addr = Store->getPointerOperand();
+      if (!shouldInstrumentReadWriteFromAddress(I->getModule(), Addr))
+        continue;
+      WriteTargets.insert(Addr);
+    } else {
+      LoadInst *Load = cast<LoadInst>(I);
+      Value *Addr = Load->getPointerOperand();
+      if (!shouldInstrumentReadWriteFromAddress(I->getModule(), Addr))
+        continue;
+      if (WriteTargets.count(Addr)) {
+        // We will write to this temp, so no reason to analyze the read.
+        //NumOmittedReadsBeforeWrite++;
+        continue;
+      }
+      if (addrPointsToConstantData(Addr)) {
+        // Addr points to some constant data -- it can not race with any writes.
+        continue;
+      }
+    }
+
+    Value *Addr = isa<StoreInst>(*I)
+        ? cast<StoreInst>(I)->getPointerOperand()
+        : cast<LoadInst>(I)->getPointerOperand();
+    if (isa<AllocaInst>(GetUnderlyingObject(Addr, DL)) &&
+      !PointerMayBeCaptured(Addr, true, true)) {
+      // The variable is addressable but not captured, so it cannot be
+      // referenced from a different thread and participate in a data race
+      // (see llvm/Analysis/CaptureTracking.h for details).
+      //NumOmittedNonCaptured++;
+      continue;
+    }
+
+    All.push_back(I);
+  }
+  Local.clear();
+}
+
+bool RaceDetector::hasAnnotation(Instruction* i, Value *V, StringRef Ann, uint8_t level) {
+  if (Instruction *I = dyn_cast<Instruction>(V)) {
+    if (I->getOpcode() == Instruction::GetElementPtr) {
+      MDNode *MD = i->getMetadata("tyann");
+      if (MD) {
+        MDString *MDS = cast<MDString>(MD->getOperand(0));
+        if (MDS->getString().equals(Ann)) {
+          return true;
+        } else{
+          return false;
+        }
+      } else{
+        return false;
+      }
+    }
+
+    MDNode *MD = I->getMetadata("tyann");
+    if (MD) {
+      MDString *MDS = cast<MDString>(MD->getOperand(0));
+      if (MDS->getString().equals(Ann)) {
+        ConstantAsMetadata *CAM = cast<ConstantAsMetadata>(MD->getOperand(1));
+        ConstantInt *CI = cast<ConstantInt>(CAM->getValue());
+        if (CI->getValue() == level) {
+          return true;
+        } else {
+            return false;
+          }
+        }
+      }
+    } 
+    else if (GlobalValue *G = dyn_cast<GlobalValue>(V)) {
+    MDNode *MD = i->getMetadata("tyann");
+    if (MD) {
+      MDString *MDS = cast<MDString>(MD->getOperand(0));
+      if (MDS->getString().equals(Ann)) {
+        return true;
+      }
+    }    
+  }
+    MDNode *MD = i->getMetadata("tyann");
+    if (MD) {
+        MDString *MDS = cast<MDString>(MD->getOperand(0));
+        if (MDS->getString().equals(Ann)) {
+          return true;
+        }
+    }
+  return false;
+}
+bool RaceDetector::checkForAlias(Instruction *I){
+
+  bool ret = false;
+  for (Instruction *Inst : reverse(AnnotatedLoadsAndStores)) {  
+    MemoryLocation Loc = MemoryLocation::get(I); 
+    MemoryLocation EarlierLoc = MemoryLocation::get(Inst); 
+      if (!(AA->isNoAlias(Loc, EarlierLoc))){
+        AliasLoadsAndStores.push_back(I);
+        errs()<<"test2\n";
+        ret = true;
+      }
+  }
+  return ret;
+}
+
+bool RaceDetector::instrumentLoadOrStore(Instruction *I,
+                                            const DataLayout &DL, Function &F) {
+  IRBuilder<> IRB(I);
+  Module &M = *F.getParent();
+//  IRB.CreateCall(MyRecordMem, {});
+  bool IsWrite = isa<StoreInst>(*I);
+  Value *Addr = IsWrite
+      ? cast<StoreInst>(I)->getPointerOperand()
+      : cast<LoadInst>(I)->getPointerOperand();
+
+  Type *OrigPtrTy = Addr->getType();
+  Type *OrigTy = cast<PointerType>(OrigPtrTy)->getElementType();
+  assert(OrigTy->isSized());
+  uint32_t TypeSize = DL.getTypeStoreSizeInBits(OrigTy);
+  if (TypeSize != 8  && TypeSize != 16 &&
+      TypeSize != 32 && TypeSize != 64 && TypeSize != 128) {
+    // Ignore all unusual sizes.
+    return false;
+  }
+
+  bool ret = false;
+  if(IsWrite){
+    Value* op_s = I->getOperand(1);
+    if(!hasAnnotation(I, op_s, "check_av", 1)){
+      ret = checkForAlias(I);
+    }
+    else{
+      AnnotatedLoadsAndStores.push_back(I);
+      ret = true;
+    }
+  }
+  else {
+    Value* op_l = I->getOperand(0);
+    if (!hasAnnotation(I, op_l, "check_av", 1)){
+      ret = checkForAlias(I);
+    }
+    else{
+      AnnotatedLoadsAndStores.push_back(I);
+      ret = true;
+    }
+  }
+
+  if(ret){
+  SmallVector<Value*, 8> ArgsV;
+  Instruction* get_tid = IRB.CreateCall(GetCurTid, ArgsV);
+  ArgsV.clear();
+  BitCastInst* bitcast = new BitCastInst(Addr,
+           PointerType::getUnqual(Type::getInt8Ty(M.getContext())),
+             "", I); 
+  ArgsV.push_back(get_tid);
+  ArgsV.push_back(bitcast);
+  if(IsWrite){
+    Constant* write = ConstantInt::get(Type::getInt32Ty(M.getContext()), 1);
+    ArgsV.push_back(write);
+  }
+  else{
+    Constant* read = ConstantInt::get(Type::getInt32Ty(M.getContext()), 0);
+    ArgsV.push_back(read);
+  }
+  IRB.CreateCall(MyRecordMem, ArgsV);
+
+  }
+  return ret;
+}

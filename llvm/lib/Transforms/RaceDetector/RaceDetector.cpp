@@ -1,0 +1,724 @@
+#include "llvm/IR/Constants.h"
+#include "llvm/ADT/IntEqClasses.h"
+#include "llvm/ADT/DenseMap.h"
+#include "llvm/ADT/SetVector.h"
+#include "llvm/ADT/SmallVector.h"
+#include "llvm/ADT/Statistic.h"
+#include "llvm/Pass.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/CallSite.h"
+#include "llvm/Support/raw_ostream.h"
+#include "llvm/IR/InstIterator.h"
+#include "llvm/Support/CommandLine.h"
+
+#include "llvm/IR/IRBuilder.h"                                                                                                    
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/InstVisitor.h"
+#include "llvm/IR/LegacyPassManager.h"
+#include "llvm/Transforms/IPO/PassManagerBuilder.h"
+
+#include "llvm/ADT/SmallSet.h"
+#include "llvm/ADT/SmallString.h"
+#include "llvm/ADT/SmallVector.h"
+#include "llvm/ADT/Statistic.h"
+#include "llvm/ADT/StringExtras.h"
+#include "llvm/Analysis/CaptureTracking.h"
+#include "llvm/Analysis/TargetLibraryInfo.h"
+#include "llvm/Analysis/ValueTracking.h"
+#include "llvm/IR/DataLayout.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/IntrinsicInst.h"
+#include "llvm/IR/Intrinsics.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Metadata.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/Type.h"
+#include "llvm/ProfileData/InstrProf.h"
+#include "llvm/Support/CommandLine.h"
+#include "llvm/Support/Debug.h"
+#include "llvm/Support/MathExtras.h"
+#include "llvm/Transforms/Instrumentation.h"
+#include "llvm/Transforms/Utils/BasicBlockUtils.h"
+#include "llvm/Transforms/Utils/EscapeEnumerator.h"
+#include "llvm/Transforms/Utils/Local.h"
+#include "llvm/Transforms/Utils/ModuleUtils.h"
+#include "llvm/Pass.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/Support/raw_ostream.h"
+#include "RaceDetector.h"
+#include <fstream>
+#include <queue>
+
+using namespace llvm;
+
+cl::opt<bool> Pairwise("pairwise",
+        cl::desc("Print pairwise alignment information"));
+cl::opt<bool> Print("print-as", cl::desc("Print alias sets"));
+
+template<class T>
+DisjointSets<T>::DisjointSets(const PointersList& l) :
+        eq(l.size())
+{
+    // Insert pointers into NodeMap
+    unsigned i = 0;
+
+    for (typename PointersList::const_iterator lit = l.begin(), lend = l.end();
+            lit != lend; ++lit) {
+        const T V = *lit;
+        valuemap[V] = i++;
+    }
+}
+
+template<class T>
+bool DisjointSets<T>::add(T V)
+{
+    if (valuemap.count(V))
+        return false;
+
+    unsigned n = valuemap.size();
+
+    eq.grow(n + 1);
+    valuemap[V] = n + 1;
+
+    return true;
+}
+
+template<class T>
+unsigned DisjointSets<T>::findset(T V1)
+{
+    typename NodeMap::const_iterator mit1 = valuemap.find(V1);
+    if (mit1 == valuemap.end())
+        return -1;
+    unsigned id1 = mit1->second;
+    return id1;
+}
+template<class T>
+void DisjointSets<T>::unionfind(T V1, T V2)
+{
+    typename NodeMap::const_iterator mit1 = valuemap.find(V1);
+    typename NodeMap::const_iterator mit2 = valuemap.find(V2);
+    if (mit1 == valuemap.end() or mit2 == valuemap.end())
+        return;
+    unsigned id1 = mit1->second;
+    unsigned id2 = mit2->second;
+    eq.join(id1, id2);
+}
+
+template<class T>
+void DisjointSets<T>::finish()
+{
+    eq.compress();
+    unsigned num_classes = eq.getNumClasses();
+    asl.resize(num_classes);
+    for (typename NodeMap::const_iterator mit = valuemap.begin(), mend =
+            valuemap.end(); mit != mend; ++mit) {
+
+        T V = mit->first;
+        unsigned id = mit->second;
+        unsigned eq_class = eq[id];
+        asl[eq_class].insert(V);
+    }
+}
+
+void RaceDetector::joinReturn(llvm::Value* formal_return, Function *F) {
+  //errs() << *F << '\n';
+  //errs() << position << '\n';
+
+  for (Use &U : F->uses()) {
+    User *UR = U.getUser();
+    // Ignore blockaddress uses.
+    if (isa<BlockAddress>(UR)) continue;
+        
+    // Used by a non-instruction, or not the callee of a function, do not
+    // transform.
+    if (!isa<CallInst>(UR) && !isa<InvokeInst>(UR))
+      continue;
+        
+    CallSite CS(cast<Instruction>(UR));
+    if (!CS.isCallee(&U))
+      continue;
+
+    Instruction *call = CS.getInstruction();
+    // Check out all of the potentially constant arguments.  Note that we don't
+    // inspect varargs here.
+    Value *V1 = dyn_cast<Value>(call);
+    this->sets->unionfind(V1, formal_return);
+  }
+}
+void RaceDetector::joinParams(llvm::Argument* formal_param) {
+  llvm::Function *F = formal_param->getParent();
+  int position = formal_param->getArgNo();
+  //errs() << *F << '\n';
+  //errs() << position << '\n';
+
+  std::pair<Constant*, bool> argConst;
+  argConst.second = true;
+  for (Use &U : F->uses()) {
+    User *UR = U.getUser();
+    // Ignore blockaddress uses.
+    if (isa<BlockAddress>(UR)) continue;
+        
+    // Used by a non-instruction, or not the callee of a function, do not
+    // transform.
+    if (!isa<CallInst>(UR) && !isa<InvokeInst>(UR))
+      continue;
+        
+    CallSite CS(cast<Instruction>(UR));
+    if (!CS.isCallee(&U))
+      continue;
+
+    // Check out all of the potentially constant arguments.  Note that we don't
+    // inspect varargs here.
+    CallSite::arg_iterator AI = CS.arg_begin();
+    CallSite::arg_iterator AE = CS.arg_end();
+    Function::arg_iterator Arg = F->arg_begin();
+    for (int i = 0; AI != AE; i++, ++AI, ++Arg) {
+      if(i == position) {
+        Value *V1 = dyn_cast<Value>(AI);
+        Value *V2 = dyn_cast<Value>(Arg);
+        this->sets->unionfind(V1, V2);
+      }
+    }
+  }
+}
+
+bool RaceDetector::hasAnnotation(Instruction* i, Value *V, StringRef Ann, uint8_t level) {
+  if (Instruction *I = dyn_cast<Instruction>(V)) {
+    if (I->getOpcode() == Instruction::GetElementPtr) {
+      MDNode *MD = i->getMetadata("tyann");
+      if (MD) {
+        MDString *MDS = cast<MDString>(MD->getOperand(0));
+        if (MDS->getString().equals(Ann)) {
+          return true;
+        } else{
+          return false;
+        }
+      } else{
+        return false;
+      }
+    }
+
+    MDNode *MD = I->getMetadata("tyann");
+    if (MD) {
+      MDString *MDS = cast<MDString>(MD->getOperand(0));
+      if (MDS->getString().equals(Ann)) {
+        ConstantAsMetadata *CAM = cast<ConstantAsMetadata>(MD->getOperand(1));
+        ConstantInt *CI = cast<ConstantInt>(CAM->getValue());
+        if (CI->getValue() == level) {
+          return true;
+        } else {
+            return false;
+          }
+        }
+      }
+    } 
+  else if (GlobalValue *G = dyn_cast<GlobalValue>(V)) {
+    MDNode *MD = i->getMetadata("tyann");
+    if (MD) {
+      MDString *MDS = cast<MDString>(MD->getOperand(0));
+      if (MDS->getString().equals(Ann)) {
+        return true;
+      }
+    }    
+  }
+    MDNode *MD = i->getMetadata("tyann");
+    if (MD) {
+        MDString *MDS = cast<MDString>(MD->getOperand(0));
+        if (MDS->getString().equals(Ann)) {
+          return true;
+        }
+    }
+  return false;
+}
+bool RaceDetector::instrumentFunctions(StringRef fn_name) {
+  std::ifstream infile("functions.txt");
+  std::string line;
+  while (std::getline(infile, line)) {
+    if(fn_name.find(line) != StringRef::npos)
+      return true;
+  }
+  return false;
+}
+static bool isVtableAccess(Instruction *I) {
+  if (MDNode *Tag = I->getMetadata(LLVMContext::MD_tbaa))
+    return Tag->isTBAAVtableAccess();
+  return false;
+}
+bool RaceDetector::addrPointsToConstantData(Value *Addr) {
+  // If this is a GEP, just analyze its pointer operand.
+  if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(Addr))
+    Addr = GEP->getPointerOperand();
+
+  if (GlobalVariable *GV = dyn_cast<GlobalVariable>(Addr)) {
+    if (GV->isConstant()) {
+      // Reads from constant globals can not race with any writes.
+      //NumOmittedReadsFromConstantGlobals++;
+      return true;
+    }
+  } else if (LoadInst *L = dyn_cast<LoadInst>(Addr)) {
+    if (isVtableAccess(L)) {
+      // Reads from a vtable pointer can not race with any writes.
+      //NumOmittedReadsFromVtable++;
+      return true;
+    }
+  }
+  return false;
+}
+static bool shouldInstrumentReadWriteFromAddress(const Module *M, Value *Addr) {
+  // Peel off GEPs and BitCasts.
+  Addr = Addr->stripInBoundsOffsets();
+
+  if (GlobalVariable *GV = dyn_cast<GlobalVariable>(Addr)) {
+    return false;
+   
+    if (GV->hasSection()) {
+      StringRef SectionName = GV->getSection();
+      // Check if the global is in the PGO counters section.
+      auto OF = Triple(M->getTargetTriple()).getObjectFormat();
+      if (SectionName.endswith(
+              getInstrProfSectionName(IPSK_cnts, OF, /*AddSegmentInfo=*/false)))
+        return false;
+    }
+
+    // Check if the global is private gcov data.
+    if (GV->getName().startswith("__llvm_gcov") ||
+        GV->getName().startswith("__llvm_gcda"))
+      return false;
+  }
+
+  // Do not instrument acesses from different address spaces; we cannot deal
+  // with them.
+  if (Addr) {
+    Type *PtrTy = cast<PointerType>(Addr->getType()->getScalarType());
+    if (PtrTy->getPointerAddressSpace() != 0)
+      return false;
+  }
+
+  return true;
+}
+
+void RaceDetector::chooseInstructionsToInstrument(const DataLayout &DL) {
+  SmallSet<Value*, 8> WriteTargets;
+  // Iterate from the end.
+  //errs()<<"chooseInstructionsToInstrument\n";
+  for (Instruction *I : reverse(LocalLoadsAndStores)) {
+    //errs()<<*I<<"\n";
+    if (StoreInst *Store = dyn_cast<StoreInst>(I)) {
+      Value *Addr = Store->getPointerOperand();
+      if(hasAnnotation(I, Addr, "no_check", 1)){ 
+        continue;
+      }
+
+      if (!shouldInstrumentReadWriteFromAddress(I->getModule(), Addr)){
+        //errs()<<"test1\n";
+        continue;
+      }
+      WriteTargets.insert(Addr);
+      
+    } else {
+      LoadInst *Load = cast<LoadInst>(I);
+      Value *Addr = Load->getPointerOperand();
+      if(hasAnnotation(I, Addr, "no_check", 1)){
+        continue;
+      }
+      if (!shouldInstrumentReadWriteFromAddress(I->getModule(), Addr)){
+        //errs()<<"test2\n";
+        continue;
+      }
+/*      if (WriteTargets.count(Addr)) {
+        // We will write to this temp, so no reason to analyze the read.
+        //NumOmittedReadsBeforeWrite++;
+        continue;
+      }*/
+      if (addrPointsToConstantData(Addr)) {
+        //errs()<<"test3\n";
+        // Addr points to some constant data -- it can not race with any writes.
+        continue;
+      }
+    }
+
+    Value *Addr = isa<StoreInst>(*I)
+        ? cast<StoreInst>(I)->getPointerOperand()
+        : cast<LoadInst>(I)->getPointerOperand();
+    if (isa<AllocaInst>(GetUnderlyingObject(Addr, DL)) &&
+      !PointerMayBeCaptured(Addr, true, true)) {
+      // The variable is addressable but not captured, so it cannot be
+      // referenced from a different thread and participate in a data race
+      // (see llvm/Analysis/CaptureTracking.h for details). 
+      //NumOmittedNonCaptured++;
+      //errs()<<"test4\n";
+      continue;
+    } 
+
+    //errs()<<"test5\n";
+    MyLoadsAndStores.push_back(I);
+  } 
+  LocalLoadsAndStores.clear();
+}      
+void RaceDetector::initializeCallbacks(Module &M) {
+  IRBuilder<> IRB(M.getContext());
+  AttributeList Attr;
+  Attr = Attr.addAttribute(M.getContext(), AttributeList::FunctionIndex,
+                           Attribute::NoUnwind);
+   //MyRecordMem = M.getOrInsertFunction("RecordMem", IRB.getVoidTy());
+
+  Type* VoidTy = Type::getVoidTy(M.getContext());
+  Type* void_ptr_ty = PointerType::getUnqual(Type::getInt8Ty(M.getContext()));
+  Type* size_ty = Type::getInt64Ty(M.getContext());
+  Type* int_ty = Type::getInt32Ty(M.getContext());
+
+  GetCurTid  = M.getOrInsertFunction("get_cur_tid", size_ty);
+
+  MyRecordMem = M.getOrInsertFunction("RecordMem", VoidTy, size_ty, void_ptr_ty, int_ty);
+}
+
+bool RaceDetector::instrumentLoadOrStore(const DataLayout &DL, Function &F) {
+  bool ret = false;
+
+  //errs()<<"***instrumentLoadOrStore********\n";  
+  //errs()<<"Function:"<<F.getName()<<"\n";
+  for (auto I : MyLoadsAndStores) {
+  //errs()<<*I<<"\n";
+  IRBuilder<> IRB(I);
+  Module &M = *F.getParent();
+
+  bool IsWrite = isa<StoreInst>(*I);
+  Value *Addr = IsWrite
+      ? cast<StoreInst>(I)->getPointerOperand()
+      : cast<LoadInst>(I)->getPointerOperand();
+
+  bool is_in = 0;
+
+  //errs()<<"AnnotatedSet size:"<<AnnotatedSet.size()<<"\n";
+  if(IsWrite){
+    Value* op_s = I->getOperand(1);
+    int idx = getSetIDForPointer(op_s);
+    //errs()<<"set id:"<<idx<<"\n";
+    if(idx >= 0)
+      is_in = AnnotatedSet.find(idx) != AnnotatedSet.end();
+  }
+  else {
+    Value* op_l = I->getOperand(0);
+    int idx = getSetIDForPointer(op_l);
+    //errs()<<"set id:"<<idx<<"\n";
+    if(idx >= 0)
+      is_in = AnnotatedSet.find(idx) != AnnotatedSet.end();
+  }
+
+  if(is_in){
+  SmallVector<Value*, 8> ArgsV;
+  Instruction* get_tid = IRB.CreateCall(GetCurTid, ArgsV);
+  ArgsV.clear();
+  BitCastInst* bitcast = new BitCastInst(Addr,
+           PointerType::getUnqual(Type::getInt8Ty(M.getContext())),
+             "", I); 
+  ArgsV.push_back(get_tid);
+  ArgsV.push_back(bitcast);
+  if(IsWrite){
+    Constant* write = ConstantInt::get(Type::getInt32Ty(M.getContext()), 1);
+    ArgsV.push_back(write);
+  }
+  else{
+    Constant* read = ConstantInt::get(Type::getInt32Ty(M.getContext()), 0);
+    ArgsV.push_back(read);
+  }
+  IRB.CreateCall(MyRecordMem, ArgsV);
+  ret |= true;
+  }
+  }
+  MyLoadsAndStores.clear();
+  return ret;
+  
+}
+
+bool RaceDetector::getAnnotatedSet(const DataLayout &DL, Function &F) {
+  bool ret = false;
+  //errs()<<"getAnnotatedSet:**************\n";
+  //errs()<<"Function:"<<F.getName()<<"\n";
+  for (auto I : MyLoadsAndStores){
+    IRBuilder<> IRB(I);
+    Module &M = *F.getParent();
+    bool IsWrite = isa<StoreInst>(*I);
+    Value *Addr = IsWrite
+      ? cast<StoreInst>(I)->getPointerOperand()
+      : cast<LoadInst>(I)->getPointerOperand();
+
+    Type *OrigPtrTy = Addr->getType();
+    Type *OrigTy = cast<PointerType>(OrigPtrTy)->getElementType();
+    assert(OrigTy->isSized());
+    uint32_t TypeSize = DL.getTypeStoreSizeInBits(OrigTy);
+    if (TypeSize != 8  && TypeSize != 16 &&
+      TypeSize != 32 && TypeSize != 64 && TypeSize != 128) {
+    // Ignore all unusual sizes.
+      ret |= false;
+      continue;
+    }
+    if(IsWrite){
+      Value* op_s = I->getOperand(1);
+      int idx = getSetIDForPointer(op_s);
+      //errs()<<*op_s<<"\n";
+      //errs()<<"set id:"<<idx<<"\n";
+      if(!hasAnnotation(I, op_s, "check_r", 1)){
+        ret |= false;
+        continue;
+      }
+      if(idx >= 0)
+        AnnotatedSet.insert(idx);
+    }
+    else {
+      Value* op_l = I->getOperand(0);
+      int idx = getSetIDForPointer(op_l);
+      //errs()<<*op_l<<"\n";
+      //errs()<<"set id:"<<idx<<"\n";
+      if (!hasAnnotation(I, op_l, "check_r", 1)){
+        ret |= false;
+        continue;
+      }
+      if(idx >= 0)
+        AnnotatedSet.insert(idx);
+    }
+  }
+  return false;
+}       
+bool RaceDetector::runOnModule(Module& M)
+{
+  bool Res = false;
+    // Add all pointers from M to the initial list of pointers
+  SetVector<Value*> initial_list_pointers;
+  #if 1
+    // Insert all pointers into the initial list
+  for (Module::iterator Mit = M.begin(), Mend = M.end(); Mit != Mend; ++Mit) {
+    Function &F = *Mit;
+//    if (!instrumentFunctions(F.getName())) continue;
+    for (Function::arg_iterator ait = F.arg_begin(), aend = F.arg_end();
+                ait != aend; ++ait) {
+      Argument *A = &*ait;
+      if (A->getType()->isPointerTy()) {
+        initial_list_pointers.insert(A);
+      }
+    }
+    for (Function::iterator Fit = F.begin(), Fend = F.end(); Fit != Fend;
+                ++Fit) {
+      BasicBlock &BB = *Fit;
+      for (BasicBlock::iterator BBit = BB.begin(), BBend = BB.end();
+                    BBit != BBend; ++BBit) {
+        Instruction* I = &*BBit;
+        if (I->getType()->isPointerTy()) {
+            //errs()<<I->getParent()->getParent()->getName()<<"\n"; 
+          initial_list_pointers.insert(I);
+        }
+      }
+    }
+  }
+
+    // Now, create alias sets
+  this->sets = new DisjointSets<Value*>(initial_list_pointers);
+
+  for (Module::iterator Mit = M.begin(), Mend = M.end(); Mit != Mend; ++Mit) {
+    Function &F = *Mit;
+//    if (!instrumentFunctions(F.getName())) continue;
+    if (F.isDeclaration())
+      continue;
+      // Interprocedural matching
+
+      // Store all return values of this function
+/*
+      std::queue<llvm::Value*> return_values;
+      for (Function::iterator Fit = F.begin(), Fend = F.end(); Fit != Fend;
+                ++Fit) {
+        BasicBlock &BB = *Fit;
+        ReturnInst *ret = dyn_cast<ReturnInst>(BB.getTerminator());
+        if (ret) {
+          Value *return_val = ret->getReturnValue();
+          if (return_val) {
+            return_values.push(return_val);
+          }
+        }
+      }
+      std::queue<llvm::Argument*> worklist;
+
+      // Initialize worklist queue with every formal param of every function
+      for(Module::iterator F=M.begin(), E=M.end(); F != E ; ++F){
+        Function::arg_iterator formal_param = F->arg_begin();
+        Function::arg_iterator FE = F->arg_end();
+
+        for(;formal_param != FE; ++formal_param){
+          worklist.push(formal_param);
+        }
+      }
+
+      llvm::Value *current_formal_return;
+      while(!return_values.empty()) {
+        current_formal_return = return_values.front();
+        return_values.pop();
+        joinReturn(current_formal_return, &F);
+      }
+
+      llvm::Argument *current_formal_param;
+      while(!worklist.empty()) {
+        current_formal_param = worklist.front();
+        worklist.pop();
+        joinParams(current_formal_param);
+      }
+*/
+      // Find all call sites of this function to perform matching
+      // This follows the logic of IPConstantProp of LLVM
+
+      // Intraprocedural section
+      SetVector<Value*> F_pointers;
+      for (Function::arg_iterator ait = F.arg_begin(), aend = F.arg_end();
+                ait != aend; ++ait) {
+        Argument *A = &*ait;
+        if (A->getType()->isPointerTy()) {
+          F_pointers.insert(A);
+        }
+      }
+      for (inst_iterator Iit = inst_begin(F), Eit = inst_end(F); Iit != Eit;
+                ++Iit) {
+        Instruction* I = &*Iit;
+        if (I->getType()->isPointerTy()) {
+          F_pointers.insert(I);
+        }
+      }
+      AA = &getAnalysis<AAResultsWrapperPass>(F).getAAResults();
+      size_t n = F_pointers.size();
+        
+      Value* p[2];
+      for (unsigned i = 0; i < n; ++i) {
+        p[0] = F_pointers[i];
+        for (unsigned j = i + 1; j < n; ++j) {
+          p[1] = F_pointers[j];
+          switch (AA->alias(p[0], p[1])) {
+            case MayAlias:
+            case PartialAlias:
+            case MustAlias:
+                        // union-find
+              this->sets->unionfind(p[0], p[1]);
+              if (Pairwise) {
+                errs() << p[0]->getName() << " is alias of "
+                                    << p[1]->getName() << "; "
+                                    << AA->alias(p[0], p[1]) << "\n";
+              }
+              break;
+            case NoAlias:
+              break;
+          }
+        }
+      }
+    }
+    // Finish the DisjointSets structure
+    sets->finish();
+#if 1
+    for (Module::iterator Mit = M.begin(), Mend = M.end(); Mit != Mend; ++Mit) {
+      Function &F = *Mit;
+//      if (!instrumentFunctions(F.getName())) continue;
+      if (F.isDeclaration()) continue;
+      initializeCallbacks(*F.getParent());
+      const DataLayout &DL = F.getParent()->getDataLayout();
+      int flag = 0;
+      for (auto &BB : F) {
+        for (auto &Inst : BB) {
+          if (isa<LoadInst>(Inst) || isa<StoreInst>(Inst)){
+            LocalLoadsAndStores.push_back(&Inst);
+          }
+        }
+      }
+      chooseInstructionsToInstrument(DL);
+      getAnnotatedSet(DL, F);
+      //errs()<<":Annotated size:"<<AnnotatedSet.size()<<"\n";
+      Res |= instrumentLoadOrStore(DL, F);
+//      Res |= instrumentLoadOrStoreGlobal(DL, F);
+    }
+    
+          
+    
+#endif
+    LocalLoadsAndStores.clear();
+    MyLoadsAndStores.clear();
+/*
+    for (Module::iterator Mit = M.begin(), Mend = M.end(); Mit != Mend; ++Mit) {
+      Function &F = *Mit;
+      if(F.getName() == "RecordMem" || F.getName() == "get_cur_tid" || F.getName() == "_GLOBAL__sub_I_simple.cpp")
+        continue;
+      if (F.isDeclaration()) continue;
+      initializeCallbacks(*F.getParent());
+      const DataLayout &DL = F.getParent()->getDataLayout();
+      //int flag = 0;
+      for (auto &BB : F) {
+        for (auto &Inst : BB) {
+          if (isa<LoadInst>(Inst) || isa<StoreInst>(Inst))
+            LocalLoadsAndStores.push_back(&Inst);
+            //errs()<<Inst<<"\n";
+          }
+      }
+      chooseInstructionsToInstrument(DL);
+      for (Instruction *I : LocalLoadsAndStores) {
+        //errs()<<*I<<"\n";
+      }
+     #if 1 
+      //errs()<<F.getName()<<"**** MyLoadsAndStores *****\n";
+      for (Instruction *I : MyLoadsAndStores) {
+        //errs()<<*I<<"\n";
+      }
+      #endif
+//      for (auto Inst : MyLoadsAndStores) {
+ //       errs()<<*Inst<<"\n";
+        Res |= instrumentLoadOrStore(DL, F);
+  //    }
+    }
+*/
+  
+#endif
+      errs()<<"\n";
+    //printSets();
+    //go over all load and store
+    return Res;
+}
+void RaceDetector::printSets(){
+//    if (Print) {
+        errs() << "\nNumber of alias sets: " << sets->size() << "\n";
+
+        for (DisjointSets<Value*>::iterator sit = sets->begin(), send =
+                sets->end(); sit != send; ++sit) {
+            const SetVector<Value*>& set = *sit;
+
+            SetVector<Value*>::iterator vit, vend;
+
+            for (vit = set.begin(), vend = set.end(); vit != vend; ++vit) {
+                const Value* V = *vit;
+                const Argument *A = dyn_cast<Argument>(V);
+                const Instruction *I = dyn_cast<Instruction>(V);
+                if (I){
+                    errs() << I->getParent()->getParent()->getName() << ".";
+                }
+                else if (A) {
+                    errs() << A->getParent()->getName() << ".";
+                }
+                errs() << V->getName();
+                errs() << "\n ";
+            }
+
+            errs() << "\n\n";
+        }
+   //}
+    
+}
+void RaceDetector::getAnalysisUsage(AnalysisUsage& AU) const
+{
+      AU.setPreservesAll();
+      AU.addRequired<AAResultsWrapperPass>();
+      AU.addRequired<TargetLibraryInfoWrapperPass>();
+//    AU.addRequired<AliasAnalysis>();
+}
+void addRDPass(const PassManagerBuilder &Builder, legacy::PassManagerBase &PM) {
+  PM.add(new RaceDetector());
+}
+
+RegisterStandardPasses SOpt(PassManagerBuilder::EP_OptimizerLast,
+                        addRDPass);
+RegisterStandardPasses S(PassManagerBuilder::EP_EnabledOnOptLevel0,
+                         addRDPass);
+char RaceDetector::ID = 0;
+static RegisterPass<RaceDetector> Y("ins", "Race Detector", false, false);
+

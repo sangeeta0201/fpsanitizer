@@ -1,0 +1,841 @@
+#include "llvm/Transforms/RaceDetector.h"
+#include "llvm/ADT/SetVector.h"
+#include "llvm/Analysis/AliasAnalysis.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/IR/DataLayout.h"
+#include "llvm/IR/DerivedTypes.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/InstIterator.h"
+#include "llvm/IR/Instructions.h"
+#include "llvm/IR/Module.h"
+#include "llvm/Pass.h"
+#include "llvm/Support/CommandLine.h"
+#include "llvm/Support/Debug.h"
+#include "llvm/Support/raw_ostream.h"
+#include "llvm/IR/LegacyPassManager.h"
+#include "llvm/Transforms/IPO/PassManagerBuilder.h"
+#include "llvm/IR/IRBuilder.h"
+
+#include "llvm/ADT/SmallSet.h"
+#include "llvm/ADT/SmallString.h"
+#include "llvm/ADT/SmallVector.h"
+#include "llvm/ADT/Statistic.h"
+#include "llvm/ADT/StringExtras.h"
+#include "llvm/Analysis/CaptureTracking.h"
+#include "llvm/Analysis/TargetLibraryInfo.h"
+#include "llvm/Analysis/ValueTracking.h"
+#include "llvm/IR/DataLayout.h"
+#include "llvm/IR/Function.h"
+#include "llvm/IR/IntrinsicInst.h"
+#include "llvm/IR/Intrinsics.h"
+#include "llvm/IR/LLVMContext.h"
+#include "llvm/IR/Metadata.h"
+#include "llvm/IR/Module.h"
+#include "llvm/IR/Type.h"
+#include "llvm/ProfileData/InstrProf.h"
+#include "llvm/Support/CommandLine.h"
+#include "llvm/Support/Debug.h"
+#include "llvm/Support/MathExtras.h"
+#include "llvm/Transforms/Instrumentation.h"
+#include "llvm/Transforms/Utils/BasicBlockUtils.h"
+#include "llvm/Transforms/Utils/EscapeEnumerator.h"
+#include "llvm/Transforms/Utils/Local.h"
+#include "llvm/Transforms/Utils/ModuleUtils.h"
+#include "llvm/Analysis/MemoryDependenceAnalysis.h"
+
+#include "llvm/Pass.h"
+#include "llvm/IR/Constants.h"
+#include "llvm/Support/raw_ostream.h"
+#include "llvm/Analysis/AliasAnalysis.h"
+
+using namespace llvm;                                                                                                             
+static cl::opt<bool> PrintAll("print-all-alias-modref-info_rd", cl::ReallyHidden);
+
+static cl::opt<bool> PrintNoAlias("print-no-aliases_rd", cl::ReallyHidden);
+static cl::opt<bool> PrintMayAlias("print-may-aliases_rd", cl::ReallyHidden);
+static cl::opt<bool> PrintPartialAlias("print-partial-aliases_rd", cl::ReallyHidden);
+static cl::opt<bool> PrintMustAlias("print-must-aliases_rd", cl::ReallyHidden);
+
+static cl::opt<bool> PrintNoModRef("print-no-modref_rd", cl::ReallyHidden);
+static cl::opt<bool> PrintRef("print-ref_rd", cl::ReallyHidden);
+static cl::opt<bool> PrintMod("print-mod_rd", cl::ReallyHidden);
+static cl::opt<bool> PrintModRef("print-modref_rd", cl::ReallyHidden);
+static cl::opt<bool> PrintMust("print-must_rd", cl::ReallyHidden);
+static cl::opt<bool> PrintMustRef("print-mustref_rd", cl::ReallyHidden);
+static cl::opt<bool> PrintMustMod("print-mustmod_rd", cl::ReallyHidden);
+static cl::opt<bool> PrintMustModRef("print-mustmodref_rd", cl::ReallyHidden);
+
+static cl::opt<bool> EvalAAMD("evaluate-aa-metadata_rd", cl::ReallyHidden);
+
+namespace llvm {
+class RaceDetector : public FunctionPass {
+  std::unique_ptr<AAEvaluator> P;
+
+public:
+  static char ID; // Pass identification, replacement for typeid
+  RaceDetector() : FunctionPass(ID) {
+//    initializeAAEvalLegacyPassPass(*PassRegistry::getPassRegistry());
+  }
+
+  void getAnalysisUsage(AnalysisUsage &AU) const override {
+    AU.addRequired<AAResultsWrapperPass>();
+    AU.setPreservesAll();
+  }
+
+  bool doInitialization(Module &M) override {
+    P.reset(new AAEvaluator());
+    return false;
+  }
+
+  bool runOnFunction(Function &F) override {
+    P->runInternal(F, getAnalysis<AAResultsWrapperPass>().getAAResults());
+    return false;
+  }
+  bool doFinalization(Module &M) override {
+    for(Instruction *I1 : P->AliasLoadsAndStores){
+      errs()<<"test"<<"\n";
+      errs()<<*I1<<"\n";
+    }
+    P.reset();
+    return false;
+  }
+
+  void initializeCallbacks(Module &M);
+  bool instrumentLoadOrStore(Instruction *I, Function &F);
+  bool checkForAlias(Instruction *I);
+  bool instrumentAliasLoadOrStore(Instruction *I, const DataLayout &DL, Function &F);
+  void chooseInstructionsToInstrument(
+    SmallVectorImpl<Instruction *> &Local, SmallVectorImpl<Instruction *> &All,
+    const DataLayout &DL);
+  bool addrPointsToConstantData(Value *Addr);
+  bool instrumentFunctions(StringRef fn_name);
+  bool hasAnnotation(Instruction* i, Value *V, StringRef Ann, uint8_t level);
+  SmallVector<Instruction*, 8> AnnotatedLoadsAndStores;
+//  SmallVector<Instruction*, 8> AliasLoadsAndStores;
+  SmallVector<Instruction*, 8> LoadsAndStores;
+  SmallVector<Instruction*, 8> AllLoadsAndStores;
+  SmallVector<Instruction*, 8> LocalLoadsAndStores;
+  SmallVector<Instruction*, 8> MemIntrinCalls;
+  Value *Print;
+  Value *GetCurTid;
+  Value* MyRecordMem;
+  AliasAnalysis *AA;
+
+};
+}                                                                                                                                 
+
+static void PrintResults(const char *Msg, bool P, const Value *V1,
+                         const Value *V2, const Module *M) {
+  if (PrintAll || P) {
+    std::string o1, o2;
+    { 
+      raw_string_ostream os1(o1), os2(o2);
+      V1->printAsOperand(os1, true, M);
+      V2->printAsOperand(os2, true, M);
+    }
+    
+    if (o2 < o1)
+      std::swap(o1, o2);
+    errs() << "  " << Msg << ":\t"
+           << o1 << ", "
+           << o2 << "\n";
+  }
+}
+
+char RaceDetector::ID = 0;
+static RegisterPass<RaceDetector> X("ins", "Instrument Read Write Pass");
+/*
+INITIALIZE_PASS_BEGIN(
+    RaceDetector, "rdetector",
+    "RaceDetector: data race detector.",
+    false, false)
+INITIALIZE_PASS_END(
+    RaceDetector, "rdetector",
+    "RaceDetector: data race detector.",
+    false, false)
+
+FunctionPass *llvm::createRaceDetectorPass() {
+  return new RaceDetector();
+}
+*/
+
+/// This function is called by the PassManagerBuilder to add the pass to the
+/// pass manager.  You can query the builder for the optimisation level and so
+/// on to decide whether to insert the pass.
+void addRDPass(const PassManagerBuilder &Builder, legacy::PassManagerBase &PM) {
+  PM.add(new RaceDetector());
+}
+
+/// Register the pass with the pass manager builder.  This instructs the
+/// builder to call the `addRDPass` function at the end of adding other
+/// optimisations, so that we can insert the pass.  See the
+/// `PassManagerBuilder` documentation for other extension points.
+RegisterStandardPasses SOpt(PassManagerBuilder::EP_OptimizerLast,
+                        addRDPass);
+/// Register the pass to run at -O0.  This is useful for debugging the pass,
+/// though modifications to this pass will typically want to disable this, as
+/// most passes don't make sense to run at -O0.
+RegisterStandardPasses S(PassManagerBuilder::EP_EnabledOnOptLevel0,
+                         addRDPass);
+
+//StringRef RaceDetector::getPassName() const { return "RaceDetector"; }
+
+
+
+void RaceDetector::initializeCallbacks(Module &M) {
+  IRBuilder<> IRB(M.getContext());
+  AttributeList Attr;
+  Attr = Attr.addAttribute(M.getContext(), AttributeList::FunctionIndex,
+                           Attribute::NoUnwind);
+   //MyRecordMem = M.getOrInsertFunction("RecordMem", IRB.getVoidTy());
+
+  Type* VoidTy = Type::getVoidTy(M.getContext());
+  Type* void_ptr_ty = PointerType::getUnqual(Type::getInt8Ty(M.getContext()));
+  Type* size_ty = Type::getInt64Ty(M.getContext());
+  Type* int_ty = Type::getInt32Ty(M.getContext());
+
+  GetCurTid  = M.getOrInsertFunction("get_cur_tid", size_ty);
+
+  MyRecordMem = M.getOrInsertFunction("RecordMem", VoidTy, size_ty, void_ptr_ty, int_ty);
+}
+
+/*
+bool RaceDetector::runOnFunction(Function &F) {
+  //AA = &getAnalysis<AAResultsWrapperPass>().getAAResults();
+  AA = &getAnalysis<CFLAndersAAWrapperPass>().getResult();
+  initializeCallbacks(*F.getParent());
+  bool Res = false;
+  const DataLayout &DL = F.getParent()->getDataLayout();
+  SmallVector<Instruction*, 8> AllLoadsAndStores;
+  SmallVector<Instruction*, 8> LocalLoadsAndStores;
+  SmallVector<Instruction*, 8> MemIntrinCalls;
+  int flag = 0;
+   for (auto &BB : F) {
+    for (auto &Inst : BB) {
+        if (isa<LoadInst>(Inst) || isa<StoreInst>(Inst))
+          LocalLoadsAndStores.push_back(&Inst);
+          chooseInstructionsToInstrument(LocalLoadsAndStores, AllLoadsAndStores,
+                                       DL);
+    }
+    chooseInstructionsToInstrument(LocalLoadsAndStores, AllLoadsAndStores, DL);
+    checkForAlias();
+  }
+  for (auto Inst : AllLoadsAndStores) {
+    Res |= instrumentLoadOrStore(Inst, DL, F);
+  }
+  return Res;
+}
+*/
+
+static bool shouldInstrumentReadWriteFromAddress(const Module *M, Value *Addr) {
+  // Peel off GEPs and BitCasts.
+  Addr = Addr->stripInBoundsOffsets();
+
+  if (GlobalVariable *GV = dyn_cast<GlobalVariable>(Addr)) {
+    return false;
+   
+    if (GV->hasSection()) {
+      StringRef SectionName = GV->getSection();
+      // Check if the global is in the PGO counters section.
+      auto OF = Triple(M->getTargetTriple()).getObjectFormat();
+      if (SectionName.endswith(
+              getInstrProfSectionName(IPSK_cnts, OF, /*AddSegmentInfo=*/false)))
+        return false;
+    }
+
+    // Check if the global is private gcov data.
+    if (GV->getName().startswith("__llvm_gcov") ||
+        GV->getName().startswith("__llvm_gcda"))
+      return false;
+  }
+
+  // Do not instrument acesses from different address spaces; we cannot deal
+  // with them.
+  if (Addr) {
+    Type *PtrTy = cast<PointerType>(Addr->getType()->getScalarType());
+    if (PtrTy->getPointerAddressSpace() != 0)
+      return false;
+  }
+
+  return true;
+}
+static bool isVtableAccess(Instruction *I) {
+  if (MDNode *Tag = I->getMetadata(LLVMContext::MD_tbaa))
+    return Tag->isTBAAVtableAccess();
+  return false;
+}
+bool RaceDetector::addrPointsToConstantData(Value *Addr) {
+  // If this is a GEP, just analyze its pointer operand.
+  if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(Addr))
+    Addr = GEP->getPointerOperand();
+
+  if (GlobalVariable *GV = dyn_cast<GlobalVariable>(Addr)) {
+    if (GV->isConstant()) {
+      // Reads from constant globals can not race with any writes.
+      //NumOmittedReadsFromConstantGlobals++;
+      return true;
+    }
+  } else if (LoadInst *L = dyn_cast<LoadInst>(Addr)) {
+    if (isVtableAccess(L)) {
+      // Reads from a vtable pointer can not race with any writes.
+      //NumOmittedReadsFromVtable++;
+      return true;
+    }
+  }
+  return false;
+}
+void RaceDetector::chooseInstructionsToInstrument(
+    SmallVectorImpl<Instruction *> &Local, SmallVectorImpl<Instruction *> &All,
+    const DataLayout &DL) {
+  SmallSet<Value*, 8> WriteTargets;
+  // Iterate from the end.
+  for (Instruction *I : reverse(Local)) {
+    if (StoreInst *Store = dyn_cast<StoreInst>(I)) {
+      Value *Addr = Store->getPointerOperand();
+      if (!shouldInstrumentReadWriteFromAddress(I->getModule(), Addr))
+        continue;
+      Value* op_s = I->getOperand(1);
+      if(!hasAnnotation(I, op_s, "check_av", 1)){
+        LoadsAndStores.push_back(I);
+      }
+      else{
+        AnnotatedLoadsAndStores.push_back(I);
+      }
+      WriteTargets.insert(Addr);
+    } else {
+      LoadInst *Load = cast<LoadInst>(I);
+      Value *Addr = Load->getPointerOperand();
+      if (!shouldInstrumentReadWriteFromAddress(I->getModule(), Addr))
+        continue;
+      if (WriteTargets.count(Addr)) {
+        // We will write to this temp, so no reason to analyze the read.
+        //NumOmittedReadsBeforeWrite++;
+        continue;
+      }
+      if (addrPointsToConstantData(Addr)) {
+        // Addr points to some constant data -- it can not race with any writes.
+        continue;
+      }
+      
+      Value* op_l = I->getOperand(0);
+      if (!hasAnnotation(I, op_l, "check_av", 1)){
+        LoadsAndStores.push_back(I);
+      }
+      else{
+        AnnotatedLoadsAndStores.push_back(I);
+      }
+      
+    }
+
+    Value *Addr = isa<StoreInst>(*I)
+        ? cast<StoreInst>(I)->getPointerOperand()
+        : cast<LoadInst>(I)->getPointerOperand();
+    if (isa<AllocaInst>(GetUnderlyingObject(Addr, DL)) &&
+      !PointerMayBeCaptured(Addr, true, true)) {
+      // The variable is addressable but not captured, so it cannot be
+      // referenced from a different thread and participate in a data race
+      // (see llvm/Analysis/CaptureTracking.h for details).
+      //NumOmittedNonCaptured++;
+      continue;
+    }
+
+    All.push_back(I);
+  }
+  Local.clear();
+}
+
+bool RaceDetector::hasAnnotation(Instruction* i, Value *V, StringRef Ann, uint8_t level) {
+  if (Instruction *I = dyn_cast<Instruction>(V)) {
+    if (I->getOpcode() == Instruction::GetElementPtr) {
+      MDNode *MD = i->getMetadata("tyann");
+      if (MD) {
+        MDString *MDS = cast<MDString>(MD->getOperand(0));
+        if (MDS->getString().equals(Ann)) {
+          return true;
+        } else{
+          return false;
+        }
+      } else{
+        return false;
+      }
+    }
+
+    MDNode *MD = I->getMetadata("tyann");
+    if (MD) {
+      MDString *MDS = cast<MDString>(MD->getOperand(0));
+      if (MDS->getString().equals(Ann)) {
+        ConstantAsMetadata *CAM = cast<ConstantAsMetadata>(MD->getOperand(1));
+        ConstantInt *CI = cast<ConstantInt>(CAM->getValue());
+        if (CI->getValue() == level) {
+          return true;
+        } else {
+            return false;
+          }
+        }
+      }
+    } 
+    else if (GlobalValue *G = dyn_cast<GlobalValue>(V)) {
+    MDNode *MD = i->getMetadata("tyann");
+    if (MD) {
+      MDString *MDS = cast<MDString>(MD->getOperand(0));
+      if (MDS->getString().equals(Ann)) {
+        return true;
+      }
+    }    
+  }
+    MDNode *MD = i->getMetadata("tyann");
+    if (MD) {
+        MDString *MDS = cast<MDString>(MD->getOperand(0));
+        if (MDS->getString().equals(Ann)) {
+          return true;
+        }
+    }
+  return false;
+}
+
+/*
+bool RaceDetector::checkForAlias(){
+
+  bool ret = false;
+  for (Instruction *I1 : reverse(AnnotatedLoadsAndStores)) {  
+    errs()<<*I1<<"\n";
+    for (Instruction *I2 : reverse(LoadsAndStores)) {  
+      errs()<<*I2<<"\n";
+      MemoryLocation Loc = MemoryLocation::get(I1); 
+      MemoryLocation EarlierLoc = MemoryLocation::get(I2); 
+        //if (!(AA->isNoAlias(Loc, EarlierLoc))){
+//        switch ((AA->alias(Loc, EarlierLoc))){
+        switch (AA.alias(MemoryLocation::get(cast<LoadInst>(Load)),
+                         MemoryLocation::get(cast<StoreInst>(Store)))) 
+          AliasLoadsAndStores.push_back(I1);
+          AliasLoadsAndStores.push_back(I2);
+          errs()<<"test2\n";
+          ret = true;
+        }
+
+    }
+  }
+  return ret;
+}
+*/
+bool RaceDetector::instrumentLoadOrStore(Instruction *I,
+                                            Function &F) {
+  const DataLayout &DL = F.getParent()->getDataLayout();
+  IRBuilder<> IRB(I);
+  Module &M = *F.getParent();
+  bool IsWrite = isa<StoreInst>(*I);
+  Value *Addr = IsWrite
+      ? cast<StoreInst>(I)->getPointerOperand()
+      : cast<LoadInst>(I)->getPointerOperand();
+
+  Type *OrigPtrTy = Addr->getType();
+  Type *OrigTy = cast<PointerType>(OrigPtrTy)->getElementType();
+  assert(OrigTy->isSized());
+  uint32_t TypeSize = DL.getTypeStoreSizeInBits(OrigTy);
+  if (TypeSize != 8  && TypeSize != 16 &&
+      TypeSize != 32 && TypeSize != 64 && TypeSize != 128) {
+    // Ignore all unusual sizes.
+    return false;
+  }
+
+  bool ret = false;
+#if 0
+  if(ret){
+  SmallVector<Value*, 8> ArgsV;
+  Instruction* get_tid = IRB.CreateCall(GetCurTid, ArgsV);
+  ArgsV.clear();
+  BitCastInst* bitcast = new BitCastInst(Addr,
+           PointerType::getUnqual(Type::getInt8Ty(M.getContext())),
+             "", I); 
+  ArgsV.push_back(get_tid);
+  ArgsV.push_back(bitcast);
+  if(IsWrite){
+    Constant* write = ConstantInt::get(Type::getInt32Ty(M.getContext()), 1);
+    ArgsV.push_back(write);
+  }
+  else{
+    Constant* read = ConstantInt::get(Type::getInt32Ty(M.getContext()), 0);
+    ArgsV.push_back(read);
+  }
+  IRB.CreateCall(MyRecordMem, ArgsV);
+
+  }
+#endif
+  return ret;
+}
+
+static inline void
+PrintModRefResults(const char *Msg, bool P, Instruction *I, Value *Ptr,
+                   Module *M) {
+  if (PrintAll || P) {
+    errs() << "  " << Msg << ":  Ptr: ";
+    Ptr->printAsOperand(errs(), true, M);
+    errs() << "\t<->" << *I << '\n';
+  }
+}
+
+static inline void
+PrintModRefResults(const char *Msg, bool P, CallSite CSA, CallSite CSB,
+                   Module *M) {
+  if (PrintAll || P) {
+    errs() << "  " << Msg << ": " << *CSA.getInstruction()
+           << " <-> " << *CSB.getInstruction() << '\n';
+  }
+}
+
+
+static inline void
+PrintLoadStoreResults(const char *Msg, bool P, const Value *V1,
+                      const Value *V2, const Module *M) {
+  if (PrintAll || P) {
+    errs() << "  " << Msg << ": " << *V1
+           << " <-> " << *V2 << '\n';
+  }
+}
+
+static void PrintPercent(int64_t Num, int64_t Sum) {
+  errs() << "(" << Num * 100LL / Sum << "." << ((Num * 1000LL / Sum) % 10)
+         << "%)\n";
+}
+
+static inline bool isInterestingPointer(Value *V) {
+  return V->getType()->isPointerTy()
+      && !isa<ConstantPointerNull>(V);
+}
+
+
+PreservedAnalyses AAEvaluator::run(Function &F, FunctionAnalysisManager &AM) {
+  runInternal(F, AM.getResult<AAManager>(F));
+  return PreservedAnalyses::all();
+}
+
+void AAEvaluator::runInternal(Function &F, AAResults &AA) {
+  const DataLayout &DL = F.getParent()->getDataLayout();
+
+  ++FunctionCount;
+
+  SetVector<Value *> Pointers;
+  SmallSetVector<CallSite, 16> CallSites;
+  //SetVector<Value *> Loads;
+  //SetVector<Value *> Stores;
+  SetVector<Instruction *> Loads;
+  SetVector<Instruction *> Stores;
+
+  for (auto &I : F.args())
+    if (I.getType()->isPointerTy())    // Add all pointer arguments.
+      Pointers.insert(&I);
+
+  for (inst_iterator I = inst_begin(F), E = inst_end(F); I != E; ++I) {
+    if (I->getType()->isPointerTy()) // Add all pointer instructions.
+      Pointers.insert(&*I);
+    if (EvalAAMD && isa<LoadInst>(&*I))
+      Loads.insert(&*I);
+    if (EvalAAMD && isa<StoreInst>(&*I))
+      Stores.insert(&*I);
+    Instruction &Inst = *I;
+    if (auto CS = CallSite(&Inst)) {
+      Value *Callee = CS.getCalledValue();
+      // Skip actual functions for direct function calls.
+      if (!isa<Function>(Callee) && isInterestingPointer(Callee))
+        Pointers.insert(Callee);
+      // Consider formals.
+      for (Use &DataOp : CS.data_ops())
+        if (isInterestingPointer(DataOp))
+       Pointers.insert(DataOp);
+      CallSites.insert(CS);
+    } else {
+      // Consider all operands.
+      for (Instruction::op_iterator OI = Inst.op_begin(), OE = Inst.op_end();
+           OI != OE; ++OI)
+        if (isInterestingPointer(*OI))
+          Pointers.insert(*OI);
+    }
+  }
+
+  if (PrintAll || PrintNoAlias || PrintMayAlias || PrintPartialAlias ||
+      PrintMustAlias || PrintNoModRef || PrintMod || PrintRef || PrintModRef)
+    errs() << "Function: " << F.getName() << ": " << Pointers.size()
+           << " pointers, " << CallSites.size() << " call sites\n";
+
+  // iterate over the worklist, and run the full (n^2)/2 disambiguations
+  for (SetVector<Value *>::iterator I1 = Pointers.begin(), E = Pointers.end();
+       I1 != E; ++I1) {
+    uint64_t I1Size = MemoryLocation::UnknownSize;
+    Type *I1ElTy = cast<PointerType>((*I1)->getType())->getElementType();
+    if (I1ElTy->isSized()) I1Size = DL.getTypeStoreSize(I1ElTy);
+
+    for (SetVector<Value *>::iterator I2 = Pointers.begin(); I2 != I1; ++I2) {
+      uint64_t I2Size = MemoryLocation::UnknownSize;
+      Type *I2ElTy =cast<PointerType>((*I2)->getType())->getElementType();
+      if (I2ElTy->isSized()) I2Size = DL.getTypeStoreSize(I2ElTy);
+
+      switch (AA.alias(*I1, I1Size, *I2, I2Size)) {
+      case NoAlias:
+        PrintResults("NoAlias", PrintNoAlias, *I1, *I2, F.getParent());
+        ++NoAliasCount;
+        break;
+      case MayAlias:
+        PrintResults("MayAlias", PrintMayAlias, *I1, *I2, F.getParent());    
+        ++MayAliasCount;
+        break;
+      case PartialAlias:
+        PrintResults("PartialAlias", PrintPartialAlias, *I1, *I2,
+                     F.getParent());
+        ++PartialAliasCount;
+        break;
+      case MustAlias:
+        PrintResults("MustAlias", PrintMustAlias, *I1, *I2, F.getParent());
+        ++MustAliasCount;
+        break;
+      }
+    }
+  }
+
+ if (EvalAAMD) {
+    
+    // iterate over all pairs of load, store
+ //   for (Value *Load : Loads) {
+  //    for (Value *Store : Stores) {
+      for(Instruction *I1 : Loads){
+        for(Instruction *I2 : Stores){
+        LoadInst *Load1 = dyn_cast<LoadInst>(I1);
+        StoreInst *Store1 = dyn_cast<StoreInst>(I2);
+        Value *Load = Load1->getPointerOperand();
+        Value *Store = Store1->getPointerOperand();
+        switch (AA.alias(MemoryLocation::get(Load1),
+                         MemoryLocation::get(Store1))) {
+        case NoAlias:
+          PrintLoadStoreResults("NoAlias", PrintNoAlias, Load, Store,
+                                F.getParent());
+          ++NoAliasCount;
+          break;
+        case MayAlias:
+          PrintLoadStoreResults("MayAlias", PrintMayAlias, Load, Store,
+                                F.getParent());
+        //  LoadInst *L = dyn_cast<LoadInst>(Load);
+          //instrumentLoadOrStore(Load, F.getParent());
+          //instrumentLoadOrStore(Store, F.getParent());
+          AliasLoadsAndStores.push_back(I1);
+          AliasLoadsAndStores.push_back(I2);
+          ++MayAliasCount;
+          break;
+        case PartialAlias:
+          PrintLoadStoreResults("PartialAlias", PrintPartialAlias, Load, Store,
+                                F.getParent());
+          ++PartialAliasCount;
+          
+          break;
+        case MustAlias:
+          PrintLoadStoreResults("MustAlias", PrintMustAlias, Load, Store,
+                                F.getParent());
+          AliasLoadsAndStores.push_back(I1);
+          AliasLoadsAndStores.push_back(I2);
+          ++MustAliasCount;
+          break;
+        }
+      }
+    }
+ // iterate over all pairs of store, store
+    //for (SetVector<Value *>::iterator I1 = Stores.begin(), E = Stores.end();
+    //     I1 != E; ++I1) {
+    //  for (SetVector<Value *>::iterator I2 = Stores.begin(); I2 != I1; ++I2) {
+    for (SetVector<Instruction *>::iterator I1 = Stores.begin(), E = Stores.end();
+         I1 != E; ++I1) {
+      for (SetVector<Instruction *>::iterator I2 = Stores.begin(); I2 != I1; ++I2) {
+
+        StoreInst *Store1 = dyn_cast<StoreInst>(*I1);
+        StoreInst *Store2 = dyn_cast<StoreInst>(*I2);
+        Value *S1 = Store1->getPointerOperand();
+        Value *S2 = Store2->getPointerOperand();
+
+        switch (AA.alias(MemoryLocation::get(Store1),
+                         MemoryLocation::get(Store2))) {
+        case NoAlias:
+          PrintLoadStoreResults("NoAlias", PrintNoAlias, S1, S2,
+                                F.getParent());
+          ++NoAliasCount;
+          break;
+        case MayAlias:
+          PrintLoadStoreResults("MayAlias", PrintMayAlias, S1, S2,
+                                F.getParent());
+          AliasLoadsAndStores.push_back(*I1);
+          AliasLoadsAndStores.push_back(*I2);
+          ++MayAliasCount;
+          break;
+        case PartialAlias:
+          PrintLoadStoreResults("PartialAlias", PrintPartialAlias, S1, S2,
+                                F.getParent());
+          ++PartialAliasCount;
+          break;
+        case MustAlias:
+          PrintLoadStoreResults("MustAlias", PrintMustAlias, S1, S2,
+                                F.getParent());
+          AliasLoadsAndStores.push_back(*I1);
+          AliasLoadsAndStores.push_back(*I2);
+          ++MustAliasCount;
+          break;
+        }
+      }
+    }
+  }
+ // Mod/ref alias analysis: compare all pairs of calls and values
+  for (CallSite C : CallSites) {
+    Instruction *I = C.getInstruction();
+
+    for (auto Pointer : Pointers) {
+      uint64_t Size = MemoryLocation::UnknownSize;
+      Type *ElTy = cast<PointerType>(Pointer->getType())->getElementType();
+      if (ElTy->isSized()) Size = DL.getTypeStoreSize(ElTy);
+
+      switch (AA.getModRefInfo(C, Pointer, Size)) {
+      case ModRefInfo::NoModRef:
+        PrintModRefResults("NoModRef", PrintNoModRef, I, Pointer,
+                           F.getParent());
+        ++NoModRefCount;
+        break;
+      case ModRefInfo::Mod:
+        PrintModRefResults("Just Mod", PrintMod, I, Pointer, F.getParent());
+        ++ModCount;
+        break;
+      case ModRefInfo::Ref:
+        PrintModRefResults("Just Ref", PrintRef, I, Pointer, F.getParent());
+        ++RefCount;
+        break;
+      case ModRefInfo::ModRef:
+        PrintModRefResults("Both ModRef", PrintModRef, I, Pointer,
+                           F.getParent());
+        ++ModRefCount;
+        break;
+      case ModRefInfo::Must:
+        PrintModRefResults("Must", PrintMust, I, Pointer, F.getParent());
+        ++MustCount;
+        break;
+      case ModRefInfo::MustMod:
+        PrintModRefResults("Just Mod (MustAlias)", PrintMustMod, I, Pointer,
+                           F.getParent()); 
+        ++MustModCount;
+        break;
+      case ModRefInfo::MustRef:
+        PrintModRefResults("Just Ref (MustAlias)", PrintMustRef, I, Pointer,
+                           F.getParent());
+        ++MustRefCount;
+        break;
+      case ModRefInfo::MustModRef:
+        PrintModRefResults("Both ModRef (MustAlias)", PrintMustModRef, I,
+                           Pointer, F.getParent());
+        ++MustModRefCount;
+        break;
+      }
+    }
+  }
+
+  // Mod/ref alias analysis: compare all pairs of calls
+  for (auto C = CallSites.begin(), Ce = CallSites.end(); C != Ce; ++C) {
+    for (auto D = CallSites.begin(); D != Ce; ++D) {
+      if (D == C)
+        continue;
+      switch (AA.getModRefInfo(*C, *D)) {
+      case ModRefInfo::NoModRef:
+        PrintModRefResults("NoModRef", PrintNoModRef, *C, *D, F.getParent());
+        ++NoModRefCount;
+        break;
+      case ModRefInfo::Mod:
+        PrintModRefResults("Just Mod", PrintMod, *C, *D, F.getParent());
+        ++ModCount;
+        break;
+      case ModRefInfo::Ref:
+        PrintModRefResults("Just Ref", PrintRef, *C, *D, F.getParent());
+        ++RefCount;      
+ break;
+      case ModRefInfo::ModRef:
+        PrintModRefResults("Both ModRef", PrintModRef, *C, *D, F.getParent());
+        ++ModRefCount;
+        break;
+      case ModRefInfo::Must:
+        PrintModRefResults("Must", PrintMust, *C, *D, F.getParent());
+        ++MustCount;
+        break;
+      case ModRefInfo::MustMod:
+        PrintModRefResults("Just Mod (MustAlias)", PrintMustMod, *C, *D,
+                           F.getParent());
+        ++MustModCount;    
+        break;
+      case ModRefInfo::MustRef:
+        PrintModRefResults("Just Ref (MustAlias)", PrintMustRef, *C, *D,
+                           F.getParent());
+        ++MustRefCount;    
+        break;
+      case ModRefInfo::MustModRef:
+        PrintModRefResults("Both ModRef (MustAlias)", PrintMustModRef, *C, *D,
+                           F.getParent());
+        ++MustModRefCount; 
+        break;
+      } 
+    }
+  }
+}
+
+AAEvaluator::~AAEvaluator() {
+  if (FunctionCount == 0)
+    return;
+
+  int64_t AliasSum =
+      NoAliasCount + MayAliasCount + PartialAliasCount + MustAliasCount;
+  if (PrintAll) {
+  errs() << "===== Alias Analysis Evaluator Report =====\n";
+  if (AliasSum == 0) {
+    errs() << "  Alias Analysis Evaluator Summary: No pointers!\n";
+  } else {
+    errs() << "  " << AliasSum << " Total Alias Queries Performed\n";
+    errs() << "  " << NoAliasCount << " no alias responses ";
+    PrintPercent(NoAliasCount, AliasSum);
+    errs() << "  " << MayAliasCount << " may alias responses ";
+    PrintPercent(MayAliasCount, AliasSum);
+    errs() << "  " << PartialAliasCount << " partial alias responses ";
+    PrintPercent(PartialAliasCount, AliasSum);
+    errs() << "  " << MustAliasCount << " must alias responses ";
+    PrintPercent(MustAliasCount, AliasSum);
+    errs() << "  Alias Analysis Evaluator Pointer Alias Summary: "
+           << NoAliasCount * 100 / AliasSum << "%/"
+           << MayAliasCount * 100 / AliasSum << "%/"
+           << PartialAliasCount * 100 / AliasSum << "%/"
+           << MustAliasCount * 100 / AliasSum << "%\n";
+  }
+
+ // Display the summary for mod/ref analysis
+  int64_t ModRefSum = NoModRefCount + RefCount + ModCount + ModRefCount +
+                      MustCount + MustRefCount + MustModCount + MustModRefCount;
+  if (ModRefSum == 0) {
+    errs() << "  Alias Analysis Mod/Ref Evaluator Summary: no "
+              "mod/ref!\n";
+  } else {
+    errs() << "  " << ModRefSum << " Total ModRef Queries Performed\n";
+    errs() << "  " << NoModRefCount << " no mod/ref responses ";
+    PrintPercent(NoModRefCount, ModRefSum);
+    errs() << "  " << ModCount << " mod responses ";
+    PrintPercent(ModCount, ModRefSum);
+    errs() << "  " << RefCount << " ref responses ";
+    PrintPercent(RefCount, ModRefSum);
+    errs() << "  " << ModRefCount << " mod & ref responses ";
+    PrintPercent(ModRefCount, ModRefSum);
+    errs() << "  " << MustCount << " must responses ";
+    PrintPercent(MustCount, ModRefSum);
+    errs() << "  " << MustModCount << " must mod responses ";
+    PrintPercent(MustModCount, ModRefSum);
+    errs() << "  " << MustRefCount << " must ref responses ";
+    PrintPercent(MustRefCount, ModRefSum);
+    errs() << "  " << MustModRefCount << " must mod & ref responses ";
+    PrintPercent(MustModRefCount, ModRefSum);
+    errs() << "  Alias Analysis Evaluator Mod/Ref Summary: "      
+  << NoModRefCount * 100 / ModRefSum << "%/"
+           << ModCount * 100 / ModRefSum << "%/" << RefCount * 100 / ModRefSum
+           << "%/" << ModRefCount * 100 / ModRefSum << "%/"
+           << MustCount * 100 / ModRefSum << "%/"
+           << MustRefCount * 100 / ModRefSum << "%/"
+           << MustModCount * 100 / ModRefSum << "%/"
+           << MustModRefCount * 100 / ModRefSum << "%\n";
+  }
+  }
+}
+
+

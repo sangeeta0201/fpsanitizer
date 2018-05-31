@@ -1,0 +1,45 @@
+Index: include/llvm/IR/Instruction.h
+===================================================================
+--- include/llvm/IR/Instruction.h	(revision 324636)
++++ include/llvm/IR/Instruction.h	(working copy)
+@@ -28,6 +28,7 @@
+ #include <cassert>
+ #include <cstdint>
+ #include <utility>
++#include <iostream>
+ 
+ namespace llvm {
+ 
+@@ -193,7 +194,9 @@
+   /// Get the metadata of given kind attached to this Instruction.
+   /// If the metadata is not found then return null.
+   MDNode *getMetadata(unsigned KindID) const {
+-    if (!hasMetadata()) return nullptr;
++    if (!hasMetadata()){
++      return nullptr;
++    }
+     return getMetadataImpl(KindID);
+   }
+ 
+@@ -200,7 +203,9 @@
+   /// Get the metadata of given kind attached to this Instruction.
+   /// If the metadata is not found then return null.
+   MDNode *getMetadata(StringRef Kind) const {
+-    if (!hasMetadata()) return nullptr;
++    if (!hasMetadata()){
++       return nullptr;
++    }
+     return getMetadataImpl(Kind);
+   }
+ 
+Index: lib/Transforms/CMakeLists.txt
+===================================================================
+--- lib/Transforms/CMakeLists.txt	(revision 324636)
++++ lib/Transforms/CMakeLists.txt	(working copy)
+@@ -6,5 +6,6 @@
+ add_subdirectory(IPO)
+ add_subdirectory(Vectorize)
+ add_subdirectory(Hello)
++add_subdirectory(RaceDetector)
+ add_subdirectory(ObjCARC)
+ add_subdirectory(Coroutines)
