@@ -22,7 +22,7 @@ extern "C" Real* getReal(void *Addr){
 extern "C" void* handleMathFunc(size_t funcCode, void *op1){
   mpfr_t op1_mpfr;
   mpfr_t res_mpfr;
-  struct Real* real_res = (struct Real*) malloc (sizeof(struct Real));
+  struct Real* real_res = new Real;
 
   mpfr_init2 (op1_mpfr, PRECISION); 
   mpfr_init2 (real_res->mpfr_val, PRECISION); 
@@ -102,7 +102,7 @@ extern "C" void* handleOp_1(size_t opCode, void *op1, void *op2){
   mpfr_t op1_mpfr;
   mpfr_t op2_mpfr;
   mpfr_t res_mpfr;
-  struct Real* real_res = (struct Real*) malloc (sizeof(struct Real));
+  struct Real* real_res = new Real;
 
   mpfr_init2 (op1_mpfr, PRECISION); 
   mpfr_init2 (op2_mpfr, PRECISION); 
@@ -136,7 +136,7 @@ extern "C" void* handleOp_2_f(size_t opCode, float op1, void *op2){
   std::cout<<"handleOp called 2*********\n";
   mpfr_t op1_mpfr;
   //struct Real* real_res = new Real;
-  struct Real* real_res = (struct Real*) malloc (sizeof(struct Real));
+  struct Real* real_res = new Real;
   std::cout<<"op1:"<<op1<<"\n";
   mpfr_init2 (op1_mpfr, PRECISION); 
   mpfr_init2 (real_res->mpfr_val, PRECISION); 
@@ -160,7 +160,7 @@ extern "C" void* handleOp_2_d(size_t opCode, double op1, void *op2){
   std::cout<<"handleOp called 2*********\n";
   mpfr_t op1_mpfr;
   //struct Real* real_res = new Real;
-  struct Real* real_res = (struct Real*) malloc (sizeof(struct Real));
+  struct Real* real_res = new Real;
   std::cout<<"op1:"<<op1<<"\n";
   mpfr_init2 (op1_mpfr, PRECISION); 
   mpfr_init2 (real_res->mpfr_val, PRECISION); 
@@ -185,7 +185,7 @@ extern "C" void* handleOp_3_f(size_t opCode, void *op1, float op2){
   mpfr_t res_mpfr;
   std::cout<<"op2:"<<op2<<"\n";
   //struct Real* real_res = new Real;
-  struct Real* real_res = (struct Real*) malloc (sizeof(struct Real));
+  struct Real* real_res = new Real;
 
   mpfr_init2 (op2_mpfr, PRECISION); 
   mpfr_init2 (real_res->mpfr_val, PRECISION); 
@@ -211,8 +211,7 @@ extern "C" void* handleOp_3_d(size_t opCode, void *op1, double op2){
   mpfr_t op2_mpfr;
   mpfr_t res_mpfr;
   std::cout<<"op2:"<<op2<<"\n";
-  //struct Real* real_res = new Real;
-  struct Real* real_res = (struct Real*) malloc (sizeof(struct Real));
+  struct Real* real_res = new Real;
 
   mpfr_init2 (op2_mpfr, PRECISION); 
   mpfr_init2 (real_res->mpfr_val, PRECISION); 
@@ -238,8 +237,7 @@ extern "C" void* handleOp_4_ff(size_t opCode, float op1, float op2){
   std::cout<<"handleOp called 4*********\n";
   mpfr_t op1_mpfr;
   mpfr_t op2_mpfr;
-  //struct Real* real_res = new Real;
-  struct Real* real_res = (struct Real*) malloc (sizeof(struct Real));
+  struct Real* real_res = new Real;
 
   mpfr_init2 (op1_mpfr, PRECISION); 
   mpfr_init2 (op2_mpfr, PRECISION); 
@@ -262,8 +260,7 @@ extern "C" void* handleOp_4_fd(size_t opCode, float op1, double op2){
   std::cout<<"handleOp called 4*********\n";
   mpfr_t op1_mpfr;
   mpfr_t op2_mpfr;
-  //struct Real* real_res = new Real;
-  struct Real* real_res = (struct Real*) malloc (sizeof(struct Real));
+  struct Real* real_res = new Real;
 
   mpfr_init2 (op1_mpfr, PRECISION); 
   mpfr_init2 (op2_mpfr, PRECISION); 
@@ -285,8 +282,7 @@ extern "C" void* handleOp_4_df(size_t opCode, double op1, float op2){
   std::cout<<"handleOp called 4*********\n";
   mpfr_t op1_mpfr;
   mpfr_t op2_mpfr;
-  //struct Real* real_res = new Real;
-  struct Real* real_res = (struct Real*) malloc (sizeof(struct Real));
+  struct Real* real_res = new Real;
 
   mpfr_init2 (op1_mpfr, PRECISION); 
   mpfr_init2 (op2_mpfr, PRECISION); 
@@ -308,8 +304,7 @@ extern "C" void* handleOp_4_dd(size_t opCode, double op1, double op2){
   std::cout<<"handleOp called 4*********\n";
   mpfr_t op1_mpfr;
   mpfr_t op2_mpfr;
-  //struct Real* real_res = new Real;
-  struct Real* real_res = (struct Real*) malloc (sizeof(struct Real));
+  struct Real* real_res = new Real;
 
   mpfr_init2 (op1_mpfr, PRECISION); 
   mpfr_init2 (op2_mpfr, PRECISION); 
