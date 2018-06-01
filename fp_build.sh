@@ -5,6 +5,7 @@ echo $root_cwd
 
 echo "***** Building LLVM *****"
 if [ -d "build" ]; then
+cd build
 make
 else
 mkdir build
@@ -15,7 +16,7 @@ fi
 cd ..
 source llvmvars.sh
 
-echo "***** Building herculean *****"
+echo "***** Building fpsanitizer *****"
 export LD_LIBRARY_PATH=""
 cd $root_cwd
 echo $root_cwd
@@ -23,4 +24,4 @@ cd src
 make clean
 make
 source tdvars.sh
-
+cd ..
