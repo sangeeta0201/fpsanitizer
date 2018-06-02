@@ -14,6 +14,6 @@ int main() {
   calcY(&y, x);
   printf("%e\n", y);
   size_t result_A = (size_t) &y;
-  printError(result_A);
+  printError(result_A, y);
   return 0;
 }

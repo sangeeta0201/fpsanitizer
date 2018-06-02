@@ -13,7 +13,7 @@ using namespace std;
 using namespace llvm;
 std::map<Value*, Instruction*> varMap;
 std::map<Instruction*, Value*> loadMap;
-std::map<Value*, Value*> funArgMap;
+std::map<Function*, Value*> funArgMap;
 namespace {
 struct FPInstrument : public ModulePass {
   
@@ -26,6 +26,7 @@ public:
   bool runOnFunction(Function &F);
   void initializeCallbacks(Module &M);
   void setReal(Instruction *I, Value *Addr, Value *v1, Function &F);
+  void handleFunc(Instruction *I, CallInst *call, Function &F);
   void handleOp(Instruction *I, BinaryOperator* binOp, Function &F);
   void handleMathFunc(Instruction *I, CallInst *callInst, Function &F);
   Instruction* getReal(Instruction *I, Value *Addr, Function &F);
@@ -50,6 +51,9 @@ private:
   Value* GetReal;
   Value* HandleOp;
   Value* HandleFunc;
+  Value* SetRealFunArg;
+  Value* AddFunArg;
+  
 };
 }
 #endif // VARIABLES_GUARD

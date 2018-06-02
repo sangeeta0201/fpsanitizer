@@ -1,10 +1,10 @@
 ifneq (,$(shell which clang++ 2>/dev/null))
 CXX=clang++ -Xclang -load -Xclang /home/sangeeta/project/float_p/fpsanitizer/build/lib/LLVMFPInstrument.so
 #CXX=clang++ 
-CXXFLAGS =  -I$(FPROOT)
+CXXFLAGS =  -I$(FPROOT) -O0
 else
 CXX=g++
-CXXFLAGS = -I$(FPROOT) -O1
+CXXFLAGS = -I$(FPROOT) -O0
 endif # clang++
 
 LIBS = -L$(FPROOT)/obj -lfpsanitizer -lmpfr

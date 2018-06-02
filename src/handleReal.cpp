@@ -219,6 +219,33 @@ extern "C" void* handleOp_4_dd(size_t opCode, double op1, double op2){
 
   return real_res;
 }
+
+extern "C" void addFunArg(void *funAddr, void *argAddr){
+  size_t funAddrInt = (size_t) funAddr;
+  size_t argAddrInt = (size_t) argAddr;
+
+  shadowFunArgMap.insert(std::pair<size_t, size_t>(funAddrInt, argAddrInt)); 
+  std::cout<<"addFunArg: updated\n";
+}
+
+extern "C" void setRealFunArg(void *funAddr, void *toAddr/*store 2nd operand*/){
+  size_t funAddrInt = (size_t) funAddr;
+  size_t toAddrInt = (size_t) toAddr;
+  if(shadowFunArgMap.count(funAddrInt) != 0){ 
+    std::cout<<"found in shadowFunArgMap\n";
+    size_t shadowAddr = shadowFunArgMap.at(funAddrInt);
+    //now copy this value to toAddr
+    if(shadowMap.count(shadowAddr) != 0){
+      Real* fromReal = shadowMap.at(shadowAddr);
+
+      struct Real* toReal = new Real;
+      memcpy(toReal,fromReal, sizeof(struct Real));
+      shadowMap.insert(std::pair<size_t, struct Real*>(toAddrInt, toReal)); 
+      std::cout<<"setRealFunArg: fun arg updated\n";
+    }
+  }
+}
+
 extern "C" void setRealTemp(void *toAddr, void *fromAddr){
   size_t fromAddrInt = (size_t) fromAddr;
   size_t toAddrInt = (size_t) toAddr;
