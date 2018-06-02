@@ -16,3 +16,10 @@ To run benchmarks follow below steps
 Pass is here - fpsanitizer/llvm/lib/Transforms/FPInstrument/FPInstrument.cpp
 
 To instrument functions, please list them in functions.txt inside bench dir
+
+Benchmarsk tested till now -
+```
+sum-50.cpp
+ex1.cpp
+small.cpp
+```
