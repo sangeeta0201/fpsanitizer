@@ -88,11 +88,15 @@ extern "C" void* handleOp_2_f(size_t opCode, float op1, void *op2){
 
   size_t AddrInt = (size_t) op2;
   Real *real = getReal(op2);
-  mpfr_set_d (op1_mpfr, op1, MPFR_RNDD);
-  handleOp(opCode, &(real_res->mpfr_val), &(real->mpfr_val), &(op1_mpfr));
-  std::cout<<"\n"; 
-  size_t Addr = (size_t) real_res;
-  shadowMap.insert(std::pair<size_t, struct Real*>(Addr, real_res));
+  if(real != NULL){
+    mpfr_set_d (op1_mpfr, op1, MPFR_RNDD);
+    handleOp(opCode, &(real_res->mpfr_val), &(real->mpfr_val), &(op1_mpfr));
+    std::cout<<"\n"; 
+    size_t Addr = (size_t) real_res;
+    shadowMap.insert(std::pair<size_t, struct Real*>(Addr, real_res));
+  }
+  else
+    std::cout<<"Error!!! Address "<< AddrInt <<" not found in shadow memory\n";
   return real_res;
 }
 
@@ -220,29 +224,42 @@ extern "C" void* handleOp_4_dd(size_t opCode, double op1, double op2){
   return real_res;
 }
 
-extern "C" void addFunArg(void *funAddr, void *argAddr){
+extern "C" void addFunArg(size_t argNo, void *funAddr, void *argAddr){
   size_t funAddrInt = (size_t) funAddr;
   size_t argAddrInt = (size_t) argAddr;
 
-  shadowFunArgMap.insert(std::pair<size_t, size_t>(funAddrInt, argAddrInt)); 
+  
+//  shadowFunArgMap.insert(std::pair<size_t, std::map<size_t, size_t>>(funAddrInt, {argNo, argAddrInt})); 
+  std::map<size_t, size_t> data;
+  data.insert(std::pair<size_t, size_t>(funAddrInt, argNo));
+  shadowFunArgMap.insert(std::pair<std::map<size_t, size_t>, size_t>(data, argAddrInt));
+
   std::cout<<"addFunArg: updated\n";
 }
 
-extern "C" void setRealFunArg(void *funAddr, void *toAddr/*store 2nd operand*/){
+extern "C" void setRealFunArg(size_t index, void *funAddr, void *toAddr/*store 2nd operand*/){
   size_t funAddrInt = (size_t) funAddr;
   size_t toAddrInt = (size_t) toAddr;
-  if(shadowFunArgMap.count(funAddrInt) != 0){ 
-    std::cout<<"found in shadowFunArgMap\n";
-    size_t shadowAddr = shadowFunArgMap.at(funAddrInt);
-    //now copy this value to toAddr
-    if(shadowMap.count(shadowAddr) != 0){
-      Real* fromReal = shadowMap.at(shadowAddr);
+  size_t shadowAddr;
+  std::cout<<"setRealFunArg starts****\n";
+  std::vector<size_t>::iterator it; 
+  std::map<size_t, size_t> shadowAddrMap;
+  shadowAddrMap.insert(std::pair<size_t, size_t>(funAddrInt, index));
+  if(shadowFunArgMap.count(shadowAddrMap) != 0){ 
+    std::cout<<"setRealFunArg: found in shadowFunArgMap\n";
 
-      struct Real* toReal = new Real;
-      memcpy(toReal,fromReal, sizeof(struct Real));
-      shadowMap.insert(std::pair<size_t, struct Real*>(toAddrInt, toReal)); 
-      std::cout<<"setRealFunArg: fun arg updated\n";
-    }
+    size_t shadowAddr = shadowFunArgMap.at(shadowAddrMap);
+
+      std::cout<<"setRealFunArg: shadowAddr:"<<shadowAddr<<"\n";
+      if(shadowMap.count(shadowAddr) != 0){
+        Real* fromReal = shadowMap.at(shadowAddr);
+
+        struct Real* toReal = new Real;
+        memcpy(toReal,fromReal, sizeof(struct Real));
+        shadowMap.insert(std::pair<size_t, struct Real*>(toAddrInt, toReal)); 
+        std::cout<<"setRealFunArg: shadow mem update:"<<toAddrInt<<"\n";
+      }
+
   }
 }
 

@@ -7,8 +7,15 @@
 
 #define PRECISION 200
 
-void calcY(float x){
+void calcX(int x){
+  int result = 2 * x;
+  size_t result_A = (size_t) &result;
+  printf("func: :%e\n", result);
+  printError(result_A, result);
+}
+void calcY(float x, float y){
   float result = 2 * x;
+  float result2 = 2 * y;
   size_t result_A = (size_t) &result;
   printf("func: :%e\n", result);
   printError(result_A, result);
@@ -24,7 +31,8 @@ int main(){
   float diff0 = diffe - e;
   float zero = diff0 + diff0; 
   printf("main: :%e\n", zero);
-  calcY(zero);
+  calcY(zero, diffe);
+  calcX(2);
   printf("main: :%e\n", zero);
   
 //  float result = 2 * zero;

@@ -51,21 +51,8 @@ bool FPInstrument::runOnModule(Module &M) {
   std::queue<llvm::Argument*> arglist;
   for (Function *F : reverse(AllFuncList)) {
     errs()<<"********"<<F->getName()<<"*****\n";
-     SetVector<Value*> F_pointers;
-      size_t count = 0;
-      for (Function::arg_iterator ait = F->arg_begin(), aend = F->arg_end();
-                ait != aend; ++ait) {
-        Argument *A = &*ait;
-        if (!A->getType()->isPointerTy()) {
-          argMap.insert(std::pair<Argument*, size_t>(A, count));
-          errs()<<"Arg:"<<*A<<"\n";
-          errs()<<"Arg index:"<<count<<"\n";
-          count++;
-        }
-      } 
 
     for (auto &BB : *F) {
-      
       for (auto &I : BB) {
         if (LoadInst *Load = dyn_cast<LoadInst>(&I)){
           Value *Addr = Load->getPointerOperand();
@@ -148,24 +135,20 @@ void FPInstrument::setReal(Instruction *I, Value *Addr, Value *op0, Function &F)
   Type *op0_type = op0->getType();
   BitCastInst* bitcast = new BitCastInst(Addr,PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
 
-  Type* int_ty = Type::getInt32Ty(M->getContext());
   Type* voidTy = Type::getVoidTy(M->getContext());
   Type* void_ptr_ty = PointerType::getUnqual(Type::getInt8Ty(M->getContext()));
   Type* float_ty = Type::getFloatTy(M->getContext());
   Type* double_ty = Type::getDoubleTy(M->getContext());
   errs()<<"setReal: op0_type->getTypeID():"<<op0_type->getTypeID()<<"\n";
   if(isa<Argument>(op0)){
-   size_t index =  argMap.at(dyn_cast<Argument>(op0));
-    errs()<<"setReal: index:"<<index<<"\n";
     errs()<<"setReal: funarg\n";
     Argument *arg0 = dyn_cast<Argument>(op0);
     errs()<<"setReal: arg"<<*arg0<<"\n";
     errs()<<"setReal: arg no"<<arg0->getArgNo()<<"\n";
     Instruction *op0_i = dyn_cast<Instruction>(I->getOperand(0));
-    SetRealFunArg = M->getOrInsertFunction("setRealFunArg", voidTy, int_ty, void_ptr_ty, void_ptr_ty);
+    SetRealFunArg = M->getOrInsertFunction("setRealFunArg", voidTy, void_ptr_ty, void_ptr_ty);
     BitCastInst* bitcast1 = new BitCastInst(&F,PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
-    Constant* argNo = ConstantInt::get(Type::getInt32Ty(M->getContext()), index);
-    Instruction* newI = IRB.CreateCall(SetRealFunArg, {argNo, bitcast1, bitcast});
+    Instruction* newI = IRB.CreateCall(SetRealFunArg, {bitcast1, bitcast});
   }
   else if (isa<ConstantFP>(op0)) {
     //if its constant we don't need to look for its address, we need to create new shadow space for this constant
@@ -233,17 +216,20 @@ void FPInstrument::handleFunc(Instruction *I, CallInst *call, Function &F){
     errs()<<"handleFunc callI:"<<*call<<"\n";
     errs()<<"handleFunc op:"<<i<<" "<<*op[i]<<"\n";
     errs()<<"handleFunc op:"<<i<<"type:"<<*op_ty[i]<<"\n";
+    Argument *arg0 = dyn_cast<Argument>(op[i]);
+    errs()<<"handleFunc: arg no"<<arg0->getArgNo()<<"\n";
 
     if (isa<ConstantFP>(op[i])){
     }
-    else if(op_ty[i]->getTypeID() != Type::PointerTyID){
+    else if(op_ty[i]->getTypeID() != Type::PointerTyID &&
+            (op_ty[i]->getTypeID() == Type::FloatTyID ||
+            op_ty[i]->getTypeID() == Type::DoubleTyID)){
       Instruction *op_i = dyn_cast<Instruction>(op[i]);
       if(loadMap.count(op_i) != 0){
         errs()<<"handleFunc found in loadMap:"<<"\n";
         Value *op_1 = loadMap.at(op_i);
         BitCastInst *bitcast = new BitCastInst(Callee, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
         BitCastInst* bitcast1 = new BitCastInst(op_1,PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
-        errs()<<"handleFunc bitcast1:"<<bitcast1<<"\n";
         Constant* argNo = ConstantInt::get(Type::getInt32Ty(M->getContext()), i);
         AddFunArg = M->getOrInsertFunction("addFunArg", voidTy, int_ty, void_ptr_ty, void_ptr_ty);
         Instruction* newI = IRB.CreateCall(AddFunArg, {argNo, bitcast, bitcast1});

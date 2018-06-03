@@ -3,10 +3,11 @@
 #include <math.h>
 #include <gmp.h>
 #include <mpfr.h>
+#include <vector>
 
 #define PRECISION 200
 
-std::map<size_t, size_t> shadowFunArgMap; // thi will link function argument to shadowMap
+std::map<std::map<size_t, size_t>, size_t> shadowFunArgMap; // thi will link function argument to shadowMap
 std::map<size_t, struct Real*> shadowMap;
 struct Real{
   mpfr_t mpfr_val;
@@ -26,7 +27,7 @@ extern "C" void* handleOp_4_ff(size_t opCode, float op1, float op2);
 extern "C" void* handleOp_4_fd(size_t opCode, float op1, double op2);
 extern "C" void* handleOp_4_df(size_t opCode, double op1, float op2);
 extern "C" void* handleOp_4_dd(size_t opCode, double op1, double op2);
-extern "C" void addFunArg(void *funAddr, void *argAddr);
+extern "C" void addFunArg(size_t argNo, void *funAddr, void *argAddr);
 /*
 When we compute any floating point operation on real, we save the result in shadow map with its value 
 and return the address of this saved value to LLVM Pass. LLVM pass creates the mapping of real result and 

@@ -14,6 +14,8 @@ using namespace llvm;
 std::map<Value*, Instruction*> varMap;
 std::map<Instruction*, Value*> loadMap;
 std::map<Function*, Value*> funArgMap;
+std::map<Argument*, size_t> argMap;
+
 namespace {
 struct FPInstrument : public ModulePass {
   
