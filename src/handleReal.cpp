@@ -11,7 +11,7 @@ extern "C" Real* getReal(void *Addr){
   size_t AddrInt = (size_t) Addr;
   if(shadowMap.count(AddrInt) != 0){
     Real* real = shadowMap.at(AddrInt);
-  //  std::cout<<"found in map\n";
+    std::cout<<"getReal:found in map\n";
    // std::cout<<"getReal ends\n";
     return real;
   }
@@ -115,6 +115,7 @@ extern "C" void* handleOp_2_d(size_t opCode, double op1, void *op2){
   return real_res;
 }
 extern "C" void* handleOp_3_f(size_t opCode, void *op1, float op2){
+  std::cout<<"handleOp_3_f:"<<op2<<"\n";
   mpfr_t op2_mpfr;
   mpfr_t res_mpfr;
   struct Real* real_res = new Real;
@@ -260,6 +261,9 @@ extern "C" void setRealFunArg(size_t index, void *funAddr, void *toAddr/*store 2
         std::cout<<"setRealFunArg: shadow mem update:"<<toAddrInt<<"\n";
       }
 
+  }
+  else{
+    std::cout<<"Error!!! Not found in shadowFunArgMap\n";
   }
 }
 

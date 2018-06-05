@@ -56,14 +56,16 @@ bool FPInstrument::runOnModule(Module &M) {
       for (Function::arg_iterator ait = F->arg_begin(), aend = F->arg_end();
                 ait != aend; ++ait) {
         Argument *A = &*ait;
-        if (!A->getType()->isPointerTy()) {
+        //if (!A->getType()->isPointerTy()) {
           argMap.insert(std::pair<Argument*, size_t>(A, count));
           errs()<<"Arg:"<<*A<<"\n";
           errs()<<"Arg index:"<<count<<"\n";
           count++;
-        }
+        //}
       } 
-
+    }
+  for (Function *F : reverse(AllFuncList)) {
+    errs()<<"********"<<F->getName()<<"*****\n";
     for (auto &BB : *F) {
       
       for (auto &I : BB) {
@@ -78,7 +80,14 @@ bool FPInstrument::runOnModule(Module &M) {
           setReal(&I, Addr, Store->getOperand(0), *F); //For every store we set real value in shadowmap
         }
         else if (BinaryOperator* binOp = dyn_cast<BinaryOperator>(&I)){
-          handleOp(&I, binOp, *F);  // we handle binary operations on fp
+          switch(binOp->getOpcode()) {
+            case Instruction::FAdd:                                                                        
+            case Instruction::FSub:
+            case Instruction::FMul:
+            case Instruction::FDiv:{
+              handleOp(&I, binOp, *F);
+            }  // we handle binary operations on fp
+          }
         }
         else if (CallInst *callInst = dyn_cast<CallInst>(&I)){ //handle math library functions
           Function *callee = callInst->getCalledFunction();
@@ -154,8 +163,17 @@ void FPInstrument::setReal(Instruction *I, Value *Addr, Value *op0, Function &F)
   Type* float_ty = Type::getFloatTy(M->getContext());
   Type* double_ty = Type::getDoubleTy(M->getContext());
   errs()<<"setReal: op0_type->getTypeID():"<<op0_type->getTypeID()<<"\n";
-  if(isa<Argument>(op0)){
-   size_t index =  argMap.at(dyn_cast<Argument>(op0));
+  if(op0_type->getTypeID() == Type::PointerTyID){
+    Value *op0_i = dyn_cast<Value>(I->getOperand(0));
+    errs()<<"setReal: not found in loadMap:"<<*(op0_i)<<"\n";
+    SetRealTemp = M->getOrInsertFunction("setRealTemp", voidTy, void_ptr_ty, void_ptr_ty);
+    errs()<<"op0_type->getTypeID():"<<op0_type->getTypeID()<<"\n";                                                              
+    //if its not a constant, not a temp, then it could be a pointer, 
+    //since we already have address of variable inside pointer, we will pass it to runtime 
+    BitCastInst* bitcast1 = new BitCastInst(op0,PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
+    Instruction* newI = IRB.CreateCall(SetRealTemp, {bitcast, bitcast1});
+  }else if(isa<Argument>(op0) && (argMap.count(dyn_cast<Argument>(op0)) != 0)){
+    size_t index =  argMap.at(dyn_cast<Argument>(op0));
     errs()<<"setReal: index:"<<index<<"\n";
     errs()<<"setReal: funarg\n";
     Argument *arg0 = dyn_cast<Argument>(op0);
@@ -189,26 +207,15 @@ void FPInstrument::setReal(Instruction *I, Value *Addr, Value *op0, Function &F)
       BitCastInst* bitcast1 = new BitCastInst(realI,PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
       Instruction* newI = IRB.CreateCall(SetRealTemp, {bitcast, bitcast1});
     } 
-    else {
-      Value *op0_i = dyn_cast<Value>(I->getOperand(0));
-      errs()<<"setReal: not found in loadMap:"<<*(op0_i)<<"\n";
-      SetRealTemp = M->getOrInsertFunction("setRealTemp", voidTy, void_ptr_ty, void_ptr_ty);
-      errs()<<"op0_type->getTypeID():"<<op0_type->getTypeID()<<"\n"; 
-      //if its not a constant, not a temp, then it could be a pointer, 
-      //since we already have address of variable inside pointer, we will pass it to runtime 
-      if(op0_type->getTypeID() == Type::PointerTyID){
-        BitCastInst* bitcast1 = new BitCastInst(op0,PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
-        Instruction* newI = IRB.CreateCall(SetRealTemp, {bitcast, bitcast1});
-      }
-      else{
+    else{
         errs()<<"setReal: not a pointer, not a constant, not in load map, means its loaded from func arg";
         //it means that ita variables passed through call by val, address of this valiable is stored in 
         //funArg with the address of a called function 
         //TODO look for better way to check if its arg passed by value
-      }
     }
   }
 }
+
 
 void FPInstrument::handleFunc(Instruction *I, CallInst *call, Function &F){
   Module *M = F.getParent();
