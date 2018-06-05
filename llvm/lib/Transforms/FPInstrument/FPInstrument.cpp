@@ -282,10 +282,18 @@ void FPInstrument::handleMathFunc(Instruction *I, CallInst *callInst, Function &
         if(op0_type->getTypeID() == Type::FloatTyID){
           b_op_0 = new BitCastInst(op0, Type::getFloatTy(M->getContext()),"", I);
           HandleFunc = M->getOrInsertFunction("handleMathFunc", void_ptr_ty, int_ty, float_ty);
+          Instruction* newI = IRB.CreateCall(HandleFunc, {funcCode, b_op_0});
+          Value *Addr = dyn_cast<Value>(newI);
+          loadMap.insert(std::pair<Instruction*, Value*>(I, Addr)); //old instruction, new instruction
+          errs()<<"handleOp loadMap insert:"<<*Addr<<":"<<*I<<"\n";
         }
         else if(op0_type->getTypeID() == Type::DoubleTyID){
           b_op_0 = new BitCastInst(op0, Type::getDoubleTy(M->getContext()),"", I);
           HandleFunc = M->getOrInsertFunction("handleMathFunc", void_ptr_ty, int_ty, double_ty);
+          Instruction* newI = IRB.CreateCall(HandleFunc, {funcCode, b_op_0});
+          Value *Addr = dyn_cast<Value>(newI);
+          loadMap.insert(std::pair<Instruction*, Value*>(I, Addr)); //old instruction, new instruction
+          errs()<<"handleOp loadMap insert:"<<*Addr<<":"<<*I<<"\n";
         }
         else
           errs()<<"handleMathFunc: Error!!! Unknown type\n";
@@ -298,13 +306,12 @@ void FPInstrument::handleMathFunc(Instruction *I, CallInst *callInst, Function &
         Value *op_1 = loadMap.at(op_i);
         b_op_0 = new BitCastInst(op_1, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
         HandleFunc = M->getOrInsertFunction("handleMathFunc", void_ptr_ty, int_ty, void_ptr_ty);
-  
+        Instruction* newI = IRB.CreateCall(HandleFunc, {funcCode, b_op_0});
+        Value *Addr = dyn_cast<Value>(newI);
+        loadMap.insert(std::pair<Instruction*, Value*>(I, Addr)); //old instruction, new instruction
+        errs()<<"handleOp loadMap insert:"<<*Addr<<":"<<*I<<"\n";
       }
     }
-    Instruction* newI = IRB.CreateCall(HandleFunc, {funcCode, b_op_0});
-    Value *Addr = dyn_cast<Value>(newI);
-    loadMap.insert(std::pair<Instruction*, Value*>(I, Addr)); //old instruction, new instruction
-    errs()<<"handleOp loadMap insert:"<<*Addr<<":"<<*I<<"\n";
   }
 }
 
@@ -319,8 +326,8 @@ void FPInstrument::handleOp(Instruction *I, BinaryOperator* binOp, Function &F){
   Type *fpConstant_op0 = binOp->getOperand(0)->getType();
   Type *fpConstant_op1 = binOp->getOperand(1)->getType();
  
-  BitCastInst* b_op_0;
-  BitCastInst* b_op_1;
+  BitCastInst* b_op_0 = NULL;
+  BitCastInst* b_op_1 = NULL;
   bool op_0_cons = false;
   bool op_1_cons = false;
   if (isa<ConstantFP>(binOp->getOperand(0))) {
@@ -356,6 +363,9 @@ void FPInstrument::handleOp(Instruction *I, BinaryOperator* binOp, Function &F){
       Value *op_1 = loadMap.at(op_i);
       b_op_1 = new BitCastInst(op_1, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
     }
+    else{
+      errs()<<"Not found in loadMap:"<<"\n";
+    }
   }
   Type* void_ptr_ty = PointerType::getUnqual(Type::getInt8Ty(M->getContext()));
   Type* float_ty = Type::getFloatTy(M->getContext());
@@ -388,11 +398,15 @@ void FPInstrument::handleOp(Instruction *I, BinaryOperator* binOp, Function &F){
   else{
     HandleOp = M->getOrInsertFunction("handleOp_1", void_ptr_ty, int_ty, void_ptr_ty, void_ptr_ty);
   }
-  Instruction* newI = IRB.CreateCall(HandleOp, {opCode, b_op_0, b_op_1});
+  if(b_op_0 != NULL && b_op_1 != NULL){
+    Instruction* newI = IRB.CreateCall(HandleOp, {opCode, b_op_0, b_op_1});
   
   Value *Addr = dyn_cast<Value>(newI);
   loadMap.insert(std::pair<Instruction*, Value*>(I, Addr)); //old instruction, new instruction
   errs()<<"handleOp loadMap insert:"<<*Addr<<":"<<*I<<"\n";
+  }
+  else
+    errs()<<"handleOp Error!!! operand not found\n";
 }
 
 void addFPPass(const PassManagerBuilder &Builder, legacy::PassManagerBase &PM) {
