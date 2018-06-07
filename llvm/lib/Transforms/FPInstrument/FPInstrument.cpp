@@ -75,9 +75,32 @@ bool FPInstrument::runOnModule(Module &M) {
           loadMap.insert(std::pair<Instruction*, Value*>(&I, Addr)); //we maintain list of variables mapped to instructions,
                                                                      //can say that its like mapping temporaries
         }
+        else if (FPTruncInst *fp = dyn_cast<FPTruncInst>(&I)){ // it means we have new fp
+          //Value *Addr = Store->getPointerOperand();
+          //we don't have to stop real computation if fptruc cast from double to float
+          //if cast if from double to float then we need to find corresponding real value of double 
+          //and save it in loadMap, so whereever cast is used we will use corresponding real
+          
+          Instruction *op0_i = dyn_cast<Instruction>(I.getOperand(0));
+          errs()<<"fptruc op0_i:"<<*op0_i<<"\n";
+          if(loadMap.count(op0_i) != 0){
+            errs()<<"fptruc: found in loadMap:"<<"\n";
+            Value *realI = loadMap.at(op0_i);
+            errs()<<"fptruc: realI:"<<*realI<<"\n";
+            loadMap.insert(std::pair<Instruction*, Value*>(&I, realI)); 
+          } 
+        }
         else if (StoreInst *Store = dyn_cast<StoreInst>(&I)){
           Value *Addr = Store->getPointerOperand();
           setReal(&I, Addr, Store->getOperand(0), *F); //For every store we set real value in shadowmap
+        }
+        else if (SIToFPInst *Sitofp = dyn_cast<SIToFPInst>(&I)){ // it means we have new fp
+          //Value *Addr = Store->getPointerOperand();
+          setRealCastIToD(&I, Sitofp->getOperand(0), *F); //For every store we set real value in shadowmap
+        }
+        else if (FPExtInst *ext = dyn_cast<FPExtInst>(&I)){ // it means we have new fp
+          //Value *Addr = Store->getPointerOperand();
+          setRealCastFToD(&I, ext->getOperand(0), *F); //For every store we set real value in shadowmap
         }
         else if (BinaryOperator* binOp = dyn_cast<BinaryOperator>(&I)){
           switch(binOp->getOpcode()) {
@@ -93,10 +116,11 @@ bool FPInstrument::runOnModule(Module &M) {
           Function *callee = callInst->getCalledFunction();
           if (callee) {
             string name = callee->getName();
-            if(name == "sqrt") 
+            //TODO: do not call runtime for math functions for int
+            if(name == "_ZSt4sqrtIiEN9__gnu_cxx11__enable_ifIXsr12__is_integerIT_EE7__valueEdE6__typeES2_" || name == "sqrt") 
               handleMathFunc(&I, callInst, *F);  //we handle math functions for fp
             else {
-                handleFunc(&I, callInst, *F); // handle other functions in app
+              handleFunc(&I, callInst, *F); // handle other functions in app
             }
           }
         }
@@ -148,6 +172,64 @@ Instruction* FPInstrument::getReal(Instruction *I, Value *Addr, Function &F){
   return newI;
 }
 
+void FPInstrument::setRealCastFToD(Instruction *I, Value *op0, Function &F){
+  Module *M = F.getParent();
+  IRBuilder<> IRB(I);
+  errs()<<"setRealCast Instruction :"<<*I<<"\n";
+  errs()<<"setRealCast op0:"<<*op0<<"\n";
+  Type *op0_type = op0->getType();
+  errs()<<"setRealCast: op0_type->getTypeID():"<<op0_type->getTypeID()<<"\n";
+  Type* voidTy = Type::getVoidTy(M->getContext());
+  Type* void_ptr_ty = PointerType::getUnqual(Type::getInt8Ty(M->getContext()));
+  Type* float_ty = Type::getFloatTy(M->getContext());
+  Type* double_ty = Type::getDoubleTy(M->getContext());
+  Type* int_ty = Type::getInt32Ty(M->getContext());
+//  Value *op0_i = dyn_cast<Value>(I->getOperand(0));
+  Instruction *op0_i = dyn_cast<Instruction>(I->getOperand(0));
+  if(loadMap.count(op0_i) != 0){
+    errs()<<"setRealCast: found in loadMap:"<<"\n";
+    Value *realI = loadMap.at(op0_i);
+    errs()<<"setRealCast: realI:"<<*realI<<"\n";
+   // SetRealCastFToD = M->getOrInsertFunction("setRealCastFToD", voidTy, void_ptr_ty, float_ty);
+   // BitCastInst* bitcast1 = new BitCastInst(realI, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
+  //  Instruction* newI = IRB.CreateCall(SetRealCastFToD, {bitcast1, op0});
+    loadMap.insert(std::pair<Instruction*, Value*>(I, realI)); //we maintain list of variables mapped to instructions,
+  } 
+  else{
+    errs()<<"setRealCast: not found in loadMap";
+  }
+  
+}
+void FPInstrument::setRealCastIToD(Instruction *I, Value *op0, Function &F){
+  //Type cast from int to double always changes interger to integer.0, I am doing this in runtime.
+  Module *M = F.getParent();
+  IRBuilder<> IRB(I);
+  errs()<<"setRealCast Instruction :"<<*I<<"\n";
+  errs()<<"setRealCast op0:"<<*op0<<"\n";
+  Type *op0_type = op0->getType();
+  errs()<<"setRealCast: op0_type->getTypeID():"<<op0_type->getTypeID()<<"\n";
+  Type* voidTy = Type::getVoidTy(M->getContext());
+  Type* void_ptr_ty = PointerType::getUnqual(Type::getInt8Ty(M->getContext()));
+  Type* float_ty = Type::getFloatTy(M->getContext());
+  Type* double_ty = Type::getDoubleTy(M->getContext());
+  Type* int_ty = Type::getInt32Ty(M->getContext());
+//  Value *op0_i = dyn_cast<Value>(I->getOperand(0));
+  Instruction *op0_i = dyn_cast<Instruction>(I->getOperand(0));
+  if(loadMap.count(op0_i) != 0){
+    errs()<<"setRealCast: found in loadMap:"<<"\n";
+    Value *realI = loadMap.at(op0_i);
+    errs()<<"setRealCast: realI:"<<*realI<<"\n";
+    SetRealCastIToD = M->getOrInsertFunction("setRealCastIToD", voidTy, void_ptr_ty, int_ty);
+    BitCastInst* bitcast1 = new BitCastInst(realI, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
+    Instruction* newI = IRB.CreateCall(SetRealCastIToD, {bitcast1, op0});
+    loadMap.insert(std::pair<Instruction*, Value*>(I, realI)); //we maintain list of variables mapped to instructions,
+  } 
+  else{
+    errs()<<"setRealCast: not found in loadMap";
+  }
+  
+}
+
 void FPInstrument::setReal(Instruction *I, Value *Addr, Value *op0, Function &F){
   Module *M = F.getParent();
   IRBuilder<> IRB(I);
@@ -165,7 +247,6 @@ void FPInstrument::setReal(Instruction *I, Value *Addr, Value *op0, Function &F)
   errs()<<"setReal: op0_type->getTypeID():"<<op0_type->getTypeID()<<"\n";
   if(op0_type->getTypeID() == Type::PointerTyID){
     Value *op0_i = dyn_cast<Value>(I->getOperand(0));
-    errs()<<"setReal: not found in loadMap:"<<*(op0_i)<<"\n";
     SetRealTemp = M->getOrInsertFunction("setRealTemp", voidTy, void_ptr_ty, void_ptr_ty);
     errs()<<"op0_type->getTypeID():"<<op0_type->getTypeID()<<"\n";                                                              
     //if its not a constant, not a temp, then it could be a pointer, 
@@ -310,6 +391,9 @@ void FPInstrument::handleMathFunc(Instruction *I, CallInst *callInst, Function &
         Value *Addr = dyn_cast<Value>(newI);
         loadMap.insert(std::pair<Instruction*, Value*>(I, Addr)); //old instruction, new instruction
         errs()<<"handleOp loadMap insert:"<<*Addr<<":"<<*I<<"\n";
+      }
+      else{
+        errs()<<("Not found in loadMap\n");
       }
     }
   }

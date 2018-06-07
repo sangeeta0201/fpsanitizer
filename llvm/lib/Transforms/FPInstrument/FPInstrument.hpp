@@ -28,6 +28,8 @@ public:
   bool runOnFunction(Function &F);
   void initializeCallbacks(Module &M);
   void setReal(Instruction *I, Value *Addr, Value *v1, Function &F);
+  void setRealCastIToD(Instruction *I, Value *op0, Function &F);
+  void setRealCastFToD(Instruction *I, Value *op0, Function &F);
   void handleFunc(Instruction *I, CallInst *call, Function &F);
   void handleOp(Instruction *I, BinaryOperator* binOp, Function &F);
   void handleMathFunc(Instruction *I, CallInst *callInst, Function &F);
@@ -55,6 +57,8 @@ private:
   Value* HandleFunc;
   Value* SetRealFunArg;
   Value* AddFunArg;
+  Value* SetRealCastIToD;
+  Value* SetRealCastFToD;
   
 };
 }
