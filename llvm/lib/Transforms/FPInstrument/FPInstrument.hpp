@@ -13,6 +13,8 @@ using namespace std;
 using namespace llvm;
 std::map<Value*, Instruction*> varMap;
 std::map<Instruction*, Value*> loadMap;
+std::map<Instruction*, Instruction*> regIdMap;
+std::map<Instruction*, Instruction*> newPhiMap;
 std::map<Function*, Value*> funArgMap;
 std::map<Argument*, size_t> argMap;
 
@@ -30,8 +32,15 @@ public:
   void setReal(Instruction *I, Value *Addr, Value *v1, Function &F);
   void setRealCastIToD(Instruction *I, Value *op0, Function &F);
   void setRealCastFToD(Instruction *I, Value *op0, Function &F);
+  void handleNewPhi(Function &F);
   void handleFunc(Instruction *I, CallInst *call, Function &F);
   void handleOp(Instruction *I, BinaryOperator* binOp, Function &F);
+  BitCastInst* handleOperandReg(Instruction *I, Value* operand, Function &F,  Instruction** index);
+  void handleOpReg(Instruction **newI, Instruction *I, BinaryOperator* binOp, Function &F);
+  Value* handleRegOperand(Instruction *I, Value* operand, Function &F);
+  BitCastInst* handleOperand(Instruction **index, Instruction *I, Value* operand, Function &F, bool *consFlag, bool *regFlag);
+  //void handlePhi(Instruction *I, PHINode *PN, Function &F);
+  void handlePhi(Function &F);
   void handleMathFunc(Instruction *I, CallInst *callInst, Function &F);
   Instruction* getReal(Instruction *I, Value *Addr, Function &F);
   void addnewInline(Instruction *newI, Instruction *oldI);
@@ -47,8 +56,11 @@ public:
   const DataLayout *DL;  
 private:
   SmallVector<Instruction*, 8> LocalLoadsAndStores;
+  SmallVector<Instruction*, 8> PhiList;
+  SmallVector<Instruction*, 8> PhiListLast;
   SmallVector<Function*, 8> AllFuncList;
   DebugInfoFinder debugInfo;  
+  
   Value* Test;
   Value* SetRealConstant;
   Value* SetRealTemp;
@@ -59,6 +71,9 @@ private:
   Value* AddFunArg;
   Value* SetRealCastIToD;
   Value* SetRealCastFToD;
+  Value* SetRealReg;
+  Value* GetRegIndex;
+  Value* PrintOp;
   
 };
 }

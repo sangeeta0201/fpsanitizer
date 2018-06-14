@@ -6,16 +6,25 @@
 2. Clean up shadow
 */
 
+extern "C" double getRegIndex(){
+  regIndex += 1;
+  return regIndex;
+}
+
 extern "C" Real* getReal(void *Addr){
-//  std::cout<<"getReal starts *********\n";
   size_t AddrInt = (size_t) Addr;
   if(shadowMap.count(AddrInt) != 0){
     Real* real = shadowMap.at(AddrInt);
-//    std::cout<<"getReal:found in map \n";
-   // std::cout<<"getReal ends\n";
     return real;
   }
- // std::cout<<"getReal ends **********\n";
+  return NULL;
+}
+
+extern "C" Real* getRealReg(size_t index){
+  if(shadowRegMap.count(index) != 0){
+    Real* real = shadowRegMap.at(index);
+    return real;
+  }
   return NULL;
 }
 
@@ -55,15 +64,19 @@ extern "C" void* handleMathFunc(size_t funcCode, void *op1){
 void handleOp(size_t opCode, mpfr_t *res, mpfr_t *op1, mpfr_t *op2){
   switch(opCode) {                                                                                            
     case 12: //FADD
+      std::cout<<"FADD\n";
       mpfr_add (*res, *op1, *op2, MPFR_RNDD);
       break;
     case 14: //FSUB
+      std::cout<<"FSUB\n";
       mpfr_sub (*res, *op1, *op2, MPFR_RNDD);
       break;
     case 16: //FMUL
+      std::cout<<"FMUL\n";
       mpfr_mul (*res, *op1, *op2, MPFR_RNDD);
       break;
     case 19: //FDIV
+      std::cout<<"FDIV\n";
       mpfr_div (*res, *op1, *op2, MPFR_RNDD);
       break;
     default:
@@ -174,6 +187,35 @@ extern "C" void* handleOp_3_d(size_t opCode, void *op1, double op2){
   return real_res;
 }
 
+extern "C" void* handleOp_rr(size_t opCode, int regIndex1, int regIndex2){
+  std::cout<<"handleOp_rr: regIndex:"<<"\n";
+}
+
+extern "C" double handleOp_rd(size_t opCode, double regIndex1, double value){
+  std::cout<<"handleOp_rd: regIndex1:"<<regIndex1<<"\n";
+  std::cout<<"handleOp_rd: value:"<<value<<"\n";
+
+  mpfr_t op2_mpfr;
+  mpfr_t res_mpfr;
+  struct Real* real_res = new Real;
+  double newRegIdx = getRegIndex();
+
+  mpfr_init2 (op2_mpfr, PRECISION); 
+  mpfr_init2 (real_res->mpfr_val, PRECISION); 
+
+  Real *real1 = getRealReg(regIndex1);
+  if(real1 == NULL){
+    std::cout<<"Error !!!!!!\n";
+//   real = setRealReg(regIndex, op2); 
+  }
+  mpfr_set_d (op2_mpfr, value, MPFR_RNDD);
+  handleOp(opCode, &(real_res->mpfr_val), &(real1->mpfr_val), &(op2_mpfr));
+  
+  shadowRegMap.insert(std::pair<double, struct Real*>(newRegIdx, real_res)); 
+
+  return newRegIdx;
+}
+
 extern "C" void* handleOp_4_ff(size_t opCode, float op1, float op2){
   mpfr_t op1_mpfr;
   mpfr_t op2_mpfr;
@@ -233,7 +275,8 @@ extern "C" void* handleOp_4_dd(size_t opCode, double op1, double op2){
   mpfr_t op1_mpfr;
   mpfr_t op2_mpfr;
   struct Real* real_res = new Real;
-
+  std::cout<<"op1:"<<op1<<"\n";
+  std::cout<<"op2:"<<op2<<"\n";
   mpfr_init2 (op1_mpfr, PRECISION); 
   mpfr_init2 (op2_mpfr, PRECISION); 
   mpfr_init2 (real_res->mpfr_val, PRECISION); 
@@ -260,6 +303,19 @@ extern "C" void addFunArg(size_t argNo, void *funAddr, void *argAddr){
 //  std::cout<<"addFunArg: updated\n";
 }
 
+extern "C" double setRealReg(double value){
+  double regIndex = getRegIndex();
+  std::cout<<"setRealReg:"<<regIndex<<"\n";
+  if(!shadowRegMap.count(regIndex)){ //if not in map
+    struct Real* real = new Real;
+    mpfr_init2(real->mpfr_val, PRECISION);
+    mpfr_set_d(real->mpfr_val, value, MPFR_RNDN);
+    shadowRegMap.insert(std::pair<int, struct Real*>(regIndex, real)); 
+    std::cout<<"setRealReg: added to shadow mem\n";
+    return regIndex;
+  }  
+}
+
 extern "C" void setRealFunArg(size_t index, void *funAddr, void *toAddr/*store 2nd operand*/){
   size_t funAddrInt = (size_t) funAddr;
   size_t toAddrInt = (size_t) toAddr;
@@ -270,10 +326,8 @@ extern "C" void setRealFunArg(size_t index, void *funAddr, void *toAddr/*store 2
   shadowAddrMap.insert(std::pair<size_t, size_t>(funAddrInt, index));
   if(shadowFunArgMap.count(shadowAddrMap) != 0){ 
 //    std::cout<<"setRealFunArg: found in shadowFunArgMap\n";
-
     size_t shadowAddr = shadowFunArgMap.at(shadowAddrMap);
-
-//      std::cout<<"setRealFunArg: shadowAddr:"<<shadowAddr<<"\n";
+//    std::cout<<"setRealFunArg: shadowAddr:"<<shadowAddr<<"\n";
       if(shadowMap.count(shadowAddr) != 0){
         Real* fromReal = shadowMap.at(shadowAddr);
 
@@ -288,9 +342,12 @@ extern "C" void setRealFunArg(size_t index, void *funAddr, void *toAddr/*store 2
     std::cout<<"Error!!! Not found in shadowFunArgMap\n";
   }
 }
+//TODO
+extern "C" void setRealCastIToF(void *Addr, int value){
+}
 
 //type cast from int to double
-extern "C" void setRealCastIToD(void *Addr, int value){
+extern "C" void setRealCastIToD(void *Addr, unsigned int value){
   size_t AddrInt = (size_t) Addr;
 //  std::cout<<"setRealCast Addr:"<<AddrInt<<"\n";
   if(!shadowMap.count(AddrInt)){ //if not in map
@@ -309,13 +366,13 @@ extern "C" void setRealCastIToD(void *Addr, int value){
 
 extern "C" void setRealCastFToD(void *Addr, float value){
   size_t AddrInt = (size_t) Addr;
-  std::cout<<"setRealCastFToD Addr:"<<AddrInt<<"\n";
+//  std::cout<<"setRealCastFToD Addr:"<<AddrInt<<"\n";
   if(!shadowMap.count(AddrInt)){ //if not in map
     struct Real* real = new Real;
     mpfr_init2(real->mpfr_val, PRECISION);
     mpfr_set_d(real->mpfr_val, value, MPFR_RNDN);
     shadowMap.insert(std::pair<size_t, struct Real*>(AddrInt, real)); 
-    std::cout<<"setRealCast: added to shadow mem\n";
+//    std::cout<<"setRealCast: added to shadow mem\n";
   }  
   else{
 //    std::cout<<"setRealCastFToD already in map\n";
@@ -326,8 +383,8 @@ extern "C" void setRealCastFToD(void *Addr, float value){
 extern "C" void setRealTemp(void *toAddr, void *fromAddr){
   size_t fromAddrInt = (size_t) fromAddr;
   size_t toAddrInt = (size_t) toAddr;
-  std::cout<<"setRealTemp toAddr:"<<toAddrInt<<"\n";
-  std::cout<<"setRealTemp fromAddrInt:"<<fromAddrInt<<"\n";
+//  std::cout<<"setRealTemp toAddr:"<<toAddrInt<<"\n";
+//  std::cout<<"setRealTemp fromAddrInt:"<<fromAddrInt<<"\n";
   if(shadowMap.count(toAddrInt) != 0){ //just copy from one shadow to another if found in map
     Real* fromReal = shadowMap.at(fromAddrInt);
     Real* toReal = shadowMap.at(toAddrInt);
@@ -346,32 +403,61 @@ extern "C" void setRealTemp(void *toAddr, void *fromAddr){
   }  
 }
 
-extern "C" void setRealConstant_double(void *Addr, double value){
+extern "C" void setRealConstantReg_double(void *Addr, double value){
   size_t AddrInt = (size_t) Addr;
-  std::cout<<"setRealConstant_double AddrInt:"<<AddrInt<<"\n";
   if(!shadowMap.count(AddrInt)){ //if not in map
+//if its a constant we need to look other ways to handle it, but we have always set its value to constant
     struct Real* real = new Real;
     mpfr_init2(real->mpfr_val, PRECISION);
     mpfr_set_d(real->mpfr_val, value, MPFR_RNDN);
     shadowMap.insert(std::pair<size_t, struct Real*>(AddrInt, real)); 
   }  
+  else{
+    Real *real = getReal(Addr);
+    mpfr_set_d (real->mpfr_val, value, MPFR_RNDD);
+  }
+}
+extern "C" void setRealConstant_double(void *Addr, double value){
+  size_t AddrInt = (size_t) Addr;
+  if(!shadowMap.count(AddrInt)){ //if not in map
+//if its a constant we need to look other ways to handle it, but we have always set its value to constant
+    struct Real* real = new Real;
+    mpfr_init2(real->mpfr_val, PRECISION);
+    mpfr_set_d(real->mpfr_val, value, MPFR_RNDN);
+    shadowMap.insert(std::pair<size_t, struct Real*>(AddrInt, real)); 
+  }  
+  else{
+    Real *real = getReal(Addr);
+    mpfr_set_d (real->mpfr_val, value, MPFR_RNDD);
+  }
 }
 extern "C" void setRealConstant_float(void *Addr, float value){
   size_t AddrInt = (size_t) Addr;
-  std::cout<<"Addr:"<<AddrInt<<"\n";
-  std::cout<<"value:"<<value<<"\n";
+//  std::cout<<"Addr:"<<AddrInt<<"\n";
+//  std::cout<<"value:"<<value<<"\n";
   if(!shadowMap.count(AddrInt)){ //not in map
     struct Real* real = new Real;
     mpfr_init2(real->mpfr_val, PRECISION);
     mpfr_set_d(real->mpfr_val, value, MPFR_RNDN);
     shadowMap.insert(std::pair<size_t, struct Real*>(AddrInt, real)); 
   }  
+  else{
+    Real *real = getReal(Addr);
+    mpfr_set_d (real->mpfr_val, value, MPFR_RNDD);
+  }
+}
+
+float getFloat(Real *real){  
+  return mpfr_get_flt(real->mpfr_val, MPFR_RNDN);
 }
 
 double getDouble(Real *real){  
   return mpfr_get_d(real->mpfr_val, MPFR_RNDN);
 }
 
+long double getLongDouble(Real *real){  
+  return mpfr_get_ld(real->mpfr_val, MPFR_RNDN);
+}
 void printReal(Real *real){
   char* shadowValStr;
   mpfr_exp_t shadowValExpt;
@@ -382,6 +468,32 @@ void printReal(Real *real){
   mpfr_out_str (stdout, 10, 0, real->mpfr_val, MPFR_RNDD);
 } 
 
+unsigned long ulpd1(long long xx, long long yy){
+
+  xx = xx < 0 ? LLONG_MIN - xx : xx;
+
+  yy = yy < 0 ? LLONG_MIN - yy : yy;
+
+  return xx >= yy ? xx - yy : yy - xx;
+}
+
+unsigned long ulpf(float x, float y){
+  if (x == 0) x = 0; // -0 == 0
+  if (y == 0) y = 0; // -0 == 0
+
+  // if (x != x && y != y) return 0; 
+  if (x != x) return ULLONG_MAX - 1; // Maximum error
+  if (y != y) return ULLONG_MAX - 1; // Maximum error
+
+  long int xx = *((long int*) &x);
+  xx = xx < 0 ? LONG_MIN - xx : xx;
+
+  long int yy = *((long int*) &y);
+  yy = yy < 0 ? LONG_MIN - yy : yy;
+
+  return xx >= yy ? xx - yy : yy - xx;
+}
+
 unsigned long ulpd(double x, double y){
   if (x == 0) x = 0; // -0 == 0
   if (y == 0) y = 0; // -0 == 0
@@ -391,13 +503,9 @@ unsigned long ulpd(double x, double y){
   if (y != y) return ULLONG_MAX - 1; // Maximum error
 
   long long xx = *((long long*) &x);
-  std::cout<<"x:"<<x<<"\n";
-  std::cout<<"xx:"<<xx<<"\n";
   xx = xx < 0 ? LLONG_MIN - xx : xx;
 
   long long yy = *((long long*) &y);
-  std::cout<<"y:"<<y<<"\n";
-  std::cout<<"yy:"<<yy<<"\n";
   yy = yy < 0 ? LLONG_MIN - yy : yy;
 
   return xx >= yy ? xx - yy : yy - xx;
@@ -440,25 +548,74 @@ void ppFloat(double val){
   }
 }
 
-double updateError(Real *realVal, double computedVal){
-  double shadowRounded = getDouble(realVal);
-  printf("shadowRounded %10.5lf\n", shadowRounded);
-  std::cout<<shadowRounded<<"\n";
-  unsigned long ulpsError = ulpd(shadowRounded, computedVal);
-  printf("ulpsError %u\n", ulpsError);
+long long floatToInt(double f)
+{
+    long long r;
+    memcpy(&r, &f, sizeof(double));
+    return r;
+}
 
-  double bitsError = log2(ulpsError + 1);
-  std::cout<<"bitsError:"<<bitsError<<"\n";
+double updateErrorF(Real *realVal, float computedVal){
+  float shadowRounded = getFloat(realVal);
+//  long long fi = floatToInt(shadowRounded);
+//  long long fi2 = floatToInt(computedVal);
+  //printf("fi %u\n", fi);
+ // printf("fi2 %u\n", fi2);
+//  printf("shadowRounded %10.5lf\n", shadowRounded);
+//  std::cout<<shadowRounded<<"\n";
+  unsigned long ulpsError = ulpf(shadowRounded, computedVal);
+  //unsigned long ulpsError = ulpd1(fi, fi2);
+//  printf("ulpsError %u\n", ulpsError);
+
+  float bitsError = log2(ulpsError + 1);
+//  std::cout<<"bitsError:"<<bitsError<<"\n";
 
   // Debug printing code
 
      
   if (shadowRounded != shadowRounded){
-    printf("The shadow value is NaN");
+  //  printf("The shadow value is NaN");
   } else {
-    printf("The shadow value is ");
+//    printf("The shadow value is ");
 //    ppFloat(shadowRounded);
-    printReal(realVal);
+ //   printReal(realVal);
+  }
+  if (computedVal != computedVal){
+   // printf(", but NaN was computed.\n");
+  } else {
+   //   printf(", but ");
+//      ppFloat(computedVal);
+//      printf("%e\n", computedVal);
+ //     printf(" was computed.\n");
+    }
+//    printf("%f bits error (%llu ulps)\n",
+  //              bitsError, ulpsError);
+  return bitsError;
+}
+double updateError(Real *realVal, double computedVal){
+  double shadowRounded = getDouble(realVal);
+//  long long fi = floatToInt(shadowRounded);
+//  long long fi2 = floatToInt(computedVal);
+  //printf("fi %u\n", fi);
+ // printf("fi2 %u\n", fi2);
+//  printf("shadowRounded %10.5lf\n", shadowRounded);
+//  std::cout<<shadowRounded<<"\n";
+  unsigned long ulpsError = ulpd(shadowRounded, computedVal);
+  //unsigned long ulpsError = ulpd1(fi, fi2);
+//  printf("ulpsError %u\n", ulpsError);
+
+  double bitsError = log2(ulpsError + 1);
+//  std::cout<<"bitsError:"<<bitsError<<"\n";
+
+  // Debug printing code
+
+     
+  if (shadowRounded != shadowRounded){
+  //  printf("The shadow value is NaN");
+  } else {
+  //  printf("The shadow value is ");
+//    ppFloat(shadowRounded);
+  //  printReal(realVal);
   }
   if (computedVal != computedVal){
     printf(", but NaN was computed.\n");
@@ -473,12 +630,21 @@ double updateError(Real *realVal, double computedVal){
   return bitsError;
 }
 
+extern "C" void printRegValue(double regIndex){
+   if(shadowRegMap.count(regIndex)){ //if not in map
+    Real *real = shadowRegMap.at(regIndex);
+    printf("printRegValue regIndex: ");
+    mpfr_out_str (stdout, 10, 0, real->mpfr_val, MPFR_RNDD);
+    printf("\n");
+  }
+} 
 extern "C" void printErrorD(size_t result_A, double y){
+  printf("%e\n", y);
   if(shadowMap.count(result_A) != 0){
       Real* resReal = shadowMap.at(result_A);
       std::cout<<"Result using mpfr:\n";
       mpfr_out_str (stdout, 10, 0, resReal->mpfr_val, MPFR_RNDD);
-      std::cout<<"\n";
+//      std::cout<<"\n";
 
       double ulpsError = updateError(resReal, y);
       std::cout<<"ulpsError:"<<ulpsError<<"\n";
@@ -489,11 +655,11 @@ extern "C" void printErrorF(size_t result_A, float y){
   printf("%e\n", y);
   if(shadowMap.count(result_A) != 0){
       Real* resReal = shadowMap.at(result_A);
-      std::cout<<"Result using mpfr:\n";
-      mpfr_out_str (stdout, 10, 0, resReal->mpfr_val, MPFR_RNDD);
-      std::cout<<"\n";
+ //     std::cout<<"Result using mpfr:\n";
+ //     mpfr_out_str (stdout, 10, 0, resReal->mpfr_val, MPFR_RNDD);
+ //     std::cout<<"\n";
 
-      double ulpsError = updateError(resReal, y);
+      float ulpsError = updateErrorF(resReal, y);
       std::cout<<"ulpsError:"<<ulpsError<<"\n";
   }
 } 

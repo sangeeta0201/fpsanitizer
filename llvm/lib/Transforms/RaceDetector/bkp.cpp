@@ -63,15 +63,19 @@ bool FPInstrument::runOnModule(Module &M) {
       } 
     }
   for (Function *F : reverse(AllFuncList)) {
+  }
+  for (Function *F : reverse(AllFuncList)) {
     for (auto &BB : *F) {
       for (auto &I : BB) {
         if (PHINode *PN = dyn_cast<PHINode>(&I)) {
-          PhiListLast.push_back(&I); 
+//        handlePhi(&I, PN, *F);
+          errs()<<"Added phi node to a list"<<I<<"\n";
           PhiList.push_back(&I); 
         }
       }
     } 
-    handlePhi(*F);
+    if(PhiList.size() > 0)
+      handlePhi(*F);
     for (auto &BB : *F) {
       for (auto &I : BB) {
        if (LoadInst *Load = dyn_cast<LoadInst>(&I)){
@@ -131,9 +135,8 @@ bool FPInstrument::runOnModule(Module &M) {
       }
     }
     handleNewPhi(*F);
-    newPhiMap.clear(); 
-    loadMap.clear();
-//  F->dump(); 
+  loadMap.clear();
+  F->dump(); 
   }
   return true;
 }
@@ -309,6 +312,7 @@ void FPInstrument::handleFunc(Instruction *I, CallInst *call, Function &F){
   Module *M = F.getParent();
   IRBuilder<> IRB(I);
   Function *Callee = call->getCalledFunction();
+  
   if (!instrumentFunctions(Callee->getName())) return;
 
   errs()<<"handleFunc:"<<Callee->getName()<<"\n";
@@ -316,20 +320,7 @@ void FPInstrument::handleFunc(Instruction *I, CallInst *call, Function &F){
   errs()<<"handleFunc:"<<call->getNumArgOperands()<<"\n";
   Type* int_ty = Type::getInt32Ty(M->getContext());
   Type* voidTy = Type::getVoidTy(M->getContext());
-  Type* double_ty = Type::getDoubleTy(M->getContext()); 
   Type* void_ptr_ty = PointerType::getUnqual(Type::getInt8Ty(M->getContext()));
-  if(Callee->getName() == "printValue"){
-    errs()<<"handleFunc:"<<Callee->getName()<<"\n";
-    Value *op = call->getArgOperand(0);
-    Instruction* op_i = dyn_cast<Instruction>(op);  
-    if(regIdMap.count(op_i) != 0){ //if operand 1 is reg
-      errs()<<"handleFunc got index";
-      Instruction* index = regIdMap.at(op_i);
-      PrintOp = M->getOrInsertFunction("printRegValue", voidTy, double_ty);
-      Instruction * printI = IRB.CreateCall(PrintOp, {index});
-    }
-    return;
-  }
   size_t numOperands = call->getNumArgOperands();
   Value *op[numOperands];
   Type *op_ty[numOperands];
@@ -424,8 +415,6 @@ void FPInstrument::handleNewPhi(Function &F){
   Type* double_ty = Type::getDoubleTy(M->getContext());
   Type* int_ty = Type::getInt32Ty(M->getContext());
   Type* void_ptr_ty = PointerType::getUnqual(Type::getInt8Ty(M->getContext()));
-  Instruction* next;
-  errs()<<"handleNewPhi next"<<*next<<"\n";
   for(auto it = newPhiMap.begin(); it != newPhiMap.end(); ++it)
   {
     errs()<<"handleNewPhi called:"<<"\n";
@@ -446,19 +435,12 @@ void FPInstrument::handleNewPhi(Function &F){
         Instruction* ins = regIdMap.at(IValue);
         iPHI->addIncoming(ins, IBB);
       }
-      if (isa<ConstantFP>(IncValue)) {  
-        for (BasicBlock::iterator BBit = IBB->begin(), BBend = IBB->end(); 
-              BBit != BBend; ++BBit) {
-          next = &*BBit;
-        }
-        IRBuilder<> IRB(next);
-        SetRealConstant = M->getOrInsertFunction("setRealReg", double_ty, double_ty);
-        Instruction* newI = IRB.CreateCall(SetRealConstant, {IncValue});
-        iPHI->addIncoming(newI, IBB);
+      if (isa<ConstantFP>(IncValue)) {
+        iPHI->addIncoming(IncValue, IBB);
       } 
     }
-        F.dump();
   }
+ 
 }
 //we will cretahandleOpe new phi nodes which will have operands as corresponding real val
 //void FPInstrument::handlePhi(Instruction *I, PHINode *PN, Function &F){
@@ -468,20 +450,53 @@ void FPInstrument::handlePhi(Function &F){
   Type* int_ty = Type::getInt32Ty(M->getContext());
   Type* void_ptr_ty = PointerType::getUnqual(Type::getInt8Ty(M->getContext()));
   for (Instruction *I : reverse(PhiList)) {
-    errs()<<"handlePhi:"<<*I<<"\n";
-    IRBuilder<> IRB(I);
-    if(PHINode *PN = dyn_cast<PHINode>(I)){
-      errs()<<"handlePhi called:"<<*I<<"\n";
-      Type *phi_type = PN->getType();
-      if(phi_type->getTypeID() != Type::DoubleTyID){
-        continue;
-      }
-      PHINode* iPHI = IRB.CreatePHI (double_ty, 2);
-      regIdMap.insert(std::pair<Instruction*, Instruction*>(PN, iPHI)); 
-      newPhiMap.insert(std::pair<Instruction*, Instruction*>(I, iPHI)); 
-    }
+  IRBuilder<> IRB(I);
+  PHINode *PN = dyn_cast<PHINode>(I);
+  errs()<<"handlePhi called:"<<*I<<"\n";
+  Type *phi_type = PN->getType();
+  if(phi_type->getTypeID() != Type::DoubleTyID){
+    continue;
   }
-  PhiList.clear(); 
+  PHINode* iPHI = IRB.CreatePHI (double_ty, 2);
+  regIdMap.insert(std::pair<Instruction*, Instruction*>(PN, iPHI)); 
+  newPhiMap.insert(std::pair<Instruction*, Instruction*>(I, iPHI)); 
+
+/*
+  for (unsigned PI = 0, PE = PN->getNumIncomingValues(); PI != PE; ++PI) {
+    BasicBlock *IBB = PN->getIncomingBlock(PI);
+    Value *IncValue = PN->getIncomingValue(PI);  
+    if (IncValue == PN) continue; //TODO
+
+    if(PHINode *incValue1 = dyn_cast<PHINode>(IncValue)){ //if its phi node
+      errs()<<"handlePhi calling recursive handlePhi\n";
+      handlePhi(F);
+    }
+    else if (BinaryOperator* binOp = dyn_cast<BinaryOperator>(IncValue)){
+      switch(binOp->getOpcode()) {
+            case Instruction::FAdd:                                                                        
+            case Instruction::FSub:
+            case Instruction::FMul:
+            case Instruction::FDiv:
+            case Instruction::FRem:{
+              Instruction *IV = dyn_cast<Instruction>(IncValue); 
+              Instruction* ins = NULL;
+              handleOpReg(&ins, IV, binOp, F);
+              iPHI->addIncoming(ins, IBB);
+            }  // we handle binary operations on fp
+      }
+    }
+    if (isa<ConstantFP>(IncValue)) {
+  //  SetRealReg = M->getOrInsertFunction("setRealReg", int_ty, double_ty);
+ //   BitCastInst *b_op1 = new BitCastInst(IncValue, Type::getDoubleTy(M->getContext()),"", I); //TODO check type
+//    Instruction* newI = IRB.CreateCall(SetRealReg, {b_op1});
+      iPHI->addIncoming(IncValue, IBB);
+    } 
+  }
+*/
+
+ // }        // Allow self-referencing phi-nodes.
+  }
+ 
 }
 
 Value* FPInstrument::handleRegOperand(Instruction *I, Value* operand, Function &F){
@@ -815,7 +830,6 @@ void FPInstrument::handleOp(Instruction *I, BinaryOperator* binOp, Function &F){
       newI = IRB.CreateCall(HandleOp, {opCode, index0, b_op_1});
       regIdMap.insert(std::pair<Instruction*, Instruction*>(I, newI)); 
       errs()<<"handleOp regIdMap insert:"<<*I<<":"<<*newI<<"\n";
-      errs()<<"handleOp index0:"<<*index0<<"\n";
     }
   }
   else if(regFlag0 && regFlag1){
@@ -835,7 +849,6 @@ void FPInstrument::handleOp(Instruction *I, BinaryOperator* binOp, Function &F){
   else
     errs()<<"handleOp Error!!! operand not found\n";
 }
-/*
 bool RaceDetector::hasAnnotation(Instruction* i, Value *V, StringRef Ann, uint8_t level) {
   if (Instruction *I = dyn_cast<Instruction>(V)) {
     if (I->getOpcode() == Instruction::GetElementPtr) {
@@ -867,7 +880,7 @@ bool RaceDetector::hasAnnotation(Instruction* i, Value *V, StringRef Ann, uint8_
       }
     } 
 
-  else if (GlobalValue *G = dyn_cast<GlobalValue>(V)) {
+else if (GlobalValue *G = dyn_cast<GlobalValue>(V)) {
     MDNode *MD = i->getMetadata("tyann");
     if (MD) {
       MDString *MDS = cast<MDString>(MD->getOperand(0));
@@ -885,7 +898,7 @@ bool RaceDetector::hasAnnotation(Instruction* i, Value *V, StringRef Ann, uint8_
     }
   return false;
 }
-*/
+
 void addFPPass(const PassManagerBuilder &Builder, legacy::PassManagerBase &PM) {
   PM.add(new FPInstrument());
 }
