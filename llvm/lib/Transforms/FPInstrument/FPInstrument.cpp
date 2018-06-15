@@ -325,8 +325,8 @@ void FPInstrument::handleFunc(Instruction *I, CallInst *call, Function &F){
     if(regIdMap.count(op_i) != 0){ //if operand 1 is reg
       errs()<<"handleFunc got index";
       Instruction* index = regIdMap.at(op_i);
-      PrintOp = M->getOrInsertFunction("printRegValue", voidTy, double_ty);
-      Instruction * printI = IRB.CreateCall(PrintOp, {index});
+      PrintOp = M->getOrInsertFunction("printRegValue", voidTy, double_ty, double_ty);
+      Instruction * printI = IRB.CreateCall(PrintOp, {index, op});
     }
     return;
   }
@@ -769,7 +769,7 @@ void FPInstrument::handleOp(Instruction *I, BinaryOperator* binOp, Function &F){
   }
   else if(regFlag0 && regFlag1){
     errs()<<"op0 and op1 are reg\n";
-    HandleOp = M->getOrInsertFunction("handleOp_rd", double_ty, int_ty, double_ty, double_ty);
+    HandleOp = M->getOrInsertFunction("handleOp_rr", double_ty, int_ty, double_ty, double_ty);
   }
   else if(op_1_cons && regFlag0){
     errs()<<"op0 is reg and op1 is cons\n";
@@ -781,9 +781,9 @@ void FPInstrument::handleOp(Instruction *I, BinaryOperator* binOp, Function &F){
   else if(op_0_cons && regFlag1){
     errs()<<"op0 is cons and op1 is reg\n";
     if(fpConstant_op1->getTypeID() == Type::FloatTyID)
-      HandleOp = M->getOrInsertFunction("handleOp_rf", double_ty, int_ty, double_ty, float_ty);
+      HandleOp = M->getOrInsertFunction("handleOp_fr", double_ty, int_ty, double_ty, float_ty);
     else if(fpConstant_op1->getTypeID() == Type::DoubleTyID)
-      HandleOp = M->getOrInsertFunction("handleOp_rd", double_ty, int_ty, double_ty, double_ty);
+      HandleOp = M->getOrInsertFunction("handleOp_dr", double_ty, int_ty, double_ty, double_ty);
   }
   else if(op_0_cons){
     if(fpConstant_op0->getTypeID() == Type::FloatTyID)
@@ -805,7 +805,7 @@ void FPInstrument::handleOp(Instruction *I, BinaryOperator* binOp, Function &F){
   Instruction* newI;
   if(op_0_cons && regFlag1){
     if(index1 != NULL){
-      newI = IRB.CreateCall(HandleOp, {opCode, index1, b_op_0});
+      newI = IRB.CreateCall(HandleOp, {opCode, b_op_0, index1});
       regIdMap.insert(std::pair<Instruction*, Instruction*>(I, newI)); 
       errs()<<"handleOp regIdMap insert:"<<*I<<":"<<*newI<<"\n";
     }

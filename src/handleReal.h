@@ -5,7 +5,7 @@
 #include <mpfr.h>
 #include <vector>
 
-#define PRECISION 200
+#define PRECISION 100
 
 double regIndex = 0;
 
