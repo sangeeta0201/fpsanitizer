@@ -37,25 +37,14 @@ extern "C" void addFunArg(size_t argNo, void *funAddr, void *argAddr){
   shadowFunArgMap.insert(std::pair<std::map<size_t, size_t>, size_t>(data, argAddrInt));
 }
 
-extern "C" void addRegRes(double regIndex1, double regIndex2, double resRegIndex, size_t opCode){
-
-  std::map<double, double> data1;
-  std::map<std::map<double, double>, size_t> data2;
-  data1.insert(std::pair<double, double>(regIndex1, regIndex2));
-  data2.insert(std::pair<std::map<double, double>, size_t>(data1, opCode));
-  shadowRegResMap.insert(std::pair<std::map<std::map<double, double>, size_t>, double>(data2, opCode));
+extern "C" void addRegRes(double insIndex, double resRegIndex){
+  shadowRegResMap.insert(std::pair<double,double>(insIndex, resRegIndex));
 }
 
-extern "C" double getRegRes(double regIndex1, double regIndex2, size_t opCode){
+extern "C" double getRegRes(double insIndex){
 
-  std::vector<size_t>::iterator it;
-  std::map<double, double> data1;
-  data1.insert(std::pair<double, double>(regIndex1, regIndex2));
-  std::map<std::map<double, double>, size_t> data2;
-  data2.insert(std::pair<std::map<double, double>, size_t>(data1, opCode));
-
-  if(shadowRegResMap.count(data2) != 0){ 
-    double resRegIndex = shadowRegResMap.at(data2);
+  if(shadowRegResMap.count(insIndex) != 0){ 
+    double resRegIndex = shadowRegResMap.at(insIndex);
     return resRegIndex;
   }
   return 0;
@@ -69,10 +58,11 @@ extern "C" void* handleMathFunc(size_t funcCode, void *op1){
   mpfr_init2 (op1_mpfr, PRECISION); 
   mpfr_init2 (real_res->mpfr_val, PRECISION); 
   Real *real1 = getReal(op1);
-#if 1
-  std::cout<<"handleMathFunc res:\n";
-  mpfr_out_str (stdout, 10, 0, real1->mpfr_val, MPFR_RNDD);
-  std::cout<<"\n";
+  if(debug){
+    std::cout<<"handleMathFunc res:\n";
+    mpfr_out_str (stdout, 10, 0, real1->mpfr_val, MPFR_RNDD);
+    std::cout<<"\n";
+  }
 #endif
   if(real1 != NULL){
     switch(funcCode){
@@ -85,11 +75,11 @@ extern "C" void* handleMathFunc(size_t funcCode, void *op1){
   }
   else
     std::cout<<"handleMathFunc: Error!!!\n";
-#if 1
-  std::cout<<"handleMathFunc res:\n";
-  mpfr_out_str (stdout, 10, 0, real_res->mpfr_val, MPFR_RNDD);
-  std::cout<<"\n";
-#endif
+  if(debug){
+    std::cout<<"handleMathFunc res:\n";
+    mpfr_out_str (stdout, 10, 0, real_res->mpfr_val, MPFR_RNDD);
+    std::cout<<"\n";
+  }
   size_t Addr = (size_t) real_res;
   shadowMap.insert(std::pair<size_t, struct Real*>(Addr, real_res));
   return real_res;
@@ -98,37 +88,42 @@ extern "C" void* handleMathFunc(size_t funcCode, void *op1){
 void handleOp(size_t opCode, mpfr_t *res, mpfr_t *op1, mpfr_t *op2){
   switch(opCode) {                                                                                            
     case 12: //FADD
-      std::cout<<"FADD\n";
+      if(debug)
+        std::cout<<"FADD\n";
       mpfr_add (*res, *op1, *op2, MPFR_RNDD);
       break;
     case 14: //FSUB
-      std::cout<<"FSUB\n";
+      if(debug)
+        std::cout<<"FSUB\n";
       mpfr_sub (*res, *op1, *op2, MPFR_RNDD);
       break;
     case 16: //FMUL
-      std::cout<<"FMUL\n";
+      if(debug)
+        std::cout<<"FMUL\n";
       mpfr_mul (*res, *op1, *op2, MPFR_RNDD);
       break;
     case 19: //FDIV
-      std::cout<<"FDIV\n";
+      if(debug)
+        std::cout<<"FDIV\n";
       mpfr_div (*res, *op1, *op2, MPFR_RNDD);
       break;
     default:
       // do nothing
       break;
   } 
-#if 1
-  std::cout<<"handleOp res:\n";
-  mpfr_out_str (stdout, 10, 0, *res, MPFR_RNDD);
-  std::cout<<"\n";
-  std::cout<<"handleOp op1:\n";
-  mpfr_out_str (stdout, 10, 0, *op1, MPFR_RNDD);
-  std::cout<<"\n";
-  std::cout<<"handleOp op2:\n";
-  mpfr_out_str (stdout, 10, 0, *op2, MPFR_RNDD);
-  std::cout<<"\n";
-#endif
+  if(debug){
+    std::cout<<"handleOp res:\n";
+    mpfr_out_str (stdout, 10, 0, *res, MPFR_RNDD);
+    std::cout<<"\n";
+    std::cout<<"handleOp op1:\n";
+    mpfr_out_str (stdout, 10, 0, *op1, MPFR_RNDD);
+    std::cout<<"\n";
+    std::cout<<"handleOp op2:\n";
+    mpfr_out_str (stdout, 10, 0, *op2, MPFR_RNDD);
+    std::cout<<"\n";
+  }
 }
+
 extern "C" void* handleOp_1(size_t opCode, void *op1, void *op2){
   mpfr_t op1_mpfr;
   mpfr_t op2_mpfr;
@@ -221,18 +216,23 @@ extern "C" void* handleOp_3_d(size_t opCode, void *op1, double op2){
   return real_res;
 }
 
-extern "C" double handleOp_rr(size_t opCode, double regIndex1, double regIndex2){
-  std::cout<<"*****handleOp_rr: regIndex1:"<<regIndex1<<"\n";
-  std::cout<<"*****handleOp_rr: regIndex2:"<<regIndex2<<"\n";
-
+extern "C" double handleOp_rr(size_t opCode, double regIndex1, double regIndex2, double insIndex){
+  if(debug){
+    std::cout<<"*****handleOp_rr: insIndex:"<<insIndex<<"\n";
+    std::cout<<"*****handleOp_rr: regIndex1:"<<regIndex1<<"\n";
+    std::cout<<"*****handleOp_rr: regIndex2:"<<regIndex2<<"\n";
+  }
+  
   mpfr_t res_mpfr;
   struct Real* real_res = new Real;
   //double newRegIdx = getNewRegIndex();
-  double newRegIdx = getRegRes(regIndex1, regIndex2, opCode);
+
+  double newRegIdx = getRegRes(insIndex);
   if(!newRegIdx){
     newRegIdx = getNewRegIndex();
-    std::cout<<"new index:"<<regIndex1<<":"<<regIndex2<<":"<<newRegIdx<<":"<<opCode<<"\n";
-    addRegRes(regIndex1, regIndex2, newRegIdx, opCode);
+    if(debug)
+      std::cout<<"new index:"<<insIndex<<":"<<newRegIdx<<"\n";
+    addRegRes(insIndex, newRegIdx);
   }
 
   mpfr_init2 (real_res->mpfr_val, PRECISION); 
@@ -246,15 +246,22 @@ extern "C" double handleOp_rr(size_t opCode, double regIndex1, double regIndex2)
     std::cout<<"Error !!!!!!\n";
   }
   handleOp(opCode, &(real_res->mpfr_val), &(real1->mpfr_val), &(real2->mpfr_val));
-  
-  shadowRegMap.insert(std::pair<double, struct Real*>(newRegIdx, real_res)); 
-  std::cout<<"*****handleOp_rr: returned regIndex:"<<newRegIdx<<"\n";
+ 
+  std::map<double, struct Real*>::iterator it = shadowRegMap.find(newRegIdx); 
+  if (it != shadowRegMap.end())
+    (*it).second = real_res;
+  else
+    shadowRegMap.insert(std::pair<double, struct Real*>(newRegIdx, real_res)); 
+  if(debug)
+    std::cout<<"*****handleOp_rr: returned regIndex:"<<newRegIdx<<"\n";
   return newRegIdx;
 }
 
 extern "C" double handleOp_rd(size_t opCode, double regIndex1, double value){
-  std::cout<<"*****handleOp_rd: regIndex1:"<<regIndex1<<"\n";
-  std::cout<<"handleOp_rd: value:"<<value<<"\n";
+  if(debug){
+    std::cout<<"*****handleOp_rd: regIndex1:"<<regIndex1<<"\n";
+    std::cout<<"handleOp_rd: value:"<<value<<"\n";
+  }
 
   mpfr_t op2_mpfr;
   mpfr_t res_mpfr;
@@ -272,14 +279,16 @@ extern "C" double handleOp_rd(size_t opCode, double regIndex1, double value){
   handleOp(opCode, &(real_res->mpfr_val), &(real1->mpfr_val), &(op2_mpfr));
   
   shadowRegMap.insert(std::pair<double, struct Real*>(newRegIdx, real_res)); 
-  std::cout<<"*****handleOp_rd: returned regIndex:"<<newRegIdx<<"\n";
+  if(debug)
+    std::cout<<"*****handleOp_rd: returned regIndex:"<<newRegIdx<<"\n";
   return newRegIdx;
 }
 
 extern "C" double handleOp_dr(size_t opCode, double value, double regIndex1){
-  std::cout<<"*****handleOp_rd: regIndex1:"<<regIndex1<<"\n";
-  std::cout<<"handleOp_rd: value:"<<value<<"\n";
-
+  if(debug){
+    std::cout<<"*****handleOp_rd: regIndex1:"<<regIndex1<<"\n";
+    std::cout<<"handleOp_rd: value:"<<value<<"\n";
+  }
   mpfr_t op2_mpfr;
   mpfr_t res_mpfr;
   struct Real* real_res = new Real;
@@ -296,7 +305,8 @@ extern "C" double handleOp_dr(size_t opCode, double value, double regIndex1){
   handleOp(opCode, &(real_res->mpfr_val), &(op2_mpfr), &(real1->mpfr_val));
   
   shadowRegMap.insert(std::pair<double, struct Real*>(newRegIdx, real_res)); 
-  std::cout<<"*****handleOp_rd: returned regIndex:"<<newRegIdx<<"\n";
+  if(debug)
+    std::cout<<"*****handleOp_rd: returned regIndex:"<<newRegIdx<<"\n";
   return newRegIdx;
 }
 
@@ -376,14 +386,17 @@ extern "C" void* handleOp_4_dd(size_t opCode, double op1, double op2){
 
 
 extern "C" double setRealReg(double index, double value){
-  std::cout<<"setRealReg index:"<<index<<"\n"; 
-  std::cout<<"setRealReg value:"<<value<<"\n"; 
+  if(debug){
+    std::cout<<"setRealReg index:"<<index<<"\n"; 
+    std::cout<<"setRealReg value:"<<value<<"\n"; 
+  }
   if(!shadowRegMap.count(index)){
     struct Real* real = new Real;
     mpfr_init2(real->mpfr_val, PRECISION);
     mpfr_set_d(real->mpfr_val, value, MPFR_RNDN);
     shadowRegMap.insert(std::pair<double, struct Real*>(index, real)); 
-    std::cout<<"setRealReg: added to shadow mem\n";
+    if(debug)
+      std::cout<<"setRealReg: added to shadow mem\n";
   }
   return index;
 }

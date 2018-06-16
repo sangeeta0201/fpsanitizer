@@ -6,9 +6,10 @@
 #include <vector>
 
 #define PRECISION 100
+#define debug 1
 
 double regIndex = 200; //assuming there are 200 constants in the program
-std::map<std::map<std::map<double, double>, size_t>, double>shadowRegResMap;
+std::map<double, double>shadowRegResMap;
 std::map<std::map<size_t, size_t>, size_t> shadowFunArgMap; // thi will link function argument to shadowMap
 std::map<size_t, struct Real*> shadowMap;
 std::map<double, struct Real*> shadowRegMap;

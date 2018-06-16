@@ -107,6 +107,7 @@ bool FPInstrument::runOnModule(Module &M) {
             case Instruction::FSub:
             case Instruction::FMul:
             case Instruction::FDiv:{
+              handleIns(&I, binOp, *F); // give unique index to all binOp instructions
               handleConstant(&I, binOp, *F); // give unique index to all constants
               handleOp(&I, binOp, *F);
             }  // we handle binary operations on fp
@@ -537,6 +538,12 @@ BitCastInst* FPInstrument::handleOperand(Instruction **index, Instruction *I, Va
   return b_op;
 }
 
+void FPInstrument::handleIns(Instruction *I, BinaryOperator* binOp, Function &F){
+  errs()<<"handleConstant called\n";
+  insMap.insert(std::pair<Instruction*, double>(I, insCount));
+  insCount++; 
+}
+
 void FPInstrument::handleConstant(Instruction *I, BinaryOperator* binOp, Function &F){
   errs()<<"handleConstant called\n";
   Value *operand0 = binOp->getOperand(0);
@@ -573,6 +580,11 @@ void FPInstrument::handleOp(Instruction *I, BinaryOperator* binOp, Function &F){
   bool regFlag0 = false;
   bool regFlag1 = false;
 
+  //get index of ins
+  double insIndex;
+  insIndex = insMap.at(I);
+  errs()<<"Ins index:"<<insIndex<<"\n";
+  Constant* consInsIndex = ConstantFP::get(Type::getDoubleTy(M->getContext()), insIndex); 
     //if its not found in loadMap, it means its register var
     //first we will insert this var in regIdMap by giving it a unique id
     //then we will set its value in runtime
@@ -597,7 +609,7 @@ void FPInstrument::handleOp(Instruction *I, BinaryOperator* binOp, Function &F){
   }
   else if(regFlag0 && regFlag1){
     errs()<<"op0 and op1 are reg\n";
-    HandleOp = M->getOrInsertFunction("handleOp_rr", double_ty, int_ty, double_ty, double_ty);
+    HandleOp = M->getOrInsertFunction("handleOp_rr", double_ty, int_ty, double_ty, double_ty, double_ty);
   }
   else if(op_1_cons && regFlag0){
     errs()<<"op0 is reg and op1 is cons\n";
@@ -651,7 +663,7 @@ void FPInstrument::handleOp(Instruction *I, BinaryOperator* binOp, Function &F){
     errs()<<"index0:"<<*index0<<"\n";
     errs()<<"index1:"<<*index1<<"\n";
     if(index0 != NULL && index1 != NULL){
-      newI = IRB.CreateCall(HandleOp, {opCode, index0, index1});
+      newI = IRB.CreateCall(HandleOp, {opCode, index0, index1, consInsIndex});
       regIdMap.insert(std::pair<Instruction*, Instruction*>(I, newI)); 
       errs()<<"handleOp regIdMap insert:"<<*I<<":"<<*newI<<"\n";
     }

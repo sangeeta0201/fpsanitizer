@@ -16,6 +16,7 @@ std::map<Value*, Instruction*> varMap;
 std::map<Instruction*, Value*> loadMap;
 std::map<Instruction*, Instruction*> regIdMap;
 std::map<Value*, double> consMap;
+std::map<Instruction*, double> insMap;
 std::map<Instruction*, Instruction*> newPhiMap;
 std::map<Function*, Value*> funArgMap;
 std::map<Argument*, size_t> argMap;
@@ -41,6 +42,7 @@ public:
   void handleOpReg(Instruction **newI, Instruction *I, BinaryOperator* binOp, Function &F);
   Value* handleRegOperand(Instruction *I, Value* operand, Function &F);
   BitCastInst* handleOperand(Instruction **index, Instruction *I, Value* operand, Function &F, bool *consFlag, bool *regFlag);
+  void handleIns(Instruction *I, BinaryOperator* binOp, Function &F);
   void handleConstant(Instruction *I, BinaryOperator* binOp, Function &F);
   //void handlePhi(Instruction *I, PHINode *PN, Function &F);
   void handlePhi(Function &F);
@@ -64,6 +66,7 @@ private:
   SmallVector<Function*, 8> AllFuncList;
   DebugInfoFinder debugInfo;  
   double consCount = 0;
+  double insCount = 0;
   Value* Test;
   Value* SetRealConstant;
   Value* SetRealTemp;
