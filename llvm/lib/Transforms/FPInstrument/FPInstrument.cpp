@@ -41,6 +41,8 @@ bool ret = true;
 LLVMContext *C;  
 bool FPInstrument::runOnModule(Module &M) {
  
+  size_t count = 0;
+  double consCount = 0;
   for (Module::iterator Mit = M.begin(), Mend = M.end(); Mit != Mend; ++Mit) {
     Function &F = *Mit;
     if (F.isDeclaration()) continue;
@@ -48,21 +50,16 @@ bool FPInstrument::runOnModule(Module &M) {
     StringRef funcName = F.getName();
     AllFuncList.push_back(&F);
   }
-  std::queue<llvm::Argument*> arglist;
+
   for (Function *F : reverse(AllFuncList)) {
     errs()<<"********"<<F->getName()<<"*****\n";
-     SetVector<Value*> F_pointers;
-      size_t count = 0;
-      for (Function::arg_iterator ait = F->arg_begin(), aend = F->arg_end();
+    for (Function::arg_iterator ait = F->arg_begin(), aend = F->arg_end();
                 ait != aend; ++ait) {
-        Argument *A = &*ait;
-        //if (!A->getType()->isPointerTy()) {
-          argMap.insert(std::pair<Argument*, size_t>(A, count));
-          count++;
-        //}
-      } 
-    }
-  for (Function *F : reverse(AllFuncList)) {
+      Argument *A = &*ait;
+      argMap.insert(std::pair<Argument*, size_t>(A, count));
+      count++;
+    } 
+    
     for (auto &BB : *F) {
       for (auto &I : BB) {
         if (PHINode *PN = dyn_cast<PHINode>(&I)) {
@@ -110,6 +107,7 @@ bool FPInstrument::runOnModule(Module &M) {
             case Instruction::FSub:
             case Instruction::FMul:
             case Instruction::FDiv:{
+              handleConstant(&I, binOp, *F); // give unique index to all constants
               handleOp(&I, binOp, *F);
             }  // we handle binary operations on fp
           }
@@ -125,9 +123,7 @@ bool FPInstrument::runOnModule(Module &M) {
               handleFunc(&I, callInst, *F); // handle other functions in app
             }
           }
-      }
-
-
+        }
       }
     }
     handleNewPhi(*F);
@@ -423,9 +419,9 @@ void FPInstrument::handleNewPhi(Function &F){
   Module *M = F.getParent();
   Type* double_ty = Type::getDoubleTy(M->getContext());
   Type* int_ty = Type::getInt32Ty(M->getContext());
+  Type* void_ty = Type::getVoidTy(M->getContext());;
   Type* void_ptr_ty = PointerType::getUnqual(Type::getInt8Ty(M->getContext()));
   Instruction* next;
-  errs()<<"handleNewPhi next"<<*next<<"\n";
   for(auto it = newPhiMap.begin(); it != newPhiMap.end(); ++it)
   {
     errs()<<"handleNewPhi called:"<<"\n";
@@ -452,8 +448,20 @@ void FPInstrument::handleNewPhi(Function &F){
           next = &*BBit;
         }
         IRBuilder<> IRB(next);
-        SetRealConstant = M->getOrInsertFunction("setRealReg", double_ty, double_ty);
-        Instruction* newI = IRB.CreateCall(SetRealConstant, {IncValue});
+//        SetRealConstant = M->getOrInsertFunction("setRealReg", double_ty, double_ty);
+ //       Instruction* newI = IRB.CreateCall(SetRealConstant, {IncValue});
+        double cIndex;
+        if(consMap.count(IncValue) != 0)
+          cIndex = consMap.at(IncValue); // it should never fail
+        else{
+          cIndex = consCount++; 
+          consMap.insert(std::pair<Value*, double>(IncValue, consCount));
+        }
+        errs()<<"handleNewPhi cIndex "<<cIndex<<"\n";
+        Constant* consIndex = ConstantFP::get(Type::getDoubleTy(M->getContext()), cIndex); 
+        SetRealConstant = M->getOrInsertFunction("setRealReg", double_ty, double_ty, double_ty);
+        Instruction *newI = IRB.CreateCall(SetRealConstant, {consIndex, IncValue});
+
         iPHI->addIncoming(newI, IBB);
       } 
     }
@@ -498,11 +506,19 @@ BitCastInst* FPInstrument::handleOperand(Instruction **index, Instruction *I, Va
 
   if (isa<ConstantFP>(operand)) {
     errs()<<"handleOperand op is a constant\n";
-    if(fpConstant_op0->getTypeID() == Type::FloatTyID)
-      b_op = new BitCastInst(operand, Type::getFloatTy(M->getContext()),"", I);
-    else if(fpConstant_op0->getTypeID() == Type::DoubleTyID)
-      b_op = new BitCastInst(operand, Type::getDoubleTy(M->getContext()),"", I);
-    *consFlag = true;
+//    if(fpConstant_op0->getTypeID() == Type::FloatTyID)
+//      b_op = new BitCastInst(operand, Type::getFloatTy(M->getContext()),"", I);
+//    else if(fpConstant_op0->getTypeID() == Type::DoubleTyID)
+//      b_op = new BitCastInst(operand, Type::getDoubleTy(M->getContext()),"", I);
+    //*consFlag = true;
+    double cIndex = consMap.at(operand); // it should never fail
+    
+    errs()<<"handleOperand consCount:"<<cIndex<<"\n";
+    Constant* consIndex = ConstantFP::get(Type::getDoubleTy(M->getContext()), cIndex); 
+    SetRealConstant = M->getOrInsertFunction("setRealReg", double_ty, double_ty, double_ty);
+    Instruction *newI = IRB.CreateCall(SetRealConstant, {consIndex, operand});
+    *index = newI;
+    *regFlag = true;
   } 
   else {
     errs()<<"handleOperand op is not a constant, finding in loadMap\n";
@@ -519,6 +535,22 @@ BitCastInst* FPInstrument::handleOperand(Instruction **index, Instruction *I, Va
     }
   }
   return b_op;
+}
+
+void FPInstrument::handleConstant(Instruction *I, BinaryOperator* binOp, Function &F){
+  errs()<<"handleConstant called\n";
+  Value *operand0 = binOp->getOperand(0);
+  Value *operand1 = binOp->getOperand(1);
+  if (isa<ConstantFP>(operand0)) {
+    consMap.insert(std::pair<Value*, double>(operand0, consCount));
+    errs()<<"handleConstant consCount:"<<consCount<<":"<<*operand0<<"\n";
+    consCount++;
+  }  
+  if (isa<ConstantFP>(operand1)) {
+    consMap.insert(std::pair<Value*, double>(operand1, consCount));
+    errs()<<"handleConstant consCount:"<<consCount<<":"<<*operand1<<"\n";
+    consCount++;
+  }  
 }
 
 void FPInstrument::handleOp(Instruction *I, BinaryOperator* binOp, Function &F){
@@ -615,6 +647,9 @@ void FPInstrument::handleOp(Instruction *I, BinaryOperator* binOp, Function &F){
     }
   }
   else if(regFlag0 && regFlag1){
+    errs()<<"handleOp regIdMap\n";
+    errs()<<"index0:"<<*index0<<"\n";
+    errs()<<"index1:"<<*index1<<"\n";
     if(index0 != NULL && index1 != NULL){
       newI = IRB.CreateCall(HandleOp, {opCode, index0, index1});
       regIdMap.insert(std::pair<Instruction*, Instruction*>(I, newI)); 

@@ -20,7 +20,7 @@ extern "C" Real* getReal(void *Addr){
   return NULL;
 }
 
-extern "C" Real* getRealReg(size_t index){
+extern "C" Real* getRealReg(double index){
   if(shadowRegMap.count(index) != 0){
     Real* real = shadowRegMap.at(index);
     return real;
@@ -231,6 +231,7 @@ extern "C" double handleOp_rr(size_t opCode, double regIndex1, double regIndex2)
   double newRegIdx = getRegRes(regIndex1, regIndex2, opCode);
   if(!newRegIdx){
     newRegIdx = getNewRegIndex();
+    std::cout<<"new index:"<<regIndex1<<":"<<regIndex2<<":"<<newRegIdx<<":"<<opCode<<"\n";
     addRegRes(regIndex1, regIndex2, newRegIdx, opCode);
   }
 
@@ -290,7 +291,6 @@ extern "C" double handleOp_dr(size_t opCode, double value, double regIndex1){
   Real *real1 = getRealReg(regIndex1);
   if(real1 == NULL){
     std::cout<<"Error !!!!!!\n";
-//   real = setRealReg(regIndex, op2); 
   }
   mpfr_set_d (op2_mpfr, value, MPFR_RNDD);
   handleOp(opCode, &(real_res->mpfr_val), &(op2_mpfr), &(real1->mpfr_val));
@@ -375,14 +375,17 @@ extern "C" void* handleOp_4_dd(size_t opCode, double op1, double op2){
 }
 
 
-extern "C" double setRealReg(double value){
-  double regIndex = getNewRegIndex();
+extern "C" double setRealReg(double index, double value){
+  std::cout<<"setRealReg index:"<<index<<"\n"; 
+  std::cout<<"setRealReg value:"<<value<<"\n"; 
+  if(!shadowRegMap.count(index)){
     struct Real* real = new Real;
     mpfr_init2(real->mpfr_val, PRECISION);
     mpfr_set_d(real->mpfr_val, value, MPFR_RNDN);
-    shadowRegMap.insert(std::pair<int, struct Real*>(regIndex, real)); 
-//    std::cout<<"setRealReg: added to shadow mem\n";
-    return regIndex;
+    shadowRegMap.insert(std::pair<double, struct Real*>(index, real)); 
+    std::cout<<"setRealReg: added to shadow mem\n";
+  }
+  return index;
 }
 
 extern "C" void setRealFunArg(size_t index, void *funAddr, void *toAddr/*store 2nd operand*/){

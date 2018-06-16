@@ -7,7 +7,7 @@
 
 #define PRECISION 100
 
-double regIndex = 0;
+double regIndex = 200; //assuming there are 200 constants in the program
 std::map<std::map<std::map<double, double>, size_t>, double>shadowRegResMap;
 std::map<std::map<size_t, size_t>, size_t> shadowFunArgMap; // thi will link function argument to shadowMap
 std::map<size_t, struct Real*> shadowMap;
@@ -31,7 +31,7 @@ extern "C" void* handleOp_4_fd(size_t opCode, float op1, double op2);
 extern "C" void* handleOp_4_df(size_t opCode, double op1, float op2);
 extern "C" void* handleOp_4_dd(size_t opCode, double op1, double op2);
 extern "C" double handleOp_rd(size_t opCode, double regIndex, double op2);
-extern "C" double setRealReg(double value);
+extern "C" double setRealReg(double index, double value);
 extern "C" void addFunArg(size_t argNo, void *funAddr, void *argAddr);
 extern "C" void printErrorF(size_t result_A, float y);
 extern "C" void printErrorD(size_t result_A, double y);

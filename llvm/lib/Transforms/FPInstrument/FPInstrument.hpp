@@ -11,9 +11,11 @@
 
 using namespace std;
 using namespace llvm;
+
 std::map<Value*, Instruction*> varMap;
 std::map<Instruction*, Value*> loadMap;
 std::map<Instruction*, Instruction*> regIdMap;
+std::map<Value*, double> consMap;
 std::map<Instruction*, Instruction*> newPhiMap;
 std::map<Function*, Value*> funArgMap;
 std::map<Argument*, size_t> argMap;
@@ -39,6 +41,7 @@ public:
   void handleOpReg(Instruction **newI, Instruction *I, BinaryOperator* binOp, Function &F);
   Value* handleRegOperand(Instruction *I, Value* operand, Function &F);
   BitCastInst* handleOperand(Instruction **index, Instruction *I, Value* operand, Function &F, bool *consFlag, bool *regFlag);
+  void handleConstant(Instruction *I, BinaryOperator* binOp, Function &F);
   //void handlePhi(Instruction *I, PHINode *PN, Function &F);
   void handlePhi(Function &F);
   void handleMathFunc(Instruction *I, CallInst *callInst, Function &F);
@@ -60,7 +63,7 @@ private:
   SmallVector<Instruction*, 8> PhiListLast;
   SmallVector<Function*, 8> AllFuncList;
   DebugInfoFinder debugInfo;  
-  
+  double consCount = 0;
   Value* Test;
   Value* SetRealConstant;
   Value* SetRealTemp;
