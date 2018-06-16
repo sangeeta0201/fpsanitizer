@@ -8,7 +8,7 @@
 #define PRECISION 100
 
 double regIndex = 0;
-
+std::map<std::map<std::map<double, double>, size_t>, double>shadowRegResMap;
 std::map<std::map<size_t, size_t>, size_t> shadowFunArgMap; // thi will link function argument to shadowMap
 std::map<size_t, struct Real*> shadowMap;
 std::map<double, struct Real*> shadowRegMap;
@@ -21,7 +21,7 @@ unsigned long ulpd(double x, double y);
 void handleOp(size_t opCode, mpfr_t *res, mpfr_t *op1, mpfr_t *op2);
 double updateError(Real *realVal, double computedVal);
 
-extern "C" double getRegIndex();
+extern "C" double getNewRegIndex();
 extern "C" void* handleOp_1(size_t opCode, void *op1, void *op2);
 extern "C" void* handleOp_2_f(size_t opCode, float op1, void *op2);
 extern "C" void* handleOp_2_d(size_t opCode, double op1, void *op2);
