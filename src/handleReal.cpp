@@ -63,7 +63,6 @@ extern "C" void* handleMathFunc(size_t funcCode, void *op1){
     mpfr_out_str (stdout, 10, 0, real1->mpfr_val, MPFR_RNDD);
     std::cout<<"\n";
   }
-#endif
   if(real1 != NULL){
     switch(funcCode){
       case 1: //sqrt
