@@ -32,6 +32,7 @@
 #include "llvm/Support/DynamicLibrary.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Target/TargetMachine.h"
+#include "llvm/Transforms/InstCombine/InstCombine.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Scalar/GVN.h"
 #include <algorithm>
@@ -46,7 +47,6 @@ namespace orc {
 
 class KaleidoscopeJIT {
 private:
-  SymbolStringPool SSP;
   ExecutionSession ES;
   std::map<VModuleKey, std::shared_ptr<SymbolResolver>> Resolvers;
   std::unique_ptr<TargetMachine> TM;
@@ -55,7 +55,7 @@ private:
   IRCompileLayer<decltype(ObjectLayer), SimpleCompiler> CompileLayer;
 
   using OptimizeFunction =
-      std::function<std::shared_ptr<Module>(std::shared_ptr<Module>)>;
+      std::function<std::unique_ptr<Module>(std::unique_ptr<Module>)>;
 
   IRTransformLayer<decltype(CompileLayer), OptimizeFunction> OptimizeLayer;
 
@@ -63,21 +63,21 @@ private:
   CompileOnDemandLayer<decltype(OptimizeLayer)> CODLayer;
 
 public:
-  using ModuleHandle = decltype(CODLayer)::ModuleHandleT;
-
   KaleidoscopeJIT()
-      : ES(SSP), TM(EngineBuilder().selectTarget()), DL(TM->createDataLayout()),
-        ObjectLayer(
-            ES,
-            [](VModuleKey) { return std::make_shared<SectionMemoryManager>(); },
-            [&](orc::VModuleKey K) { return Resolvers[K]; }),
+      : TM(EngineBuilder().selectTarget()), DL(TM->createDataLayout()),
+        ObjectLayer(ES,
+                    [this](VModuleKey K) {
+                      return RTDyldObjectLinkingLayer::Resources{
+                          std::make_shared<SectionMemoryManager>(),
+                          Resolvers[K]};
+                    }),
         CompileLayer(ObjectLayer, SimpleCompiler(*TM)),
         OptimizeLayer(CompileLayer,
-                      [this](std::shared_ptr<Module> M) {
+                      [this](std::unique_ptr<Module> M) {
                         return optimizeModule(std::move(M));
                       }),
-        CompileCallbackManager(
-            orc::createLocalCompileCallbackManager(TM->getTargetTriple(), 0)),
+        CompileCallbackManager(orc::createLocalCompileCallbackManager(
+            TM->getTargetTriple(), ES, 0)),
         CODLayer(ES, OptimizeLayer,
                  [&](orc::VModuleKey K) { return Resolvers[K]; },
                  [&](orc::VModuleKey K, std::shared_ptr<SymbolResolver> R) {
@@ -92,12 +92,13 @@ public:
 
   TargetMachine &getTargetMachine() { return *TM; }
 
-  ModuleHandle addModule(std::unique_ptr<Module> M) {
+  VModuleKey addModule(std::unique_ptr<Module> M) {
     // Create a new VModuleKey.
     VModuleKey K = ES.allocateVModule();
 
     // Build a resolver and associate it with the new key.
     Resolvers[K] = createLegacyLookupResolver(
+        ES,
         [this](const std::string &Name) -> JITSymbol {
           if (auto Sym = CompileLayer.findSymbol(Name, false))
             return Sym;
@@ -111,7 +112,8 @@ public:
         [](Error Err) { cantFail(std::move(Err), "lookupFlags failed"); });
 
     // Add the module to the JIT with the new key.
-    return cantFail(CODLayer.addModule(K, std::move(M)));
+    cantFail(CODLayer.addModule(K, std::move(M)));
+    return K;
   }
 
   JITSymbol findSymbol(const std::string Name) {
@@ -121,12 +123,12 @@ public:
     return CODLayer.findSymbol(MangledNameStream.str(), true);
   }
 
-  void removeModule(ModuleHandle H) {
-    cantFail(CODLayer.removeModule(H));
+  void removeModule(VModuleKey K) {
+    cantFail(CODLayer.removeModule(K));
   }
 
 private:
-  std::shared_ptr<Module> optimizeModule(std::shared_ptr<Module> M) {
+  std::unique_ptr<Module> optimizeModule(std::unique_ptr<Module> M) {
     // Create a function pass manager.
     auto FPM = llvm::make_unique<legacy::FunctionPassManager>(M.get());
 

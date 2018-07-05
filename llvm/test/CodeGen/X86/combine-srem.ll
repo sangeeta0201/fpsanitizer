@@ -3,41 +3,6 @@
 ; RUN: llc < %s -mtriple=x86_64-unknown-unknown -mattr=+avx  | FileCheck %s --check-prefix=CHECK --check-prefix=AVX --check-prefix=AVX1
 ; RUN: llc < %s -mtriple=x86_64-unknown-unknown -mattr=+avx2 | FileCheck %s --check-prefix=CHECK --check-prefix=AVX --check-prefix=AVX2
 
-; fold (srem undef, x) -> 0
-define i32 @combine_srem_undef0(i32 %x) {
-; CHECK-LABEL: combine_srem_undef0:
-; CHECK:       # %bb.0:
-; CHECK-NEXT:    xorl %eax, %eax
-; CHECK-NEXT:    retq
-  %1 = srem i32 undef, %x
-  ret i32 %1
-}
-
-define <4 x i32> @combine_vec_srem_undef0(<4 x i32> %x) {
-; CHECK-LABEL: combine_vec_srem_undef0:
-; CHECK:       # %bb.0:
-; CHECK-NEXT:    retq
-  %1 = srem <4 x i32> undef, %x
-  ret <4 x i32> %1
-}
-
-; fold (srem x, undef) -> undef
-define i32 @combine_srem_undef1(i32 %x) {
-; CHECK-LABEL: combine_srem_undef1:
-; CHECK:       # %bb.0:
-; CHECK-NEXT:    retq
-  %1 = srem i32 %x, undef
-  ret i32 %1
-}
-
-define <4 x i32> @combine_vec_srem_undef1(<4 x i32> %x) {
-; CHECK-LABEL: combine_vec_srem_undef1:
-; CHECK:       # %bb.0:
-; CHECK-NEXT:    retq
-  %1 = srem <4 x i32> %x, undef
-  ret <4 x i32> %1
-}
-
 ; fold (srem x, 1) -> 0
 define i32 @combine_srem_by_one(i32 %x) {
 ; CHECK-LABEL: combine_srem_by_one:
@@ -165,4 +130,34 @@ define <4 x i32> @combine_vec_srem_by_pos1(<4 x i32> %x) {
   %1 = and <4 x i32> %x, <i32 255, i32 255, i32 255, i32 255>
   %2 = srem <4 x i32> %1, <i32 1, i32 4, i32 8, i32 16>
   ret <4 x i32> %2
+}
+
+; OSS-Fuzz #6883
+; https://bugs.chromium.org/p/oss-fuzz/issues/detail?id=6883
+define i32 @ossfuzz6883() {
+; CHECK-LABEL: ossfuzz6883:
+; CHECK:       # %bb.0:
+; CHECK-NEXT:    movl (%rax), %ecx
+; CHECK-NEXT:    movl %ecx, %eax
+; CHECK-NEXT:    cltd
+; CHECK-NEXT:    idivl %ecx
+; CHECK-NEXT:    movl %edx, %esi
+; CHECK-NEXT:    movl $1, %edi
+; CHECK-NEXT:    cltd
+; CHECK-NEXT:    idivl %edi
+; CHECK-NEXT:    movl %edx, %edi
+; CHECK-NEXT:    xorl %edx, %edx
+; CHECK-NEXT:    movl %ecx, %eax
+; CHECK-NEXT:    divl %edi
+; CHECK-NEXT:    andl %esi, %eax
+; CHECK-NEXT:    retq
+  %B17 = or i32 0, 2147483647
+  %L6 = load i32, i32* undef
+  %B11 = sdiv i32 %L6, %L6
+  %B13 = udiv i32 %B17, %B17
+  %B14 = srem i32 %B11, %B13
+  %B16 = srem i32 %L6, %L6
+  %B10 = udiv i32 %L6, %B14
+  %B6 = and i32 %B16, %B10
+  ret i32 %B6
 }

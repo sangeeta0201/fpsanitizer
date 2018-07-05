@@ -174,7 +174,7 @@ static bool unsupportedBinOp(const MachineInstr &I,
                              const AArch64RegisterInfo &TRI) {
   LLT Ty = MRI.getType(I.getOperand(0).getReg());
   if (!Ty.isValid()) {
-    DEBUG(dbgs() << "Generic binop register should be typed\n");
+    LLVM_DEBUG(dbgs() << "Generic binop register should be typed\n");
     return true;
   }
 
@@ -182,7 +182,7 @@ static bool unsupportedBinOp(const MachineInstr &I,
   for (auto &MO : I.operands()) {
     // FIXME: Support non-register operands.
     if (!MO.isReg()) {
-      DEBUG(dbgs() << "Generic inst non-reg operands are unsupported\n");
+      LLVM_DEBUG(dbgs() << "Generic inst non-reg operands are unsupported\n");
       return true;
     }
 
@@ -191,18 +191,18 @@ static bool unsupportedBinOp(const MachineInstr &I,
     // bank out of the minimal class for the register.
     // Either way, this needs to be documented (and possibly verified).
     if (!TargetRegisterInfo::isVirtualRegister(MO.getReg())) {
-      DEBUG(dbgs() << "Generic inst has physical register operand\n");
+      LLVM_DEBUG(dbgs() << "Generic inst has physical register operand\n");
       return true;
     }
 
     const RegisterBank *OpBank = RBI.getRegBank(MO.getReg(), MRI, TRI);
     if (!OpBank) {
-      DEBUG(dbgs() << "Generic register has no bank or class\n");
+      LLVM_DEBUG(dbgs() << "Generic register has no bank or class\n");
       return true;
     }
 
     if (PrevOpBank && OpBank != PrevOpBank) {
-      DEBUG(dbgs() << "Generic inst operands have different banks\n");
+      LLVM_DEBUG(dbgs() << "Generic inst operands have different banks\n");
       return true;
     }
     PrevOpBank = OpBank;
@@ -317,12 +317,39 @@ static unsigned selectLoadStoreUIOp(unsigned GenericOpc, unsigned RegBankID,
   return GenericOpc;
 }
 
+static bool selectFP16CopyFromGPR32(MachineInstr &I, const TargetInstrInfo &TII,
+                                    MachineRegisterInfo &MRI, unsigned SrcReg) {
+  // Copies from gpr32 to fpr16 need to use a sub-register copy.
+  unsigned CopyReg = MRI.createVirtualRegister(&AArch64::FPR32RegClass);
+  BuildMI(*I.getParent(), I, I.getDebugLoc(), TII.get(AArch64::COPY))
+      .addDef(CopyReg)
+      .addUse(SrcReg);
+  unsigned SubRegCopy = MRI.createVirtualRegister(&AArch64::FPR16RegClass);
+  BuildMI(*I.getParent(), I, I.getDebugLoc(), TII.get(TargetOpcode::COPY))
+      .addDef(SubRegCopy)
+      .addUse(CopyReg, 0, AArch64::hsub);
+
+  MachineOperand &RegOp = I.getOperand(1);
+  RegOp.setReg(SubRegCopy);
+  return true;
+}
+
 static bool selectCopy(MachineInstr &I, const TargetInstrInfo &TII,
                        MachineRegisterInfo &MRI, const TargetRegisterInfo &TRI,
                        const RegisterBankInfo &RBI) {
 
   unsigned DstReg = I.getOperand(0).getReg();
+  unsigned SrcReg = I.getOperand(1).getReg();
+
   if (TargetRegisterInfo::isPhysicalRegister(DstReg)) {
+    if (TRI.getRegClass(AArch64::FPR16RegClassID)->contains(DstReg) &&
+        !TargetRegisterInfo::isPhysicalRegister(SrcReg)) {
+      const RegisterBank &RegBank = *RBI.getRegBank(SrcReg, MRI, TRI);
+      const TargetRegisterClass *SrcRC = getRegClassForTypeOnBank(
+          MRI.getType(SrcReg), RegBank, RBI, /* GetAllRegSet */ true);
+      if (SrcRC == &AArch64::GPR32allRegClass)
+        return selectFP16CopyFromGPR32(I, TII, MRI, SrcReg);
+    }
     assert(I.isCopy() && "Generic operators do not allow physical registers");
     return true;
   }
@@ -330,7 +357,6 @@ static bool selectCopy(MachineInstr &I, const TargetInstrInfo &TII,
   const RegisterBank &RegBank = *RBI.getRegBank(DstReg, MRI, TRI);
   const unsigned DstSize = MRI.getType(DstReg).getSizeInBits();
   (void)DstSize;
-  unsigned SrcReg = I.getOperand(1).getReg();
   const unsigned SrcSize = RBI.getSizeInBits(SrcReg, MRI, TRI);
   (void)SrcSize;
   assert((!TargetRegisterInfo::isPhysicalRegister(SrcReg) || I.isCopy()) &&
@@ -352,16 +378,42 @@ static bool selectCopy(MachineInstr &I, const TargetInstrInfo &TII,
   const TargetRegisterClass *RC = getRegClassForTypeOnBank(
       MRI.getType(DstReg), RegBank, RBI, /* GetAllRegSet */ true);
   if (!RC) {
-    DEBUG(dbgs() << "Unexpected bitcast size " << DstSize << '\n');
+    LLVM_DEBUG(dbgs() << "Unexpected bitcast size " << DstSize << '\n');
     return false;
+  }
+
+  if (!TargetRegisterInfo::isPhysicalRegister(SrcReg)) {
+    const RegClassOrRegBank &RegClassOrBank = MRI.getRegClassOrRegBank(SrcReg);
+    const TargetRegisterClass *SrcRC =
+        RegClassOrBank.dyn_cast<const TargetRegisterClass *>();
+    const RegisterBank *RB = nullptr;
+    if (!SrcRC) {
+      RB = RegClassOrBank.get<const RegisterBank *>();
+      SrcRC = getRegClassForTypeOnBank(MRI.getType(SrcReg), *RB, RBI, true);
+    }
+    // Copies from fpr16 to gpr32 need to use SUBREG_TO_REG.
+    if (RC == &AArch64::GPR32allRegClass && SrcRC == &AArch64::FPR16RegClass) {
+      unsigned PromoteReg = MRI.createVirtualRegister(&AArch64::FPR32RegClass);
+      BuildMI(*I.getParent(), I, I.getDebugLoc(),
+              TII.get(AArch64::SUBREG_TO_REG))
+          .addDef(PromoteReg)
+          .addImm(0)
+          .addUse(SrcReg)
+          .addImm(AArch64::hsub);
+      MachineOperand &RegOp = I.getOperand(1);
+      RegOp.setReg(PromoteReg);
+    } else if (RC == &AArch64::FPR16RegClass &&
+               SrcRC == &AArch64::GPR32allRegClass) {
+      selectFP16CopyFromGPR32(I, TII, MRI, SrcReg);
+    }
   }
 
   // No need to constrain SrcReg. It will get constrained when
   // we hit another of its use or its defs.
   // Copies do not have constraints.
   if (!RBI.constrainGenericRegister(DstReg, *RC, MRI)) {
-    DEBUG(dbgs() << "Failed to constrain " << TII.getName(I.getOpcode())
-                 << " operand\n");
+    LLVM_DEBUG(dbgs() << "Failed to constrain " << TII.getName(I.getOpcode())
+                      << " operand\n");
     return false;
   }
   I.setDesc(TII.get(AArch64::COPY));
@@ -634,13 +686,13 @@ bool AArch64InstructionSelector::select(MachineInstr &I,
         DefRC = RegClassOrBank.dyn_cast<const TargetRegisterClass *>();
         if (!DefRC) {
           if (!DefTy.isValid()) {
-            DEBUG(dbgs() << "PHI operand has no type, not a gvreg?\n");
+            LLVM_DEBUG(dbgs() << "PHI operand has no type, not a gvreg?\n");
             return false;
           }
           const RegisterBank &RB = *RegClassOrBank.get<const RegisterBank *>();
           DefRC = getRegClassForTypeOnBank(DefTy, RB, RBI);
           if (!DefRC) {
-            DEBUG(dbgs() << "PHI operand has unexpected size/bank\n");
+            LLVM_DEBUG(dbgs() << "PHI operand has unexpected size/bank\n");
             return false;
           }
         }
@@ -658,7 +710,8 @@ bool AArch64InstructionSelector::select(MachineInstr &I,
 
 
   if (I.getNumOperands() != I.getNumExplicitOperands()) {
-    DEBUG(dbgs() << "Generic instruction has unexpected implicit operands\n");
+    LLVM_DEBUG(
+        dbgs() << "Generic instruction has unexpected implicit operands\n");
     return false;
   }
 
@@ -674,8 +727,8 @@ bool AArch64InstructionSelector::select(MachineInstr &I,
       // We shouldn't need this on AArch64, but it would be implemented as an
       // EXTRACT_SUBREG followed by a TBNZW because TBNZX has no encoding if the
       // bit being tested is < 32.
-      DEBUG(dbgs() << "G_BRCOND has type: " << Ty
-                   << ", expected at most 32-bits");
+      LLVM_DEBUG(dbgs() << "G_BRCOND has type: " << Ty
+                        << ", expected at most 32-bits");
       return false;
     }
 
@@ -715,15 +768,16 @@ bool AArch64InstructionSelector::select(MachineInstr &I,
     // FIXME: Redundant check, but even less readable when factored out.
     if (isFP) {
       if (Ty != s32 && Ty != s64) {
-        DEBUG(dbgs() << "Unable to materialize FP " << Ty
-                     << " constant, expected: " << s32 << " or " << s64
-                     << '\n');
+        LLVM_DEBUG(dbgs() << "Unable to materialize FP " << Ty
+                          << " constant, expected: " << s32 << " or " << s64
+                          << '\n');
         return false;
       }
 
       if (RB.getID() != AArch64::FPRRegBankID) {
-        DEBUG(dbgs() << "Unable to materialize FP " << Ty
-                     << " constant on bank: " << RB << ", expected: FPR\n");
+        LLVM_DEBUG(dbgs() << "Unable to materialize FP " << Ty
+                          << " constant on bank: " << RB
+                          << ", expected: FPR\n");
         return false;
       }
 
@@ -734,15 +788,16 @@ bool AArch64InstructionSelector::select(MachineInstr &I,
     } else {
       // s32 and s64 are covered by tablegen.
       if (Ty != p0) {
-        DEBUG(dbgs() << "Unable to materialize integer " << Ty
-                     << " constant, expected: " << s32 << ", " << s64 << ", or "
-                     << p0 << '\n');
+        LLVM_DEBUG(dbgs() << "Unable to materialize integer " << Ty
+                          << " constant, expected: " << s32 << ", " << s64
+                          << ", or " << p0 << '\n');
         return false;
       }
 
       if (RB.getID() != AArch64::GPRRegBankID) {
-        DEBUG(dbgs() << "Unable to materialize integer " << Ty
-                     << " constant on bank: " << RB << ", expected: GPR\n");
+        LLVM_DEBUG(dbgs() << "Unable to materialize integer " << Ty
+                          << " constant on bank: " << RB
+                          << ", expected: GPR\n");
         return false;
       }
     }
@@ -768,7 +823,7 @@ bool AArch64InstructionSelector::select(MachineInstr &I,
           .addUse(DefGPRReg);
 
       if (!RBI.constrainGenericRegister(DefReg, FPRRC, MRI)) {
-        DEBUG(dbgs() << "Failed to constrain G_FCONSTANT def operand\n");
+        LLVM_DEBUG(dbgs() << "Failed to constrain G_FCONSTANT def operand\n");
         return false;
       }
 
@@ -789,14 +844,23 @@ bool AArch64InstructionSelector::select(MachineInstr &I,
   }
   case TargetOpcode::G_EXTRACT: {
     LLT SrcTy = MRI.getType(I.getOperand(1).getReg());
+    LLT DstTy = MRI.getType(I.getOperand(0).getReg());
+    (void)DstTy;
+    unsigned SrcSize = SrcTy.getSizeInBits();
     // Larger extracts are vectors, same-size extracts should be something else
     // by now (either split up or simplified to a COPY).
     if (SrcTy.getSizeInBits() > 64 || Ty.getSizeInBits() > 32)
       return false;
 
-    I.setDesc(TII.get(AArch64::UBFMXri));
+    I.setDesc(TII.get(SrcSize == 64 ? AArch64::UBFMXri : AArch64::UBFMWri));
     MachineInstrBuilder(MF, I).addImm(I.getOperand(2).getImm() +
                                       Ty.getSizeInBits() - 1);
+
+    if (SrcSize < 64) {
+      assert(SrcSize == 32 && DstTy.getSizeInBits() == 16 &&
+             "unexpected G_EXTRACT types");
+      return constrainSelectedInstRegOperands(I, TII, TRI, RBI);
+    }
 
     unsigned DstReg = MRI.createGenericVirtualRegister(LLT::scalar(64));
     BuildMI(MBB, std::next(I.getIterator()), I.getDebugLoc(),
@@ -812,16 +876,24 @@ bool AArch64InstructionSelector::select(MachineInstr &I,
 
   case TargetOpcode::G_INSERT: {
     LLT SrcTy = MRI.getType(I.getOperand(2).getReg());
+    LLT DstTy = MRI.getType(I.getOperand(0).getReg());
+    unsigned DstSize = DstTy.getSizeInBits();
     // Larger inserts are vectors, same-size ones should be something else by
     // now (split up or turned into COPYs).
     if (Ty.getSizeInBits() > 64 || SrcTy.getSizeInBits() > 32)
       return false;
 
-    I.setDesc(TII.get(AArch64::BFMXri));
+    I.setDesc(TII.get(DstSize == 64 ? AArch64::BFMXri : AArch64::BFMWri));
     unsigned LSB = I.getOperand(3).getImm();
     unsigned Width = MRI.getType(I.getOperand(2).getReg()).getSizeInBits();
-    I.getOperand(3).setImm((64 - LSB) % 64);
+    I.getOperand(3).setImm((DstSize - LSB) % DstSize);
     MachineInstrBuilder(MF, I).addImm(Width - 1);
+
+    if (DstSize < 64) {
+      assert(DstSize == 32 && SrcTy.getSizeInBits() == 16 &&
+             "unexpected G_INSERT types");
+      return constrainSelectedInstRegOperands(I, TII, TRI, RBI);
+    }
 
     unsigned SrcReg = MRI.createGenericVirtualRegister(LLT::scalar(64));
     BuildMI(MBB, I.getIterator(), I.getDebugLoc(),
@@ -839,8 +911,8 @@ bool AArch64InstructionSelector::select(MachineInstr &I,
   case TargetOpcode::G_FRAME_INDEX: {
     // allocas and G_FRAME_INDEX are only supported in addrspace(0).
     if (Ty != LLT::pointer(0, 64)) {
-      DEBUG(dbgs() << "G_FRAME_INDEX pointer has type: " << Ty
-            << ", expected: " << LLT::pointer(0, 64) << '\n');
+      LLVM_DEBUG(dbgs() << "G_FRAME_INDEX pointer has type: " << Ty
+                        << ", expected: " << LLT::pointer(0, 64) << '\n');
       return false;
     }
     I.setDesc(TII.get(AArch64::ADDXri));
@@ -908,20 +980,20 @@ bool AArch64InstructionSelector::select(MachineInstr &I,
 
   case TargetOpcode::G_LOAD:
   case TargetOpcode::G_STORE: {
-    LLT MemTy = Ty;
     LLT PtrTy = MRI.getType(I.getOperand(1).getReg());
 
     if (PtrTy != LLT::pointer(0, 64)) {
-      DEBUG(dbgs() << "Load/Store pointer has type: " << PtrTy
-                   << ", expected: " << LLT::pointer(0, 64) << '\n');
+      LLVM_DEBUG(dbgs() << "Load/Store pointer has type: " << PtrTy
+                        << ", expected: " << LLT::pointer(0, 64) << '\n');
       return false;
     }
 
     auto &MemOp = **I.memoperands_begin();
     if (MemOp.getOrdering() != AtomicOrdering::NotAtomic) {
-      DEBUG(dbgs() << "Atomic load/store not supported yet\n");
+      LLVM_DEBUG(dbgs() << "Atomic load/store not supported yet\n");
       return false;
     }
+    unsigned MemSizeInBits = MemOp.getSize() * 8;
 
     // FIXME: PR36018: Volatile loads in some cases are incorrectly selected by
     // folding with an extend. Until we have a G_SEXTLOAD solution bail out if
@@ -943,7 +1015,7 @@ bool AArch64InstructionSelector::select(MachineInstr &I,
     const RegisterBank &RB = *RBI.getRegBank(ValReg, MRI, TRI);
 
     const unsigned NewOpc =
-        selectLoadStoreUIOp(I.getOpcode(), RB.getID(), MemTy.getSizeInBits());
+        selectLoadStoreUIOp(I.getOpcode(), RB.getID(), MemSizeInBits);
     if (NewOpc == I.getOpcode())
       return false;
 
@@ -956,7 +1028,7 @@ bool AArch64InstructionSelector::select(MachineInstr &I,
     if (PtrMI->getOpcode() == TargetOpcode::G_GEP) {
       if (auto COff = getConstantVRegVal(PtrMI->getOperand(2).getReg(), MRI)) {
         int64_t Imm = *COff;
-        const unsigned Size = MemTy.getSizeInBits() / 8;
+        const unsigned Size = MemSizeInBits / 8;
         const unsigned Scale = Log2_32(Size);
         if ((Imm & (Size - 1)) == 0 && Imm >= 0 && Imm < (0x1000 << Scale)) {
           unsigned Ptr2Reg = PtrMI->getOperand(1).getReg();
@@ -997,13 +1069,13 @@ bool AArch64InstructionSelector::select(MachineInstr &I,
     const RegisterBank &RB = *RBI.getRegBank(DefReg, MRI, TRI);
 
     if (RB.getID() != AArch64::GPRRegBankID) {
-      DEBUG(dbgs() << "G_[SU]MULH on bank: " << RB << ", expected: GPR\n");
+      LLVM_DEBUG(dbgs() << "G_[SU]MULH on bank: " << RB << ", expected: GPR\n");
       return false;
     }
 
     if (Ty != LLT::scalar(64)) {
-      DEBUG(dbgs() << "G_[SU]MULH has type: " << Ty
-                   << ", expected: " << LLT::scalar(64) << '\n');
+      LLVM_DEBUG(dbgs() << "G_[SU]MULH has type: " << Ty
+                        << ", expected: " << LLT::scalar(64) << '\n');
       return false;
     }
 
@@ -1069,7 +1141,8 @@ bool AArch64InstructionSelector::select(MachineInstr &I,
     const RegisterBank &SrcRB = *RBI.getRegBank(SrcReg, MRI, TRI);
 
     if (DstRB.getID() != SrcRB.getID()) {
-      DEBUG(dbgs() << "G_TRUNC/G_PTRTOINT input/output on different banks\n");
+      LLVM_DEBUG(
+          dbgs() << "G_TRUNC/G_PTRTOINT input/output on different banks\n");
       return false;
     }
 
@@ -1086,7 +1159,7 @@ bool AArch64InstructionSelector::select(MachineInstr &I,
 
       if (!RBI.constrainGenericRegister(SrcReg, *SrcRC, MRI) ||
           !RBI.constrainGenericRegister(DstReg, *DstRC, MRI)) {
-        DEBUG(dbgs() << "Failed to constrain G_TRUNC/G_PTRTOINT\n");
+        LLVM_DEBUG(dbgs() << "Failed to constrain G_TRUNC/G_PTRTOINT\n");
         return false;
       }
 
@@ -1100,7 +1173,8 @@ bool AArch64InstructionSelector::select(MachineInstr &I,
                  SrcRC == &AArch64::GPR64RegClass) {
         I.getOperand(1).setSubReg(AArch64::sub_32);
       } else {
-        DEBUG(dbgs() << "Unhandled mismatched classes in G_TRUNC/G_PTRTOINT\n");
+        LLVM_DEBUG(
+            dbgs() << "Unhandled mismatched classes in G_TRUNC/G_PTRTOINT\n");
         return false;
       }
 
@@ -1123,26 +1197,28 @@ bool AArch64InstructionSelector::select(MachineInstr &I,
 
     const RegisterBank &RBDst = *RBI.getRegBank(DstReg, MRI, TRI);
     if (RBDst.getID() != AArch64::GPRRegBankID) {
-      DEBUG(dbgs() << "G_ANYEXT on bank: " << RBDst << ", expected: GPR\n");
+      LLVM_DEBUG(dbgs() << "G_ANYEXT on bank: " << RBDst
+                        << ", expected: GPR\n");
       return false;
     }
 
     const RegisterBank &RBSrc = *RBI.getRegBank(SrcReg, MRI, TRI);
     if (RBSrc.getID() != AArch64::GPRRegBankID) {
-      DEBUG(dbgs() << "G_ANYEXT on bank: " << RBSrc << ", expected: GPR\n");
+      LLVM_DEBUG(dbgs() << "G_ANYEXT on bank: " << RBSrc
+                        << ", expected: GPR\n");
       return false;
     }
 
     const unsigned DstSize = MRI.getType(DstReg).getSizeInBits();
 
     if (DstSize == 0) {
-      DEBUG(dbgs() << "G_ANYEXT operand has no size, not a gvreg?\n");
+      LLVM_DEBUG(dbgs() << "G_ANYEXT operand has no size, not a gvreg?\n");
       return false;
     }
 
     if (DstSize != 64 && DstSize > 32) {
-      DEBUG(dbgs() << "G_ANYEXT to size: " << DstSize
-                   << ", expected: 32 or 64\n");
+      LLVM_DEBUG(dbgs() << "G_ANYEXT to size: " << DstSize
+                        << ", expected: 32 or 64\n");
       return false;
     }
     // At this point G_ANYEXT is just like a plain COPY, but we need
@@ -1170,8 +1246,8 @@ bool AArch64InstructionSelector::select(MachineInstr &I,
     const RegisterBank &RB = *RBI.getRegBank(DefReg, MRI, TRI);
 
     if (RB.getID() != AArch64::GPRRegBankID) {
-      DEBUG(dbgs() << TII.getName(I.getOpcode()) << " on bank: " << RB
-                   << ", expected: GPR\n");
+      LLVM_DEBUG(dbgs() << TII.getName(I.getOpcode()) << " on bank: " << RB
+                        << ", expected: GPR\n");
       return false;
     }
 
@@ -1179,8 +1255,8 @@ bool AArch64InstructionSelector::select(MachineInstr &I,
     if (DstTy == LLT::scalar(64)) {
       // FIXME: Can we avoid manually doing this?
       if (!RBI.constrainGenericRegister(SrcReg, AArch64::GPR32RegClass, MRI)) {
-        DEBUG(dbgs() << "Failed to constrain " << TII.getName(Opcode)
-                     << " operand\n");
+        LLVM_DEBUG(dbgs() << "Failed to constrain " << TII.getName(Opcode)
+                          << " operand\n");
         return false;
       }
 
@@ -1248,8 +1324,8 @@ bool AArch64InstructionSelector::select(MachineInstr &I,
 
   case TargetOpcode::G_SELECT: {
     if (MRI.getType(I.getOperand(1).getReg()) != LLT::scalar(1)) {
-      DEBUG(dbgs() << "G_SELECT cond has type: " << Ty
-                   << ", expected: " << LLT::scalar(1) << '\n');
+      LLVM_DEBUG(dbgs() << "G_SELECT cond has type: " << Ty
+                        << ", expected: " << LLT::scalar(1) << '\n');
       return false;
     }
 
@@ -1287,8 +1363,8 @@ bool AArch64InstructionSelector::select(MachineInstr &I,
   }
   case TargetOpcode::G_ICMP: {
     if (Ty != LLT::scalar(32)) {
-      DEBUG(dbgs() << "G_ICMP result has type: " << Ty
-                   << ", expected: " << LLT::scalar(32) << '\n');
+      LLVM_DEBUG(dbgs() << "G_ICMP result has type: " << Ty
+                        << ", expected: " << LLT::scalar(32) << '\n');
       return false;
     }
 
@@ -1334,8 +1410,8 @@ bool AArch64InstructionSelector::select(MachineInstr &I,
 
   case TargetOpcode::G_FCMP: {
     if (Ty != LLT::scalar(32)) {
-      DEBUG(dbgs() << "G_FCMP result has type: " << Ty
-                   << ", expected: " << LLT::scalar(32) << '\n');
+      LLVM_DEBUG(dbgs() << "G_FCMP result has type: " << Ty
+                        << ", expected: " << LLT::scalar(32) << '\n');
       return false;
     }
 
@@ -1397,6 +1473,15 @@ bool AArch64InstructionSelector::select(MachineInstr &I,
   case TargetOpcode::G_VASTART:
     return STI.isTargetDarwin() ? selectVaStartDarwin(I, MF, MRI)
                                 : selectVaStartAAPCS(I, MF, MRI);
+  case TargetOpcode::G_INTRINSIC_W_SIDE_EFFECTS:
+    if (!I.getOperand(0).isIntrinsicID())
+      return false;
+    if (I.getOperand(0).getIntrinsicID() != Intrinsic::trap)
+      return false;
+    BuildMI(MBB, I, I.getDebugLoc(), TII.get(AArch64::BRK))
+      .addImm(1);
+    I.eraseFromParent();
+    return true;
   case TargetOpcode::G_IMPLICIT_DEF:
     I.setDesc(TII.get(TargetOpcode::IMPLICIT_DEF));
     const LLT DstTy = MRI.getType(I.getOperand(0).getReg());

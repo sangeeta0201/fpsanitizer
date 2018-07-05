@@ -1,8 +1,8 @@
 ; RUN: llc -mtriple=amdgcn-amd-amdhsa -mcpu=gfx700 -filetype=obj -o - < %s | llvm-readobj -elf-output-style=GNU -notes | FileCheck --check-prefix=CHECK --check-prefix=GFX700 --check-prefix=NOTES %s
-; RUN: llc -mtriple=amdgcn-amd-amdhsa -mcpu=gfx800 -filetype=obj -o - < %s | llvm-readobj -elf-output-style=GNU -notes | FileCheck --check-prefix=CHECK --check-prefix=GFX800 --check-prefix=NOTES %s
+; RUN: llc -mtriple=amdgcn-amd-amdhsa -mcpu=gfx802 -filetype=obj -o - < %s | llvm-readobj -elf-output-style=GNU -notes | FileCheck --check-prefix=CHECK --check-prefix=GFX802 --check-prefix=NOTES %s
 ; RUN: llc -mtriple=amdgcn-amd-amdhsa -mcpu=gfx900 -filetype=obj -o - < %s | llvm-readobj -elf-output-style=GNU -notes | FileCheck --check-prefix=CHECK --check-prefix=GFX900 --check-prefix=NOTES %s
 ; RUN: llc -mtriple=amdgcn-amd-amdhsa -mcpu=gfx700 -amdgpu-dump-hsa-metadata -amdgpu-verify-hsa-metadata -filetype=obj -o - < %s 2>&1 | FileCheck --check-prefix=PARSER %s
-; RUN: llc -mtriple=amdgcn-amd-amdhsa -mcpu=gfx800 -amdgpu-dump-hsa-metadata -amdgpu-verify-hsa-metadata -filetype=obj -o - < %s 2>&1 | FileCheck --check-prefix=PARSER %s
+; RUN: llc -mtriple=amdgcn-amd-amdhsa -mcpu=gfx802 -amdgpu-dump-hsa-metadata -amdgpu-verify-hsa-metadata -filetype=obj -o - < %s 2>&1 | FileCheck --check-prefix=PARSER %s
 ; RUN: llc -mtriple=amdgcn-amd-amdhsa -mcpu=gfx900 -amdgpu-dump-hsa-metadata -amdgpu-verify-hsa-metadata -filetype=obj -o - < %s 2>&1 | FileCheck --check-prefix=PARSER %s
 
 %struct.A = type { i8, float }
@@ -581,7 +581,7 @@ define amdgpu_kernel void @test_multi_arg(i32 %a, <2 x i16> %b, <3 x i8> %c)
 ; CHECK-NEXT:       ValueType:     I8
 ; CHECK-NEXT:       AddrSpaceQual: Global
 define amdgpu_kernel void @test_addr_space(i32 addrspace(1)* %g,
-                                           i32 addrspace(2)* %c,
+                                           i32 addrspace(4)* %c,
                                            i32 addrspace(3)* %l)
     !kernel_arg_addr_space !50 !kernel_arg_access_qual !23 !kernel_arg_type !51
     !kernel_arg_base_type !51 !kernel_arg_type_qual !25 {
@@ -1248,6 +1248,13 @@ define amdgpu_kernel void @test_arg_unknown_builtin_type(
 ; CHECK-NEXT:       PointeeAlign:  16
 ; CHECK-NEXT:       AddrSpaceQual: Local
 ; CHECK-NEXT:       AccQual:       Default
+; CHECK-NEXT:      - Name:            h
+; CHECK-NEXT:        Size:            4
+; CHECK-NEXT:        Align:           4
+; CHECK-NEXT:        ValueKind:       DynamicSharedPointer
+; CHECK-NEXT:        ValueType:       Struct
+; CHECK-NEXT:        PointeeAlign:    1
+; CHECK-NEXT:        AddrSpaceQual:   Local
 ; CHECK-NEXT:     - Size:          8
 ; CHECK-NEXT:       Align:         8
 ; CHECK-NEXT:       ValueKind:     HiddenGlobalOffsetX
@@ -1271,11 +1278,117 @@ define amdgpu_kernel void @test_pointee_align(i64 addrspace(1)* %a,
                                               <3 x i8> addrspace(3)* %d,
                                               <4 x i8> addrspace(3)* %e,
                                               <8 x i8> addrspace(3)* %f,
-                                              <16 x i8> addrspace(3)* %g)
+                                              <16 x i8> addrspace(3)* %g,
+                                              {} addrspace(3)* %h)
     !kernel_arg_addr_space !91 !kernel_arg_access_qual !92 !kernel_arg_type !93
     !kernel_arg_base_type !93 !kernel_arg_type_qual !94 {
   ret void
 }
+
+; CHECK:      - Name:            test_pointee_align_attribute
+; CHECK-NEXT:   SymbolName:      'test_pointee_align_attribute@kd'
+; CHECK-NEXT:   Language:        OpenCL C
+; CHECK-NEXT:   LanguageVersion: [ 2, 0 ]
+; CHECK-NEXT:   Args:
+; CHECK-NEXT:     - Name:          a
+; CHECK-NEXT:       TypeName:      'long  addrspace(5)*'
+; CHECK-NEXT:       Size:          8
+; CHECK-NEXT:       Align:         8
+; CHECK-NEXT:       ValueKind:     GlobalBuffer
+; CHECK-NEXT:       ValueType:     I64
+; CHECK-NEXT:       AddrSpaceQual: Global
+; CHECK-NEXT:       AccQual:       Default
+; CHECK-NEXT:     - Name:          b
+; CHECK-NEXT:       TypeName:      'char  addrspace(5)*'
+; CHECK-NEXT:       Size:          4
+; CHECK-NEXT:       Align:         4
+; CHECK-NEXT:       ValueKind:     DynamicSharedPointer
+; CHECK-NEXT:       ValueType:     I8
+; CHECK-NEXT:       PointeeAlign:  8
+; CHECK-NEXT:       AddrSpaceQual: Local
+; CHECK-NEXT:       AccQual:       Default
+; CHECK-NEXT:     - Name:          c
+; CHECK-NEXT:       TypeName:      'char2  addrspace(5)*'
+; CHECK-NEXT:       Size:          4
+; CHECK-NEXT:       Align:         4
+; CHECK-NEXT:       ValueKind:     DynamicSharedPointer
+; CHECK-NEXT:       ValueType:     I8
+; CHECK-NEXT:       PointeeAlign:  32
+; CHECK-NEXT:       AddrSpaceQual: Local
+; CHECK-NEXT:       AccQual:       Default
+; CHECK-NEXT:     - Name:          d
+; CHECK-NEXT:       TypeName:      'char3  addrspace(5)*'
+; CHECK-NEXT:       Size:          4
+; CHECK-NEXT:       Align:         4
+; CHECK-NEXT:       ValueKind:     DynamicSharedPointer
+; CHECK-NEXT:       ValueType:     I8
+; CHECK-NEXT:       PointeeAlign:  64
+; CHECK-NEXT:       AddrSpaceQual: Local
+; CHECK-NEXT:       AccQual:       Default
+; CHECK-NEXT:     - Name:          e
+; CHECK-NEXT:       TypeName:      'char4  addrspace(5)*'
+; CHECK-NEXT:       Size:          4
+; CHECK-NEXT:       Align:         4
+; CHECK-NEXT:       ValueKind:     DynamicSharedPointer
+; CHECK-NEXT:       ValueType:     I8
+; CHECK-NEXT:       PointeeAlign:  256
+; CHECK-NEXT:       AddrSpaceQual: Local
+; CHECK-NEXT:       AccQual:       Default
+; CHECK-NEXT:     - Name:          f
+; CHECK-NEXT:       TypeName:      'char8  addrspace(5)*'
+; CHECK-NEXT:       Size:          4
+; CHECK-NEXT:       Align:         4
+; CHECK-NEXT:       ValueKind:     DynamicSharedPointer
+; CHECK-NEXT:       ValueType:     I8
+; CHECK-NEXT:       PointeeAlign:  128
+; CHECK-NEXT:       AddrSpaceQual: Local
+; CHECK-NEXT:       AccQual:       Default
+; CHECK-NEXT:     - Name:          g
+; CHECK-NEXT:       TypeName:      'char16  addrspace(5)*'
+; CHECK-NEXT:       Size:          4
+; CHECK-NEXT:       Align:         4
+; CHECK-NEXT:       ValueKind:     DynamicSharedPointer
+; CHECK-NEXT:       ValueType:     I8
+; CHECK-NEXT:       PointeeAlign:  1024
+; CHECK-NEXT:       AddrSpaceQual: Local
+; CHECK-NEXT:       AccQual:       Default
+; CHECK-NEXT:      - Name:            h
+; CHECK-NEXT:        Size:            4
+; CHECK-NEXT:        Align:           4
+; CHECK-NEXT:        ValueKind:       DynamicSharedPointer
+; CHECK-NEXT:        ValueType:       Struct
+; CHECK-NEXT:        PointeeAlign:    16
+; CHECK-NEXT:        AddrSpaceQual:   Local
+; CHECK-NEXT:     - Size:          8
+; CHECK-NEXT:       Align:         8
+; CHECK-NEXT:       ValueKind:     HiddenGlobalOffsetX
+; CHECK-NEXT:       ValueType:     I64
+; CHECK-NEXT:     - Size:          8
+; CHECK-NEXT:       Align:         8
+; CHECK-NEXT:       ValueKind:     HiddenGlobalOffsetY
+; CHECK-NEXT:       ValueType:     I64
+; CHECK-NEXT:     - Size:          8
+; CHECK-NEXT:       Align:         8
+; CHECK-NEXT:       ValueKind:     HiddenGlobalOffsetZ
+; CHECK-NEXT:       ValueType:     I64
+; CHECK-NEXT:     - Size:          8
+; CHECK-NEXT:       Align:         8
+; CHECK-NEXT:       ValueKind:     HiddenPrintfBuffer
+; CHECK-NEXT:       ValueType:     I8
+; CHECK-NEXT:       AddrSpaceQual: Global
+define amdgpu_kernel void @test_pointee_align_attribute(i64 addrspace(1)* align 16 %a,
+                                                        i8 addrspace(3)* align 8 %b,
+                                                        <2 x i8> addrspace(3)* align 32 %c,
+                                                        <3 x i8> addrspace(3)* align 64 %d,
+                                                        <4 x i8> addrspace(3)* align 256 %e,
+                                                        <8 x i8> addrspace(3)* align 128 %f,
+                                                        <16 x i8> addrspace(3)* align 1024 %g,
+                                                        {} addrspace(3)* align 16 %h)
+    !kernel_arg_addr_space !91 !kernel_arg_access_qual !92 !kernel_arg_type !93
+    !kernel_arg_base_type !93 !kernel_arg_type_qual !94 {
+  ret void
+}
+
 
 ; CHECK:      - Name:            __test_block_invoke_kernel
 ; CHECK-NEXT:   SymbolName:      '__test_block_invoke_kernel@kd'

@@ -13,12 +13,14 @@ add_llvm_unittest(SupportTests
   CachePruningTest.cpp
   CrashRecoveryTest.cpp
   Casting.cpp
+  CheckedArithmeticTest.cpp
   Chrono.cpp
   CommandLineTest.cpp
   CompressionTest.cpp
   ConvertUTFTest.cpp
   DataExtractorTest.cpp
   DebugTest.cpp
+  DJBTest.cpp
   EndianStreamTest.cpp
   EndianTest.cpp
   ErrnoTest.cpp
@@ -51,14 +53,17 @@ add_llvm_unittest(SupportTests
   SwapByteOrderTest.cpp
   TarWriterTest.cpp
   TargetParserTest.cpp
+  TaskQueueTest.cpp
   ThreadLocalTest.cpp
   ThreadPool.cpp
   Threading.cpp
   TimerTest.cpp
   TypeNameTest.cpp
+  TypeTraitsTest.cpp
   TrailingObjectsTest.cpp
   TrigramIndexTest.cpp
   UnicodeTest.cpp
+  VersionTupleTest.cpp
   YAMLIOTest.cpp
   YAMLParserTest.cpp
   formatted_raw_ostream_test.cpp

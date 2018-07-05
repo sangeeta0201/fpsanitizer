@@ -32,6 +32,7 @@
 #include "llvm/Support/Error.h"
 #include "llvm/Support/raw_ostream.h"
 #include "llvm/Target/TargetMachine.h"
+#include "llvm/Transforms/InstCombine/InstCombine.h"
 #include "llvm/Transforms/Scalar.h"
 #include "llvm/Transforms/Scalar/GVN.h"
 #include <algorithm>
@@ -72,7 +73,6 @@ namespace orc {
 
 class KaleidoscopeJIT {
 private:
-  SymbolStringPool SSP;
   ExecutionSession ES;
   std::shared_ptr<SymbolResolver> Resolver;
   std::unique_ptr<TargetMachine> TM;
@@ -81,7 +81,7 @@ private:
   IRCompileLayer<decltype(ObjectLayer), SimpleCompiler> CompileLayer;
 
   using OptimizeFunction =
-      std::function<std::shared_ptr<Module>(std::shared_ptr<Module>)>;
+      std::function<std::unique_ptr<Module>(std::unique_ptr<Module>)>;
 
   IRTransformLayer<decltype(CompileLayer), OptimizeFunction> OptimizeLayer;
 
@@ -89,11 +89,9 @@ private:
   std::unique_ptr<IndirectStubsManager> IndirectStubsMgr;
 
 public:
-  using ModuleHandle = decltype(OptimizeLayer)::ModuleHandleT;
-
   KaleidoscopeJIT()
-      : ES(SSP),
-        Resolver(createLegacyLookupResolver(
+      : Resolver(createLegacyLookupResolver(
+            ES,
             [this](const std::string &Name) -> JITSymbol {
               if (auto Sym = IndirectStubsMgr->findStub(Name, false))
                 return Sym;
@@ -108,17 +106,18 @@ public:
             },
             [](Error Err) { cantFail(std::move(Err), "lookupFlags failed"); })),
         TM(EngineBuilder().selectTarget()), DL(TM->createDataLayout()),
-        ObjectLayer(
-            ES,
-            [](VModuleKey) { return std::make_shared<SectionMemoryManager>(); },
-            [&](VModuleKey K) { return Resolver; }),
+        ObjectLayer(ES,
+                    [this](VModuleKey K) {
+                      return RTDyldObjectLinkingLayer::Resources{
+                          std::make_shared<SectionMemoryManager>(), Resolver};
+                    }),
         CompileLayer(ObjectLayer, SimpleCompiler(*TM)),
         OptimizeLayer(CompileLayer,
-                      [this](std::shared_ptr<Module> M) {
+                      [this](std::unique_ptr<Module> M) {
                         return optimizeModule(std::move(M));
                       }),
-        CompileCallbackMgr(
-            orc::createLocalCompileCallbackManager(TM->getTargetTriple(), 0)) {
+        CompileCallbackMgr(orc::createLocalCompileCallbackManager(
+            TM->getTargetTriple(), ES, 0)) {
     auto IndirectStubsMgrBuilder =
       orc::createLocalIndirectStubsManagerBuilder(TM->getTargetTriple());
     IndirectStubsMgr = IndirectStubsMgrBuilder();
@@ -127,29 +126,14 @@ public:
 
   TargetMachine &getTargetMachine() { return *TM; }
 
-  ModuleHandle addModule(std::unique_ptr<Module> M) {
+  VModuleKey addModule(std::unique_ptr<Module> M) {
     // Add the module to the JIT with a new VModuleKey.
-    return cantFail(
-        OptimizeLayer.addModule(ES.allocateVModule(), std::move(M)));
+    auto K = ES.allocateVModule();
+    cantFail(OptimizeLayer.addModule(K, std::move(M)));
+    return K;
   }
 
   Error addFunctionAST(std::unique_ptr<FunctionAST> FnAST) {
-    // Create a CompileCallback - this is the re-entry point into the compiler
-    // for functions that haven't been compiled yet.
-    auto CCInfo = cantFail(CompileCallbackMgr->getCompileCallback());
-
-    // Create an indirect stub. This serves as the functions "canonical
-    // definition" - an unchanging (constant address) entry point to the
-    // function implementation.
-    // Initially we point the stub's function-pointer at the compile callback
-    // that we just created. In the compile action for the callback (see below)
-    // we will update the stub's function pointer to point at the function
-    // implementation that we just implemented.
-    if (auto Err = IndirectStubsMgr->createStub(mangle(FnAST->getName()),
-                                                CCInfo.getAddress(),
-                                                JITSymbolFlags::Exported))
-      return Err;
-
     // Move ownership of FnAST to a shared pointer - C++11 lambdas don't support
     // capture-by-move, which is be required for unique_ptr.
     auto SharedFnAST = std::shared_ptr<FunctionAST>(std::move(FnAST));
@@ -170,23 +154,37 @@ public:
     //     The JIT runtime (the resolver block) will use the return address of
     //     this function as the address to continue at once it has reset the
     //     CPU state to what it was immediately before the call.
-    CCInfo.setCompileAction(
-      [this, SharedFnAST]() {
-        auto M = irgenAndTakeOwnership(*SharedFnAST, "$impl");
-        addModule(std::move(M));
-        auto Sym = findSymbol(SharedFnAST->getName() + "$impl");
-        assert(Sym && "Couldn't find compiled function?");
-        JITTargetAddress SymAddr = cantFail(Sym.getAddress());
-        if (auto Err =
-              IndirectStubsMgr->updatePointer(mangle(SharedFnAST->getName()),
-                                              SymAddr)) {
-          logAllUnhandledErrors(std::move(Err), errs(),
-                                "Error updating function pointer: ");
-          exit(1);
-        }
+    auto CompileAction = [this, SharedFnAST]() {
+      auto M = irgenAndTakeOwnership(*SharedFnAST, "$impl");
+      addModule(std::move(M));
+      auto Sym = findSymbol(SharedFnAST->getName() + "$impl");
+      assert(Sym && "Couldn't find compiled function?");
+      JITTargetAddress SymAddr = cantFail(Sym.getAddress());
+      if (auto Err = IndirectStubsMgr->updatePointer(
+              mangle(SharedFnAST->getName()), SymAddr)) {
+        logAllUnhandledErrors(std::move(Err), errs(),
+                              "Error updating function pointer: ");
+        exit(1);
+      }
 
-        return SymAddr;
-      });
+      return SymAddr;
+    };
+
+    // Create a CompileCallback using the CompileAction - this is the re-entry
+    // point into the compiler for functions that haven't been compiled yet.
+    auto CCAddr = cantFail(
+        CompileCallbackMgr->getCompileCallback(std::move(CompileAction)));
+
+    // Create an indirect stub. This serves as the functions "canonical
+    // definition" - an unchanging (constant address) entry point to the
+    // function implementation.
+    // Initially we point the stub's function-pointer at the compile callback
+    // that we just created. When the compile action for the callback is run we
+    // will update the stub's function pointer to point at the function
+    // implementation that we just implemented.
+    if (auto Err = IndirectStubsMgr->createStub(
+            mangle(SharedFnAST->getName()), CCAddr, JITSymbolFlags::Exported))
+      return Err;
 
     return Error::success();
   }
@@ -195,8 +193,8 @@ public:
     return OptimizeLayer.findSymbol(mangle(Name), true);
   }
 
-  void removeModule(ModuleHandle H) {
-    cantFail(OptimizeLayer.removeModule(H));
+  void removeModule(VModuleKey K) {
+    cantFail(OptimizeLayer.removeModule(K));
   }
 
 private:
@@ -207,7 +205,7 @@ private:
     return MangledNameStream.str();
   }
 
-  std::shared_ptr<Module> optimizeModule(std::shared_ptr<Module> M) {
+  std::unique_ptr<Module> optimizeModule(std::unique_ptr<Module> M) {
     // Create a function pass manager.
     auto FPM = llvm::make_unique<legacy::FunctionPassManager>(M.get());
 

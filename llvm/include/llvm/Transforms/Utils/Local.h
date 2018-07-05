@@ -16,10 +16,12 @@
 #define LLVM_TRANSFORMS_UTILS_LOCAL_H
 
 #include "llvm/ADT/ArrayRef.h"
+#include "llvm/ADT/STLExtras.h"
 #include "llvm/ADT/SmallPtrSet.h"
 #include "llvm/ADT/SmallVector.h"
 #include "llvm/ADT/TinyPtrVector.h"
 #include "llvm/Analysis/AliasAnalysis.h"
+#include "llvm/Analysis/Utils/Local.h"
 #include "llvm/IR/CallSite.h"
 #include "llvm/IR/Constant.h"
 #include "llvm/IR/Constants.h"
@@ -141,6 +143,18 @@ bool wouldInstructionBeTriviallyDead(Instruction *I,
 bool RecursivelyDeleteTriviallyDeadInstructions(Value *V,
                                         const TargetLibraryInfo *TLI = nullptr);
 
+/// Delete all of the instructions in `DeadInsts`, and all other instructions
+/// that deleting these in turn causes to be trivially dead.
+///
+/// The initial instructions in the provided vector must all have empty use
+/// lists and satisfy `isInstructionTriviallyDead`.
+///
+/// `DeadInsts` will be used as scratch storage for this routine and will be
+/// empty afterward.
+void RecursivelyDeleteTriviallyDeadInstructions(
+    SmallVectorImpl<Instruction *> &DeadInsts,
+    const TargetLibraryInfo *TLI = nullptr);
+
 /// If the specified value is an effectively dead PHI node, due to being a
 /// def-use chain of single-use nodes that either forms a cycle or is terminated
 /// by a trivially dead instruction, delete it. If that makes any of its
@@ -250,72 +264,6 @@ inline unsigned getKnownAlignment(Value *V, const DataLayout &DL,
   return getOrEnforceKnownAlignment(V, 0, DL, CxtI, AC, DT);
 }
 
-/// Given a getelementptr instruction/constantexpr, emit the code necessary to
-/// compute the offset from the base pointer (without adding in the base
-/// pointer). Return the result as a signed integer of intptr size.
-/// When NoAssumptions is true, no assumptions about index computation not
-/// overflowing is made.
-template <typename IRBuilderTy>
-Value *EmitGEPOffset(IRBuilderTy *Builder, const DataLayout &DL, User *GEP,
-                     bool NoAssumptions = false) {
-  GEPOperator *GEPOp = cast<GEPOperator>(GEP);
-  Type *IntPtrTy = DL.getIntPtrType(GEP->getType());
-  Value *Result = Constant::getNullValue(IntPtrTy);
-
-  // If the GEP is inbounds, we know that none of the addressing operations will
-  // overflow in an unsigned sense.
-  bool isInBounds = GEPOp->isInBounds() && !NoAssumptions;
-
-  // Build a mask for high order bits.
-  unsigned IntPtrWidth = IntPtrTy->getScalarType()->getIntegerBitWidth();
-  uint64_t PtrSizeMask =
-      std::numeric_limits<uint64_t>::max() >> (64 - IntPtrWidth);
-
-  gep_type_iterator GTI = gep_type_begin(GEP);
-  for (User::op_iterator i = GEP->op_begin() + 1, e = GEP->op_end(); i != e;
-       ++i, ++GTI) {
-    Value *Op = *i;
-    uint64_t Size = DL.getTypeAllocSize(GTI.getIndexedType()) & PtrSizeMask;
-    if (Constant *OpC = dyn_cast<Constant>(Op)) {
-      if (OpC->isZeroValue())
-        continue;
-
-      // Handle a struct index, which adds its field offset to the pointer.
-      if (StructType *STy = GTI.getStructTypeOrNull()) {
-        if (OpC->getType()->isVectorTy())
-          OpC = OpC->getSplatValue();
-
-        uint64_t OpValue = cast<ConstantInt>(OpC)->getZExtValue();
-        Size = DL.getStructLayout(STy)->getElementOffset(OpValue);
-
-        if (Size)
-          Result = Builder->CreateAdd(Result, ConstantInt::get(IntPtrTy, Size),
-                                      GEP->getName()+".offs");
-        continue;
-      }
-
-      Constant *Scale = ConstantInt::get(IntPtrTy, Size);
-      Constant *OC = ConstantExpr::getIntegerCast(OpC, IntPtrTy, true /*SExt*/);
-      Scale = ConstantExpr::getMul(OC, Scale, isInBounds/*NUW*/);
-      // Emit an add instruction.
-      Result = Builder->CreateAdd(Result, Scale, GEP->getName()+".offs");
-      continue;
-    }
-    // Convert to correct type.
-    if (Op->getType() != IntPtrTy)
-      Op = Builder->CreateIntCast(Op, IntPtrTy, true, Op->getName()+".c");
-    if (Size != 1) {
-      // We'll let instcombine(mul) convert this to a shl if possible.
-      Op = Builder->CreateMul(Op, ConstantInt::get(IntPtrTy, Size),
-                              GEP->getName()+".idx", isInBounds /*NUW*/);
-    }
-
-    // Emit an add instruction.
-    Result = Builder->CreateAdd(Op, Result, GEP->getName()+".offs");
-  }
-  return Result;
-}
-
 ///===---------------------------------------------------------------------===//
 ///  Dbg Intrinsic utilities
 ///
@@ -385,6 +333,23 @@ void replaceDbgValueForAlloca(AllocaInst *AI, Value *NewAllocaAddress,
 /// dbg.value intrinsics referring to \p I by rewriting its effect into a
 /// DIExpression.
 void salvageDebugInfo(Instruction &I);
+
+/// Assuming the value \p From is going to be deleted, insert replacement
+/// dbg.value intrinsics for each debug user of \p From. The newly-inserted
+/// dbg.values refer to \p To instead of \p From. Each replacement dbg.value
+/// has the same location and variable as the debug user it replaces, has a
+/// DIExpression determined by the result of \p RewriteExpr applied to an old
+/// debug user of \p From, and is placed before \p InsertBefore. If
+/// \p RewriteExpr returns nullptr, no replacement for the specified debug
+/// user is emitted.
+void insertReplacementDbgValues(
+    Value &From, Value &To, Instruction &InsertBefore,
+    function_ref<DIExpression *(DbgInfoIntrinsic &OldDII)> RewriteExpr);
+
+/// An overload of insertReplacementDbgValues() for the common case where
+/// the replacement dbg.values have the same DIExpressions as the originals.
+void insertReplacementDbgValues(Value &From, Value &To,
+                                Instruction &InsertBefore);
 
 /// Remove all instructions from a basic block other than it's terminator
 /// and any present EH pad instructions.

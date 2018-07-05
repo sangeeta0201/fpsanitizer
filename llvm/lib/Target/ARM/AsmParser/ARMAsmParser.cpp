@@ -561,6 +561,8 @@ class ARMAsmParser : public MCTargetAsmParser {
   bool shouldOmitPredicateOperand(StringRef Mnemonic, OperandVector &Operands);
   bool isITBlockTerminator(MCInst &Inst) const;
   void fixupGNULDRDAlias(StringRef Mnemonic, OperandVector &Operands);
+  bool validateLDRDSTRD(MCInst &Inst, const OperandVector &Operands,
+                        bool Load, bool ARMMode, bool Writeback);
 
 public:
   enum ARMMatchResultTy {
@@ -1028,7 +1030,12 @@ public:
     if (!isImm()) return false;
     const MCConstantExpr *CE = dyn_cast<MCConstantExpr>(getImm());
     if (!CE) return false;
-    int64_t Value = -CE->getValue();
+    // isImm0_4095Neg is used with 32-bit immediates only.
+    // 32-bit immediates are zero extended to 64-bit when parsed,
+    // thus simple -CE->getValue() results in a big negative number,
+    // not a small positive number as intended
+    if ((CE->getValue() >> 32) > 0) return false;
+    uint32_t Value = -static_cast<uint32_t>(CE->getValue());
     return Value > 0 && Value < 4096;
   }
 
@@ -1857,7 +1864,22 @@ public:
     return ARM_AM::isNEONi32splat(~Value);
   }
 
-  bool isNEONByteReplicate(unsigned NumBytes) const {
+  static bool isValidNEONi32vmovImm(int64_t Value) {
+    // i32 value with set bits only in one byte X000, 0X00, 00X0, or 000X,
+    // for VMOV/VMVN only, 00Xf or 0Xff are also accepted.
+    return ((Value & 0xffffffffffffff00) == 0) ||
+           ((Value & 0xffffffffffff00ff) == 0) ||
+           ((Value & 0xffffffffff00ffff) == 0) ||
+           ((Value & 0xffffffff00ffffff) == 0) ||
+           ((Value & 0xffffffffffff00ff) == 0xff) ||
+           ((Value & 0xffffffffff00ffff) == 0xffff);
+  }
+
+  bool isNEONReplicate(unsigned Width, unsigned NumElems, bool Inv) const {
+    assert((Width == 8 || Width == 16 || Width == 32) &&
+           "Invalid element width");
+    assert(NumElems * Width <= 64 && "Invalid result width");
+
     if (!isImm())
       return false;
     const MCConstantExpr *CE = dyn_cast<MCConstantExpr>(getImm());
@@ -1867,18 +1889,49 @@ public:
     int64_t Value = CE->getValue();
     if (!Value)
       return false; // Don't bother with zero.
+    if (Inv)
+      Value = ~Value;
 
-    unsigned char B = Value & 0xff;
-    for (unsigned i = 1; i < NumBytes; ++i) {
-      Value >>= 8;
-      if ((Value & 0xff) != B)
+    uint64_t Mask = (1ull << Width) - 1;
+    uint64_t Elem = Value & Mask;
+    if (Width == 16 && (Elem & 0x00ff) != 0 && (Elem & 0xff00) != 0)
+      return false;
+    if (Width == 32 && !isValidNEONi32vmovImm(Elem))
+      return false;
+
+    for (unsigned i = 1; i < NumElems; ++i) {
+      Value >>= Width;
+      if ((Value & Mask) != Elem)
         return false;
     }
     return true;
   }
 
-  bool isNEONi16ByteReplicate() const { return isNEONByteReplicate(2); }
-  bool isNEONi32ByteReplicate() const { return isNEONByteReplicate(4); }
+  bool isNEONByteReplicate(unsigned NumBytes) const {
+    return isNEONReplicate(8, NumBytes, false);
+  }
+
+  static void checkNeonReplicateArgs(unsigned FromW, unsigned ToW) {
+    assert((FromW == 8 || FromW == 16 || FromW == 32) &&
+           "Invalid source width");
+    assert((ToW == 16 || ToW == 32 || ToW == 64) &&
+           "Invalid destination width");
+    assert(FromW < ToW && "ToW is not less than FromW");
+  }
+
+  template<unsigned FromW, unsigned ToW>
+  bool isNEONmovReplicate() const {
+    checkNeonReplicateArgs(FromW, ToW);
+    if (ToW == 64 && isNEONi64splat())
+      return false;
+    return isNEONReplicate(FromW, ToW / FromW, false);
+  }
+
+  template<unsigned FromW, unsigned ToW>
+  bool isNEONinvReplicate() const {
+    checkNeonReplicateArgs(FromW, ToW);
+    return isNEONReplicate(FromW, ToW / FromW, true);
+  }
 
   bool isNEONi32vmov() const {
     if (isNEONByteReplicate(4))
@@ -1889,16 +1942,7 @@ public:
     // Must be a constant.
     if (!CE)
       return false;
-    int64_t Value = CE->getValue();
-    // i32 value with set bits only in one byte X000, 0X00, 00X0, or 000X,
-    // for VMOV/VMVN only, 00Xf or 0Xff are also accepted.
-    // FIXME: This is probably wrong and a copy and paste from previous example
-    return (Value >= 0 && Value < 256) ||
-      (Value >= 0x0100 && Value <= 0xff00) ||
-      (Value >= 0x010000 && Value <= 0xff0000) ||
-      (Value >= 0x01000000 && Value <= 0xff000000) ||
-      (Value >= 0x01ff && Value <= 0xffff && (Value & 0xff) == 0xff) ||
-      (Value >= 0x01ffff && Value <= 0xffffff && (Value & 0xffff) == 0xffff);
+    return isValidNEONi32vmovImm(CE->getValue());
   }
 
   bool isNEONi32vmovNeg() const {
@@ -1906,16 +1950,7 @@ public:
     const MCConstantExpr *CE = dyn_cast<MCConstantExpr>(getImm());
     // Must be a constant.
     if (!CE) return false;
-    int64_t Value = ~CE->getValue();
-    // i32 value with set bits only in one byte X000, 0X00, 00X0, or 000X,
-    // for VMOV/VMVN only, 00Xf or 0Xff are also accepted.
-    // FIXME: This is probably wrong and a copy and paste from previous example
-    return (Value >= 0 && Value < 256) ||
-      (Value >= 0x0100 && Value <= 0xff00) ||
-      (Value >= 0x010000 && Value <= 0xff0000) ||
-      (Value >= 0x01000000 && Value <= 0xff000000) ||
-      (Value >= 0x01ff && Value <= 0xffff && (Value & 0xff) == 0xff) ||
-      (Value >= 0x01ffff && Value <= 0xffffff && (Value & 0xffff) == 0xffff);
+    return isValidNEONi32vmovImm(~CE->getValue());
   }
 
   bool isNEONi64splat() const {
@@ -2212,7 +2247,7 @@ public:
     // The operand is actually an imm0_4095, but we have its
     // negation in the assembly source, so twiddle it here.
     const MCConstantExpr *CE = dyn_cast<MCConstantExpr>(getImm());
-    Inst.addOperand(MCOperand::createImm(-CE->getValue()));
+    Inst.addOperand(MCOperand::createImm(-(uint32_t)CE->getValue()));
   }
 
   void addUnsignedOffset_b8s2Operands(MCInst &Inst, unsigned N) const {
@@ -2733,60 +2768,85 @@ public:
     Inst.addOperand(MCOperand::createImm(Value));
   }
 
-  void addNEONinvByteReplicateOperands(MCInst &Inst, unsigned N) const {
-    assert(N == 1 && "Invalid number of operands!");
+  void addNEONi8ReplicateOperands(MCInst &Inst, bool Inv) const {
     // The immediate encodes the type of constant as well as the value.
     const MCConstantExpr *CE = dyn_cast<MCConstantExpr>(getImm());
-    unsigned Value = CE->getValue();
     assert((Inst.getOpcode() == ARM::VMOVv8i8 ||
             Inst.getOpcode() == ARM::VMOVv16i8) &&
-           "All vmvn instructions that wants to replicate non-zero byte "
-           "always must be replaced with VMOVv8i8 or VMOVv16i8.");
-    unsigned B = ((~Value) & 0xff);
+          "All instructions that wants to replicate non-zero byte "
+          "always must be replaced with VMOVv8i8 or VMOVv16i8.");
+    unsigned Value = CE->getValue();
+    if (Inv)
+      Value = ~Value;
+    unsigned B = Value & 0xff;
     B |= 0xe00; // cmode = 0b1110
     Inst.addOperand(MCOperand::createImm(B));
+  }
+
+  void addNEONinvi8ReplicateOperands(MCInst &Inst, unsigned N) const {
+    assert(N == 1 && "Invalid number of operands!");
+    addNEONi8ReplicateOperands(Inst, true);
+  }
+
+  static unsigned encodeNeonVMOVImmediate(unsigned Value) {
+    if (Value >= 256 && Value <= 0xffff)
+      Value = (Value >> 8) | ((Value & 0xff) ? 0xc00 : 0x200);
+    else if (Value > 0xffff && Value <= 0xffffff)
+      Value = (Value >> 16) | ((Value & 0xff) ? 0xd00 : 0x400);
+    else if (Value > 0xffffff)
+      Value = (Value >> 24) | 0x600;
+    return Value;
   }
 
   void addNEONi32vmovOperands(MCInst &Inst, unsigned N) const {
     assert(N == 1 && "Invalid number of operands!");
     // The immediate encodes the type of constant as well as the value.
     const MCConstantExpr *CE = dyn_cast<MCConstantExpr>(getImm());
-    unsigned Value = CE->getValue();
-    if (Value >= 256 && Value <= 0xffff)
-      Value = (Value >> 8) | ((Value & 0xff) ? 0xc00 : 0x200);
-    else if (Value > 0xffff && Value <= 0xffffff)
-      Value = (Value >> 16) | ((Value & 0xff) ? 0xd00 : 0x400);
-    else if (Value > 0xffffff)
-      Value = (Value >> 24) | 0x600;
+    unsigned Value = encodeNeonVMOVImmediate(CE->getValue());
     Inst.addOperand(MCOperand::createImm(Value));
   }
 
-  void addNEONvmovByteReplicateOperands(MCInst &Inst, unsigned N) const {
+  void addNEONvmovi8ReplicateOperands(MCInst &Inst, unsigned N) const {
     assert(N == 1 && "Invalid number of operands!");
-    // The immediate encodes the type of constant as well as the value.
+    addNEONi8ReplicateOperands(Inst, false);
+  }
+
+  void addNEONvmovi16ReplicateOperands(MCInst &Inst, unsigned N) const {
+    assert(N == 1 && "Invalid number of operands!");
     const MCConstantExpr *CE = dyn_cast<MCConstantExpr>(getImm());
-    unsigned Value = CE->getValue();
-    assert((Inst.getOpcode() == ARM::VMOVv8i8 ||
-            Inst.getOpcode() == ARM::VMOVv16i8) &&
-           "All instructions that wants to replicate non-zero byte "
-           "always must be replaced with VMOVv8i8 or VMOVv16i8.");
-    unsigned B = Value & 0xff;
-    B |= 0xe00; // cmode = 0b1110
-    Inst.addOperand(MCOperand::createImm(B));
+    assert((Inst.getOpcode() == ARM::VMOVv4i16 ||
+            Inst.getOpcode() == ARM::VMOVv8i16 ||
+            Inst.getOpcode() == ARM::VMVNv4i16 ||
+            Inst.getOpcode() == ARM::VMVNv8i16) &&
+          "All instructions that want to replicate non-zero half-word "
+          "always must be replaced with V{MOV,MVN}v{4,8}i16.");
+    uint64_t Value = CE->getValue();
+    unsigned Elem = Value & 0xffff;
+    if (Elem >= 256)
+      Elem = (Elem >> 8) | 0x200;
+    Inst.addOperand(MCOperand::createImm(Elem));
   }
 
   void addNEONi32vmovNegOperands(MCInst &Inst, unsigned N) const {
     assert(N == 1 && "Invalid number of operands!");
     // The immediate encodes the type of constant as well as the value.
     const MCConstantExpr *CE = dyn_cast<MCConstantExpr>(getImm());
-    unsigned Value = ~CE->getValue();
-    if (Value >= 256 && Value <= 0xffff)
-      Value = (Value >> 8) | ((Value & 0xff) ? 0xc00 : 0x200);
-    else if (Value > 0xffff && Value <= 0xffffff)
-      Value = (Value >> 16) | ((Value & 0xff) ? 0xd00 : 0x400);
-    else if (Value > 0xffffff)
-      Value = (Value >> 24) | 0x600;
+    unsigned Value = encodeNeonVMOVImmediate(~CE->getValue());
     Inst.addOperand(MCOperand::createImm(Value));
+  }
+
+  void addNEONvmovi32ReplicateOperands(MCInst &Inst, unsigned N) const {
+    assert(N == 1 && "Invalid number of operands!");
+    const MCConstantExpr *CE = dyn_cast<MCConstantExpr>(getImm());
+    assert((Inst.getOpcode() == ARM::VMOVv2i32 ||
+            Inst.getOpcode() == ARM::VMOVv4i32 ||
+            Inst.getOpcode() == ARM::VMVNv2i32 ||
+            Inst.getOpcode() == ARM::VMVNv4i32) &&
+          "All instructions that want to replicate non-zero word "
+          "always must be replaced with V{MOV,MVN}v{2,4}i32.");
+    uint64_t Value = CE->getValue();
+    unsigned Elem = encodeNeonVMOVImmediate(Value & 0xffffffff);
+    Inst.addOperand(MCOperand::createImm(Elem));
   }
 
   void addNEONi64splatOperands(MCInst &Inst, unsigned N) const {
@@ -4238,6 +4298,18 @@ ARMAsmParser::parseMSRMaskOperand(OperandVector &Operands) {
   MCAsmParser &Parser = getParser();
   SMLoc S = Parser.getTok().getLoc();
   const AsmToken &Tok = Parser.getTok();
+
+  if (Tok.is(AsmToken::Integer)) {
+    int64_t Val = Tok.getIntVal();
+    if (Val > 255 || Val < 0) {
+      return MatchOperand_NoMatch;
+    }
+    unsigned SYSmvalue = Val & 0xFF;
+    Parser.Lex(); 
+    Operands.push_back(ARMOperand::CreateMSRMask(SYSmvalue, S));
+    return MatchOperand_Success;
+  }
+
   if (!Tok.is(AsmToken::Identifier))
     return MatchOperand_NoMatch;
   StringRef Mask = Tok.getString();
@@ -5473,7 +5545,7 @@ bool ARMAsmParser::parsePrefix(ARMMCExpr::VariantKind &RefKind) {
   return false;
 }
 
-/// \brief Given a mnemonic, split out possible predication code and carry
+/// Given a mnemonic, split out possible predication code and carry
 /// setting letters to form a canonical mnemonic and flags.
 //
 // FIXME: Would be nice to autogen this.
@@ -5564,7 +5636,7 @@ StringRef ARMAsmParser::splitMnemonic(StringRef Mnemonic,
   return Mnemonic;
 }
 
-/// \brief Given a canonical mnemonic, determine if the instruction ever allows
+/// Given a canonical mnemonic, determine if the instruction ever allows
 /// inclusion of carry set or predication code operands.
 //
 // FIXME: It would be nice to autogen this.
@@ -5618,7 +5690,7 @@ void ARMAsmParser::getMnemonicAcceptInfo(StringRef Mnemonic, StringRef FullInst,
     CanAcceptPredicationCode = true;
 }
 
-// \brief Some Thumb instructions have two operand forms that are not
+// Some Thumb instructions have two operand forms that are not
 // available as three operand, convert to two operand form if possible.
 //
 // FIXME: We would really like to be able to tablegen'erate this.
@@ -6237,6 +6309,65 @@ bool ARMAsmParser::validatetSTMRegList(const MCInst &Inst,
   return false;
 }
 
+bool ARMAsmParser::validateLDRDSTRD(MCInst &Inst,
+                                    const OperandVector &Operands,
+                                    bool Load, bool ARMMode, bool Writeback) {
+  unsigned RtIndex = Load || !Writeback ? 0 : 1;
+  unsigned Rt = MRI->getEncodingValue(Inst.getOperand(RtIndex).getReg());
+  unsigned Rt2 = MRI->getEncodingValue(Inst.getOperand(RtIndex + 1).getReg());
+
+  if (ARMMode) {
+    // Rt can't be R14.
+    if (Rt == 14)
+      return Error(Operands[3]->getStartLoc(),
+                  "Rt can't be R14");
+
+    // Rt must be even-numbered.
+    if ((Rt & 1) == 1)
+      return Error(Operands[3]->getStartLoc(),
+                   "Rt must be even-numbered");
+
+    // Rt2 must be Rt + 1.
+    if (Rt2 != Rt + 1) {
+      if (Load)
+        return Error(Operands[3]->getStartLoc(),
+                     "destination operands must be sequential");
+      else
+        return Error(Operands[3]->getStartLoc(),
+                     "source operands must be sequential");
+    }
+
+    // FIXME: Diagnose m == 15
+    // FIXME: Diagnose ldrd with m == t || m == t2.
+  }
+
+  if (!ARMMode && Load) {
+    if (Rt2 == Rt)
+      return Error(Operands[3]->getStartLoc(),
+                   "destination operands can't be identical");
+  }
+
+  if (Writeback) {
+    unsigned Rn = MRI->getEncodingValue(Inst.getOperand(3).getReg());
+
+    if (Rn == Rt || Rn == Rt2) {
+      if (Load)
+        return Error(Operands[3]->getStartLoc(),
+                     "base register needs to be different from destination "
+                     "registers");
+      else
+        return Error(Operands[3]->getStartLoc(),
+                     "source register and base register can't be identical");
+    }
+
+    // FIXME: Diagnose ldrd/strd with writeback and n == 15.
+    // (Except the immediate form of ldrd?)
+  }
+
+  return false;
+}
+
+
 // FIXME: We would really like to be able to tablegen'erate this.
 bool ARMAsmParser::validateInstruction(MCInst &Inst,
                                        const OperandVector &Operands) {
@@ -6283,51 +6414,43 @@ bool ARMAsmParser::validateInstruction(MCInst &Inst,
 
   const unsigned Opcode = Inst.getOpcode();
   switch (Opcode) {
+  case ARM::t2IT: {
+    // Encoding is unpredictable if it ever results in a notional 'NV'
+    // predicate. Since we don't parse 'NV' directly this means an 'AL'
+    // predicate with an "else" mask bit.
+    unsigned Cond = Inst.getOperand(0).getImm();
+    unsigned Mask = Inst.getOperand(1).getImm();
+
+    // Mask hasn't been modified to the IT instruction encoding yet so
+    // conditions only allowing a 't' are a block of 1s starting at bit 3
+    // followed by all 0s. Easiest way is to just list the 4 possibilities.
+    if (Cond == ARMCC::AL && Mask != 8 && Mask != 12 && Mask != 14 &&
+        Mask != 15)
+      return Error(Loc, "unpredictable IT predicate sequence");
+    break;
+  }
   case ARM::LDRD:
+    if (validateLDRDSTRD(Inst, Operands, /*Load*/true, /*ARMMode*/true,
+                         /*Writeback*/false))
+      return true;
+    break;
   case ARM::LDRD_PRE:
-  case ARM::LDRD_POST: {
-    const unsigned RtReg = Inst.getOperand(0).getReg();
-
-    // Rt can't be R14.
-    if (RtReg == ARM::LR)
-      return Error(Operands[3]->getStartLoc(),
-                   "Rt can't be R14");
-
-    const unsigned Rt = MRI->getEncodingValue(RtReg);
-    // Rt must be even-numbered.
-    if ((Rt & 1) == 1)
-      return Error(Operands[3]->getStartLoc(),
-                   "Rt must be even-numbered");
-
-    // Rt2 must be Rt + 1.
-    const unsigned Rt2 = MRI->getEncodingValue(Inst.getOperand(1).getReg());
-    if (Rt2 != Rt + 1)
-      return Error(Operands[3]->getStartLoc(),
-                   "destination operands must be sequential");
-
-    if (Opcode == ARM::LDRD_PRE || Opcode == ARM::LDRD_POST) {
-      const unsigned Rn = MRI->getEncodingValue(Inst.getOperand(3).getReg());
-      // For addressing modes with writeback, the base register needs to be
-      // different from the destination registers.
-      if (Rn == Rt || Rn == Rt2)
-        return Error(Operands[3]->getStartLoc(),
-                     "base register needs to be different from destination "
-                     "registers");
-    }
-
-    return false;
-  }
+  case ARM::LDRD_POST:
+    if (validateLDRDSTRD(Inst, Operands, /*Load*/true, /*ARMMode*/true,
+                         /*Writeback*/true))
+      return true;
+    break;
   case ARM::t2LDRDi8:
+    if (validateLDRDSTRD(Inst, Operands, /*Load*/true, /*ARMMode*/false,
+                         /*Writeback*/false))
+      return true;
+    break;
   case ARM::t2LDRD_PRE:
-  case ARM::t2LDRD_POST: {
-    // Rt2 must be different from Rt.
-    unsigned Rt = MRI->getEncodingValue(Inst.getOperand(0).getReg());
-    unsigned Rt2 = MRI->getEncodingValue(Inst.getOperand(1).getReg());
-    if (Rt2 == Rt)
-      return Error(Operands[3]->getStartLoc(),
-                   "destination operands can't be identical");
-    return false;
-  }
+  case ARM::t2LDRD_POST:
+    if (validateLDRDSTRD(Inst, Operands, /*Load*/true, /*ARMMode*/false,
+                         /*Writeback*/true))
+      return true;
+    break;
   case ARM::t2BXJ: {
     const unsigned RmReg = Inst.getOperand(0).getReg();
     // Rm = SP is no longer unpredictable in v8-A
@@ -6336,35 +6459,39 @@ bool ARMAsmParser::validateInstruction(MCInst &Inst,
                    "r13 (SP) is an unpredictable operand to BXJ");
     return false;
   }
-  case ARM::STRD: {
-    // Rt2 must be Rt + 1.
-    unsigned Rt = MRI->getEncodingValue(Inst.getOperand(0).getReg());
-    unsigned Rt2 = MRI->getEncodingValue(Inst.getOperand(1).getReg());
-    if (Rt2 != Rt + 1)
-      return Error(Operands[3]->getStartLoc(),
-                   "source operands must be sequential");
-    return false;
-  }
+  case ARM::STRD:
+    if (validateLDRDSTRD(Inst, Operands, /*Load*/false, /*ARMMode*/true,
+                         /*Writeback*/false))
+      return true;
+    break;
   case ARM::STRD_PRE:
-  case ARM::STRD_POST: {
-    // Rt2 must be Rt + 1.
-    unsigned Rt = MRI->getEncodingValue(Inst.getOperand(1).getReg());
-    unsigned Rt2 = MRI->getEncodingValue(Inst.getOperand(2).getReg());
-    if (Rt2 != Rt + 1)
-      return Error(Operands[3]->getStartLoc(),
-                   "source operands must be sequential");
-    return false;
-  }
+  case ARM::STRD_POST:
+    if (validateLDRDSTRD(Inst, Operands, /*Load*/false, /*ARMMode*/true,
+                         /*Writeback*/true))
+      return true;
+    break;
+  case ARM::t2STRD_PRE:
+  case ARM::t2STRD_POST:
+    if (validateLDRDSTRD(Inst, Operands, /*Load*/false, /*ARMMode*/false,
+                         /*Writeback*/true))
+      return true;
+    break;
   case ARM::STR_PRE_IMM:
   case ARM::STR_PRE_REG:
+  case ARM::t2STR_PRE:
   case ARM::STR_POST_IMM:
   case ARM::STR_POST_REG:
+  case ARM::t2STR_POST:
   case ARM::STRH_PRE:
+  case ARM::t2STRH_PRE:
   case ARM::STRH_POST:
+  case ARM::t2STRH_POST:
   case ARM::STRB_PRE_IMM:
   case ARM::STRB_PRE_REG:
+  case ARM::t2STRB_PRE:
   case ARM::STRB_POST_IMM:
-  case ARM::STRB_POST_REG: {
+  case ARM::STRB_POST_REG:
+  case ARM::t2STRB_POST: {
     // Rt must be different from Rn.
     const unsigned Rt = MRI->getEncodingValue(Inst.getOperand(1).getReg());
     const unsigned Rn = MRI->getEncodingValue(Inst.getOperand(2).getReg());
@@ -6376,18 +6503,28 @@ bool ARMAsmParser::validateInstruction(MCInst &Inst,
   }
   case ARM::LDR_PRE_IMM:
   case ARM::LDR_PRE_REG:
+  case ARM::t2LDR_PRE:
   case ARM::LDR_POST_IMM:
   case ARM::LDR_POST_REG:
+  case ARM::t2LDR_POST:
   case ARM::LDRH_PRE:
+  case ARM::t2LDRH_PRE:
   case ARM::LDRH_POST:
+  case ARM::t2LDRH_POST:
   case ARM::LDRSH_PRE:
+  case ARM::t2LDRSH_PRE:
   case ARM::LDRSH_POST:
+  case ARM::t2LDRSH_POST:
   case ARM::LDRB_PRE_IMM:
   case ARM::LDRB_PRE_REG:
+  case ARM::t2LDRB_PRE:
   case ARM::LDRB_POST_IMM:
   case ARM::LDRB_POST_REG:
+  case ARM::t2LDRB_POST:
   case ARM::LDRSB_PRE:
-  case ARM::LDRSB_POST: {
+  case ARM::t2LDRSB_PRE:
+  case ARM::LDRSB_POST:
+  case ARM::t2LDRSB_POST: {
     // Rt must be different from Rn.
     const unsigned Rt = MRI->getEncodingValue(Inst.getOperand(0).getReg());
     const unsigned Rn = MRI->getEncodingValue(Inst.getOperand(2).getReg());
@@ -6398,7 +6535,9 @@ bool ARMAsmParser::validateInstruction(MCInst &Inst,
     return false;
   }
   case ARM::SBFX:
-  case ARM::UBFX: {
+  case ARM::t2SBFX:
+  case ARM::UBFX:
+  case ARM::t2UBFX: {
     // Width must be in range [1, 32-lsb].
     unsigned LSB = Inst.getOperand(2).getImm();
     unsigned Widthm1 = Inst.getOperand(3).getImm();
@@ -6629,6 +6768,24 @@ bool ARMAsmParser::validateInstruction(MCInst &Inst,
       return Error(Operands[1]->getStartLoc(), "instruction 'csdb' is not "
                                                "predicable, but condition "
                                                "code specified");
+    break;
+  }
+  case ARM::VMOVRRS: {
+    // Source registers must be sequential.
+    const unsigned Sm = MRI->getEncodingValue(Inst.getOperand(2).getReg());
+    const unsigned Sm1 = MRI->getEncodingValue(Inst.getOperand(3).getReg());
+    if (Sm1 != Sm + 1)
+      return Error(Operands[5]->getStartLoc(),
+                   "source operands must be sequential");
+    break;
+  }
+  case ARM::VMOVSRR: {
+    // Destination registers must be sequential.
+    const unsigned Sm = MRI->getEncodingValue(Inst.getOperand(0).getReg());
+    const unsigned Sm1 = MRI->getEncodingValue(Inst.getOperand(1).getReg());
+    if (Sm1 != Sm + 1)
+      return Error(Operands[3]->getStartLoc(),
+                   "destination operands must be sequential");
     break;
   }
   }
@@ -10200,10 +10357,11 @@ ARMAsmParser::FilterNearMisses(SmallVectorImpl<NearMissInfo> &NearMissesIn,
         Message.Message = "too many operands for instruction";
       } else {
         Message.Message = "invalid operand for instruction";
-        DEBUG(dbgs() << "Missing diagnostic string for operand class " <<
-              getMatchClassName((MatchClassKind)I.getOperandClass())
-              << I.getOperandClass() << ", error " << I.getOperandError()
-              << ", opcode " << MII.getName(I.getOpcode()) << "\n");
+        LLVM_DEBUG(
+            dbgs() << "Missing diagnostic string for operand class "
+                   << getMatchClassName((MatchClassKind)I.getOperandClass())
+                   << I.getOperandClass() << ", error " << I.getOperandError()
+                   << ", opcode " << MII.getName(I.getOpcode()) << "\n");
       }
       NearMissesOut.emplace_back(Message);
       break;
@@ -10229,6 +10387,8 @@ ARMAsmParser::FilterNearMisses(SmallVectorImpl<NearMissInfo> &NearMissesIn,
         break;
       if (!isThumb() && (MissingFeatures & Feature_IsThumb2) &&
           (MissingFeatures & ~(Feature_IsThumb2 | Feature_IsThumb)))
+        break;
+      if (isMClass() && (MissingFeatures & Feature_HasNEON))
         break;
 
       NearMissMessage Message;

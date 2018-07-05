@@ -202,6 +202,58 @@ bool Constant::isNotMinSignedValue() const {
   return false;
 }
 
+bool Constant::isFiniteNonZeroFP() const {
+  if (auto *CFP = dyn_cast<ConstantFP>(this))
+    return CFP->getValueAPF().isFiniteNonZero();
+  if (!getType()->isVectorTy())
+    return false;
+  for (unsigned i = 0, e = getType()->getVectorNumElements(); i != e; ++i) {
+    auto *CFP = dyn_cast_or_null<ConstantFP>(this->getAggregateElement(i));
+    if (!CFP || !CFP->getValueAPF().isFiniteNonZero())
+      return false;
+  }
+  return true;
+}
+
+bool Constant::isNormalFP() const {
+  if (auto *CFP = dyn_cast<ConstantFP>(this))
+    return CFP->getValueAPF().isNormal();
+  if (!getType()->isVectorTy())
+    return false;
+  for (unsigned i = 0, e = getType()->getVectorNumElements(); i != e; ++i) {
+    auto *CFP = dyn_cast_or_null<ConstantFP>(this->getAggregateElement(i));
+    if (!CFP || !CFP->getValueAPF().isNormal())
+      return false;
+  }
+  return true;
+}
+
+bool Constant::hasExactInverseFP() const {
+  if (auto *CFP = dyn_cast<ConstantFP>(this))
+    return CFP->getValueAPF().getExactInverse(nullptr);
+  if (!getType()->isVectorTy())
+    return false;
+  for (unsigned i = 0, e = getType()->getVectorNumElements(); i != e; ++i) {
+    auto *CFP = dyn_cast_or_null<ConstantFP>(this->getAggregateElement(i));
+    if (!CFP || !CFP->getValueAPF().getExactInverse(nullptr))
+      return false;
+  }
+  return true;
+}
+
+bool Constant::isNaN() const {
+  if (auto *CFP = dyn_cast<ConstantFP>(this))
+    return CFP->isNaN();
+  if (!getType()->isVectorTy())
+    return false;
+  for (unsigned i = 0, e = getType()->getVectorNumElements(); i != e; ++i) {
+    auto *CFP = dyn_cast_or_null<ConstantFP>(this->getAggregateElement(i));
+    if (!CFP || !CFP->isNaN())
+      return false;
+  }
+  return true;
+}
+
 /// Constructor to create a '0' constant of arbitrary type.
 Constant *Constant::getNullValue(Type *Ty) {
   switch (Ty->getTypeID()) {
@@ -635,6 +687,17 @@ Constant *ConstantFP::get(Type *Ty, double V) {
   return C;
 }
 
+Constant *ConstantFP::get(Type *Ty, const APFloat &V) {
+  ConstantFP *C = get(Ty->getContext(), V);
+  assert(C->getType() == Ty->getScalarType() &&
+         "ConstantFP type doesn't match the type implied by its value!");
+
+  // For vectors, broadcast the value.
+  if (auto *VTy = dyn_cast<VectorType>(Ty))
+    return ConstantVector::getSplat(VTy->getNumElements(), C);
+
+  return C;
+}
 
 Constant *ConstantFP::get(Type *Ty, StringRef Str) {
   LLVMContext &Context = Ty->getContext();
@@ -646,7 +709,7 @@ Constant *ConstantFP::get(Type *Ty, StringRef Str) {
   if (VectorType *VTy = dyn_cast<VectorType>(Ty))
     return ConstantVector::getSplat(VTy->getNumElements(), C);
 
-  return C; 
+  return C;
 }
 
 Constant *ConstantFP::getNaN(Type *Ty, bool Negative, unsigned Type) {
@@ -699,7 +762,7 @@ ConstantFP* ConstantFP::get(LLVMContext &Context, const APFloat& V) {
     else if (&V.getSemantics() == &APFloat::IEEEquad())
       Ty = Type::getFP128Ty(Context);
     else {
-      assert(&V.getSemantics() == &APFloat::PPCDoubleDouble() && 
+      assert(&V.getSemantics() == &APFloat::PPCDoubleDouble() &&
              "Unknown FP format");
       Ty = Type::getPPC_FP128Ty(Context);
     }
@@ -952,7 +1015,7 @@ Constant *ConstantStruct::get(StructType *ST, ArrayRef<Constant*> V) {
   // Create a ConstantAggregateZero value if all elements are zeros.
   bool isZero = true;
   bool isUndef = false;
-  
+
   if (!V.empty()) {
     isUndef = isa<UndefValue>(V[0]);
     isZero = V[0]->isNullValue();
@@ -1213,17 +1276,17 @@ bool ConstantFP::isValueValidForType(Type *Ty, const APFloat& Val) {
   }
   case Type::X86_FP80TyID:
     return &Val2.getSemantics() == &APFloat::IEEEhalf() ||
-           &Val2.getSemantics() == &APFloat::IEEEsingle() || 
+           &Val2.getSemantics() == &APFloat::IEEEsingle() ||
            &Val2.getSemantics() == &APFloat::IEEEdouble() ||
            &Val2.getSemantics() == &APFloat::x87DoubleExtended();
   case Type::FP128TyID:
     return &Val2.getSemantics() == &APFloat::IEEEhalf() ||
-           &Val2.getSemantics() == &APFloat::IEEEsingle() || 
+           &Val2.getSemantics() == &APFloat::IEEEsingle() ||
            &Val2.getSemantics() == &APFloat::IEEEdouble() ||
            &Val2.getSemantics() == &APFloat::IEEEquad();
   case Type::PPC_FP128TyID:
     return &Val2.getSemantics() == &APFloat::IEEEhalf() ||
-           &Val2.getSemantics() == &APFloat::IEEEsingle() || 
+           &Val2.getSemantics() == &APFloat::IEEEsingle() ||
            &Val2.getSemantics() == &APFloat::IEEEdouble() ||
            &Val2.getSemantics() == &APFloat::PPCDoubleDouble();
   }
@@ -1710,8 +1773,7 @@ Constant *ConstantExpr::getAddrSpaceCast(Constant *C, Type *DstTy,
 Constant *ConstantExpr::get(unsigned Opcode, Constant *C1, Constant *C2,
                             unsigned Flags, Type *OnlyIfReducedTy) {
   // Check the operands for consistency first.
-  assert(Opcode >= Instruction::BinaryOpsBegin &&
-         Opcode <  Instruction::BinaryOpsEnd   &&
+  assert(Instruction::isBinaryOp(Opcode) &&
          "Invalid opcode in binary constant expression");
   assert(C1->getType() == C2->getType() &&
          "Operand types in binary constant expression should match");
@@ -1733,8 +1795,8 @@ Constant *ConstantExpr::get(unsigned Opcode, Constant *C1, Constant *C2,
            "Tried to create a floating-point operation on a "
            "non-floating-point type!");
     break;
-  case Instruction::UDiv: 
-  case Instruction::SDiv: 
+  case Instruction::UDiv:
+  case Instruction::SDiv:
     assert(C1->getType() == C2->getType() && "Op types should be identical!");
     assert(C1->getType()->isIntOrIntVectorTy() &&
            "Tried to create an arithmetic operation on a non-arithmetic type!");
@@ -1744,8 +1806,8 @@ Constant *ConstantExpr::get(unsigned Opcode, Constant *C1, Constant *C2,
     assert(C1->getType()->isFPOrFPVectorTy() &&
            "Tried to create an arithmetic operation on a non-arithmetic type!");
     break;
-  case Instruction::URem: 
-  case Instruction::SRem: 
+  case Instruction::URem:
+  case Instruction::SRem:
     assert(C1->getType() == C2->getType() && "Op types should be identical!");
     assert(C1->getType()->isIntOrIntVectorTy() &&
            "Tried to create an arithmetic operation on a non-arithmetic type!");
@@ -1793,7 +1855,7 @@ Constant *ConstantExpr::getSizeOf(Type* Ty) {
   Constant *GEPIdx = ConstantInt::get(Type::getInt32Ty(Ty->getContext()), 1);
   Constant *GEP = getGetElementPtr(
       Ty, Constant::getNullValue(PointerType::getUnqual(Ty)), GEPIdx);
-  return getPtrToInt(GEP, 
+  return getPtrToInt(GEP,
                      Type::getInt64Ty(Ty->getContext()));
 }
 
@@ -2199,6 +2261,9 @@ Constant *ConstantExpr::getAShr(Constant *C1, Constant *C2, bool isExact) {
              isExact ? PossiblyExactOperator::IsExact : 0);
 }
 
+// FIXME: Add a parameter to specify the operand number for non-commutative ops.
+// For example, the operand 1 identity constant for any shift is the null value
+// because shift-by-0 always returns operand 0.
 Constant *ConstantExpr::getBinOpIdentity(unsigned Opcode, Type *Ty) {
   switch (Opcode) {
   default:
@@ -2215,6 +2280,13 @@ Constant *ConstantExpr::getBinOpIdentity(unsigned Opcode, Type *Ty) {
 
   case Instruction::And:
     return Constant::getAllOnesValue(Ty);
+
+  // TODO: If the fadd has 'nsz', should we return +0.0?
+  case Instruction::FAdd:
+    return ConstantFP::getNegativeZero(Ty);
+
+  case Instruction::FMul:
+    return ConstantFP::get(Ty, 1.0);
   }
 }
 
@@ -2354,7 +2426,7 @@ Constant *ConstantDataSequential::getImpl(StringRef Elements, Type *Ty) {
 
 void ConstantDataSequential::destroyConstantImpl() {
   // Remove the constant from the StringMap.
-  StringMap<ConstantDataSequential*> &CDSConstants = 
+  StringMap<ConstantDataSequential*> &CDSConstants =
     getType()->getContext().pImpl->CDSConstants;
 
   StringMap<ConstantDataSequential*>::iterator Slot =
@@ -2371,7 +2443,7 @@ void ConstantDataSequential::destroyConstantImpl() {
     assert((*Entry) == this && "Hash mismatch in ConstantDataSequential");
     getContext().pImpl->CDSConstants.erase(Slot);
   } else {
-    // Otherwise, there are multiple entries linked off the bucket, unlink the 
+    // Otherwise, there are multiple entries linked off the bucket, unlink the
     // node we care about but keep the bucket around.
     for (ConstantDataSequential *Node = *Entry; ;
          Entry = &Node->Next, Node = *Entry) {
@@ -2387,40 +2459,6 @@ void ConstantDataSequential::destroyConstantImpl() {
   // If we were part of a list, make sure that we don't delete the list that is
   // still owned by the uniquing map.
   Next = nullptr;
-}
-
-/// get() constructors - Return a constant with array type with an element
-/// count and element type matching the ArrayRef passed in.  Note that this
-/// can return a ConstantAggregateZero object.
-Constant *ConstantDataArray::get(LLVMContext &Context, ArrayRef<uint8_t> Elts) {
-  Type *Ty = ArrayType::get(Type::getInt8Ty(Context), Elts.size());
-  const char *Data = reinterpret_cast<const char *>(Elts.data());
-  return getImpl(StringRef(Data, Elts.size() * 1), Ty);
-}
-Constant *ConstantDataArray::get(LLVMContext &Context, ArrayRef<uint16_t> Elts){
-  Type *Ty = ArrayType::get(Type::getInt16Ty(Context), Elts.size());
-  const char *Data = reinterpret_cast<const char *>(Elts.data());
-  return getImpl(StringRef(Data, Elts.size() * 2), Ty);
-}
-Constant *ConstantDataArray::get(LLVMContext &Context, ArrayRef<uint32_t> Elts){
-  Type *Ty = ArrayType::get(Type::getInt32Ty(Context), Elts.size());
-  const char *Data = reinterpret_cast<const char *>(Elts.data());
-  return getImpl(StringRef(Data, Elts.size() * 4), Ty);
-}
-Constant *ConstantDataArray::get(LLVMContext &Context, ArrayRef<uint64_t> Elts){
-  Type *Ty = ArrayType::get(Type::getInt64Ty(Context), Elts.size());
-  const char *Data = reinterpret_cast<const char *>(Elts.data());
-  return getImpl(StringRef(Data, Elts.size() * 8), Ty);
-}
-Constant *ConstantDataArray::get(LLVMContext &Context, ArrayRef<float> Elts) {
-  Type *Ty = ArrayType::get(Type::getFloatTy(Context), Elts.size());
-  const char *Data = reinterpret_cast<const char *>(Elts.data());
-  return getImpl(StringRef(Data, Elts.size() * 4), Ty);
-}
-Constant *ConstantDataArray::get(LLVMContext &Context, ArrayRef<double> Elts) {
-  Type *Ty = ArrayType::get(Type::getDoubleTy(Context), Elts.size());
-  const char *Data = reinterpret_cast<const char *>(Elts.data());
-  return getImpl(StringRef(Data, Elts.size() * 8), Ty);
 }
 
 /// getFP() constructors - Return a constant with array type with an element

@@ -449,8 +449,6 @@ void FPInstrument::handleNewPhi(Function &F){
           next = &*BBit;
         }
         IRBuilder<> IRB(next);
-//        SetRealConstant = M->getOrInsertFunction("setRealReg", double_ty, double_ty);
- //       Instruction* newI = IRB.CreateCall(SetRealConstant, {IncValue});
         double cIndex;
         if(consMap.count(IncValue) != 0)
           cIndex = consMap.at(IncValue); // it should never fail
@@ -507,11 +505,6 @@ BitCastInst* FPInstrument::handleOperand(Instruction **index, Instruction *I, Va
 
   if (isa<ConstantFP>(operand)) {
     errs()<<"handleOperand op is a constant\n";
-//    if(fpConstant_op0->getTypeID() == Type::FloatTyID)
-//      b_op = new BitCastInst(operand, Type::getFloatTy(M->getContext()),"", I);
-//    else if(fpConstant_op0->getTypeID() == Type::DoubleTyID)
-//      b_op = new BitCastInst(operand, Type::getDoubleTy(M->getContext()),"", I);
-    //*consFlag = true;
     double cIndex = consMap.at(operand); // it should never fail
     
     errs()<<"handleOperand consCount:"<<cIndex<<"\n";
@@ -519,7 +512,7 @@ BitCastInst* FPInstrument::handleOperand(Instruction **index, Instruction *I, Va
     SetRealConstant = M->getOrInsertFunction("setRealReg", double_ty, double_ty, double_ty);
     Instruction *newI = IRB.CreateCall(SetRealConstant, {consIndex, operand});
     *index = newI;
-    *regFlag = true;
+    *consFlag = true;
   } 
   else {
     errs()<<"handleOperand op is not a constant, finding in loadMap\n";
@@ -539,7 +532,7 @@ BitCastInst* FPInstrument::handleOperand(Instruction **index, Instruction *I, Va
 }
 
 void FPInstrument::handleIns(Instruction *I, BinaryOperator* binOp, Function &F){
-  errs()<<"handleConstant called\n";
+  errs()<<"handleIns called\n";
   insMap.insert(std::pair<Instruction*, double>(I, insCount));
   insCount++; 
 }
@@ -626,16 +619,10 @@ void FPInstrument::handleOp(Instruction *I, BinaryOperator* binOp, Function &F){
       HandleOp = M->getOrInsertFunction("handleOp_dr", double_ty, int_ty, double_ty, double_ty);
   }
   else if(op_0_cons){
-    if(fpConstant_op0->getTypeID() == Type::FloatTyID)
-      HandleOp = M->getOrInsertFunction("handleOp_2_f", void_ptr_ty, int_ty, float_ty, void_ptr_ty);
-    else if(fpConstant_op0->getTypeID() == Type::DoubleTyID)
+    errs()<<"op0 is cons and op1 is mem\n";
       HandleOp = M->getOrInsertFunction("handleOp_2_d", void_ptr_ty, int_ty, double_ty, void_ptr_ty);
-    else
-      errs()<<"Unknown Type\n";
   }else if(op_1_cons){
-    if(fpConstant_op1->getTypeID() == Type::FloatTyID)
-      HandleOp = M->getOrInsertFunction("handleOp_3_f", void_ptr_ty, int_ty, void_ptr_ty, float_ty);
-    else if(fpConstant_op1->getTypeID() == Type::DoubleTyID)
+    errs()<<"op1 is cons and op0 is mem\n";
       HandleOp = M->getOrInsertFunction("handleOp_3_d", void_ptr_ty, int_ty, void_ptr_ty, double_ty);
   }
   else{
@@ -645,14 +632,14 @@ void FPInstrument::handleOp(Instruction *I, BinaryOperator* binOp, Function &F){
   Instruction* newI;
   if(op_0_cons && regFlag1){
     if(index1 != NULL){
-      newI = IRB.CreateCall(HandleOp, {opCode, b_op_0, index1});
+      newI = IRB.CreateCall(HandleOp, {opCode, index0, index1});
       regIdMap.insert(std::pair<Instruction*, Instruction*>(I, newI)); 
       errs()<<"handleOp regIdMap insert:"<<*I<<":"<<*newI<<"\n";
     }
   }
   if(op_1_cons && regFlag0){
     if(index0 != NULL){
-      newI = IRB.CreateCall(HandleOp, {opCode, index0, b_op_1});
+      newI = IRB.CreateCall(HandleOp, {opCode, index0, index1});
       regIdMap.insert(std::pair<Instruction*, Instruction*>(I, newI)); 
       errs()<<"handleOp regIdMap insert:"<<*I<<":"<<*newI<<"\n";
       errs()<<"handleOp index0:"<<*index0<<"\n";
@@ -668,7 +655,24 @@ void FPInstrument::handleOp(Instruction *I, BinaryOperator* binOp, Function &F){
       errs()<<"handleOp regIdMap insert:"<<*I<<":"<<*newI<<"\n";
     }
   }
+  else if(op_0_cons){
+    errs()<<"handleOp loadMap1\n";
+    newI = IRB.CreateCall(HandleOp, {opCode, index0, b_op_1});
+  
+    Value *Addr = dyn_cast<Value>(newI);
+    loadMap.insert(std::pair<Instruction*, Value*>(I, Addr)); //old instruction, new instruction
+    errs()<<"handleOp loadMap insert:"<<*Addr<<":"<<*I<<"\n";
+  }
+  else if(op_1_cons){
+    errs()<<"handleOp loadMap2\n";
+    newI = IRB.CreateCall(HandleOp, {opCode, b_op_0, index1});
+  
+    Value *Addr = dyn_cast<Value>(newI);
+    loadMap.insert(std::pair<Instruction*, Value*>(I, Addr)); //old instruction, new instruction
+    errs()<<"handleOp loadMap insert:"<<*Addr<<":"<<*I<<"\n";
+  }
   else if(b_op_0 != NULL && b_op_1 != NULL){
+    errs()<<"handleOp loadMap3\n";
     newI = IRB.CreateCall(HandleOp, {opCode, b_op_0, b_op_1});
   
     Value *Addr = dyn_cast<Value>(newI);

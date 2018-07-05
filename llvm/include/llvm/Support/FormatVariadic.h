@@ -118,7 +118,7 @@ public:
 
       auto W = Adapters[R.Index];
 
-      FmtAlign Align(*W, R.Where, R.Align);
+      FmtAlign Align(*W, R.Where, R.Align, R.Pad);
       Align.format(S, R.Options);
     }
   }
@@ -168,7 +168,7 @@ public:
   }
 };
 
-// \brief Format text given a format string and replacement parameters.
+// Format text given a format string and replacement parameters.
 //
 // ===General Description===
 //

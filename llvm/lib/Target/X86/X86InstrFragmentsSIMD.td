@@ -171,8 +171,9 @@ def X86CmpMaskCCScalarRound :
                            SDTCisVT<3, i8>, SDTCisVT<4, i32>]>;
 
 def X86cmpm     : SDNode<"X86ISD::CMPM",     X86CmpMaskCC>;
+// Hack to make CMPM commutable in tablegen patterns for load folding.
+def X86cmpm_c   : SDNode<"X86ISD::CMPM",     X86CmpMaskCC, [SDNPCommutative]>;
 def X86cmpmRnd  : SDNode<"X86ISD::CMPM_RND", X86CmpMaskCCRound>;
-def X86cmpmu    : SDNode<"X86ISD::CMPMU",    X86CmpMaskCC>;
 def X86cmpms    : SDNode<"X86ISD::FSETCCM",   X86CmpMaskCCScalar>;
 def X86cmpmsRnd : SDNode<"X86ISD::FSETCCM_RND",   X86CmpMaskCCScalarRound>;
 
@@ -205,6 +206,8 @@ def X86kshiftr : SDNode<"X86ISD::KSHIFTR",
                                              SDTCisSameAs<0, 1>,
                                              SDTCisVT<2, i8>]>>;
 
+def X86kadd : SDNode<"X86ISD::KADD", SDTIntBinOp, [SDNPCommutative]>;
+
 def X86vrotli  : SDNode<"X86ISD::VROTLI", X86vshiftimm>;
 def X86vrotri  : SDNode<"X86ISD::VROTRI", X86vshiftimm>;
 
@@ -222,9 +225,9 @@ def X86vpcomu  : SDNode<"X86ISD::VPCOMU",
 def X86vpermil2 : SDNode<"X86ISD::VPERMIL2",
                         SDTypeProfile<1, 4, [SDTCisVec<0>, SDTCisSameAs<0,1>,
                                              SDTCisSameAs<0,2>,
-                                             SDTCisSameSizeAs<0,3>,
-                                             SDTCisSameNumEltsAs<0, 3>,
                                              SDTCisFP<0>, SDTCisInt<3>,
+                                             SDTCisSameNumEltsAs<0, 3>,
+                                             SDTCisSameSizeAs<0,3>,
                                              SDTCisVT<4, i8>]>>;
 def X86vpperm : SDNode<"X86ISD::VPPERM",
                         SDTypeProfile<1, 3, [SDTCisVT<0, v16i8>, SDTCisSameAs<0,1>,
@@ -255,14 +258,12 @@ def X86selects : SDNode<"X86ISD::SELECTS",
 
 def X86pmuludq : SDNode<"X86ISD::PMULUDQ",
                         SDTypeProfile<1, 2, [SDTCVecEltisVT<0, i64>,
-                                             SDTCVecEltisVT<1, i32>,
-                                             SDTCisSameSizeAs<0,1>,
+                                             SDTCisSameAs<0,1>,
                                              SDTCisSameAs<1,2>]>,
                                              [SDNPCommutative]>;
 def X86pmuldq  : SDNode<"X86ISD::PMULDQ",
                         SDTypeProfile<1, 2, [SDTCVecEltisVT<0, i64>,
-                                             SDTCVecEltisVT<1, i32>,
-                                             SDTCisSameSizeAs<0,1>,
+                                             SDTCisSameAs<0,1>,
                                              SDTCisSameAs<1,2>]>,
                                              [SDNPCommutative]>;
 
@@ -282,9 +283,9 @@ def SDTShuff2Op : SDTypeProfile<1, 2, [SDTCisVec<0>, SDTCisSameAs<0,1>,
                                 SDTCisSameAs<0,2>]>;
 
 def SDTShuff2OpM : SDTypeProfile<1, 2, [SDTCisVec<0>, SDTCisSameAs<0,1>,
-                                        SDTCisSameSizeAs<0,2>,
+                                        SDTCisFP<0>, SDTCisInt<2>,
                                         SDTCisSameNumEltsAs<0,2>,
-                                        SDTCisFP<0>, SDTCisInt<2>]>;
+                                        SDTCisSameSizeAs<0,2>]>;
 def SDTShuff2OpI : SDTypeProfile<1, 2, [SDTCisVec<0>,
                                  SDTCisSameAs<0,1>, SDTCisVT<2, i8>]>;
 def SDTShuff3OpI : SDTypeProfile<1, 3, [SDTCisVec<0>, SDTCisSameAs<0,1>,
@@ -415,15 +416,6 @@ def X86VPermt2     : SDNode<"X86ISD::VPERMV3",
                                          SDTCisSameSizeAs<0,2>,
                                          SDTCisSameAs<0,3>]>, []>;
 
-// Even though the index operand should be integer, we need to make it match the
-// destination type so that we can pattern match the masked version where the
-// index is also the passthru operand.
-def X86VPermi2X   : SDNode<"X86ISD::VPERMIV3",
-                    SDTypeProfile<1, 3, [SDTCisVec<0>,
-                                         SDTCisSameAs<0,1>,
-                                         SDTCisSameAs<0,2>,
-                                         SDTCisSameAs<0,3>]>, []>;
-
 def X86vpternlog  : SDNode<"X86ISD::VPTERNLOG", SDTTernlog>;
 
 def X86VPerm2x128 : SDNode<"X86ISD::VPERM2X128", SDTShuff3OpI>;
@@ -453,10 +445,6 @@ def X86SubVBroadcast : SDNode<"X86ISD::SUBV_BROADCAST",
 
 def X86VBroadcast : SDNode<"X86ISD::VBROADCAST", SDTVBroadcast>;
 def X86VBroadcastm : SDNode<"X86ISD::VBROADCASTM", SDTVBroadcastm>;
-def X86kextract : SDNode<"ISD::EXTRACT_VECTOR_ELT",
-                         SDTypeProfile<1, 2, [SDTCisVT<0, i32>,
-                                              SDTCVecEltisVT<1, i1>,
-                                              SDTCisPtrTy<2>]>>;
 
 def X86Blendi    : SDNode<"X86ISD::BLENDI",   SDTBlend>;
 
@@ -556,17 +544,6 @@ def X86RangesRnd    : SDNode<"X86ISD::VRANGES_RND",    SDTFPBinOpImmRound>;
 def X86RndScalesRnd : SDNode<"X86ISD::VRNDSCALES_RND", SDTFPBinOpImmRound>;
 def X86ReducesRnd   : SDNode<"X86ISD::VREDUCES_RND",   SDTFPBinOpImmRound>;
 def X86GetMantsRnd  : SDNode<"X86ISD::VGETMANTS_RND",  SDTFPBinOpImmRound>;
-
-def SDT_PCMPISTRI : SDTypeProfile<2, 3, [SDTCisVT<0, i32>, SDTCisVT<1, i32>,
-                                         SDTCisVT<2, v16i8>, SDTCisVT<3, v16i8>,
-                                         SDTCisVT<4, i8>]>;
-def SDT_PCMPESTRI : SDTypeProfile<2, 5, [SDTCisVT<0, i32>, SDTCisVT<1, i32>,
-                                         SDTCisVT<2, v16i8>, SDTCisVT<3, i32>,
-                                         SDTCisVT<4, v16i8>, SDTCisVT<5, i32>,
-                                         SDTCisVT<6, i8>]>;
-
-def X86pcmpistri : SDNode<"X86ISD::PCMPISTRI", SDT_PCMPISTRI>;
-def X86pcmpestri : SDNode<"X86ISD::PCMPESTRI", SDT_PCMPESTRI>;
 
 def X86compress: SDNode<"X86ISD::COMPRESS", SDTypeProfile<1, 1,
                               [SDTCisSameAs<0, 1>, SDTCisVec<1>]>, []>;
@@ -673,10 +650,10 @@ def X86GF2P8mulb        : SDNode<"X86ISD::GF2P8MULB", SDTIntBinOp>;
 // forms.
 def sse_load_f32 : ComplexPattern<v4f32, 5, "selectScalarSSELoad", [],
                                   [SDNPHasChain, SDNPMayLoad, SDNPMemOperand,
-                                   SDNPWantRoot]>;
+                                   SDNPWantRoot, SDNPWantParent]>;
 def sse_load_f64 : ComplexPattern<v2f64, 5, "selectScalarSSELoad", [],
                                   [SDNPHasChain, SDNPMayLoad, SDNPMemOperand,
-                                   SDNPWantRoot]>;
+                                   SDNPWantRoot, SDNPWantParent]>;
 
 def ssmem : Operand<v4f32> {
   let PrintMethod = "printf32mem";
@@ -911,10 +888,8 @@ def I8Imm : SDNodeXForm<imm, [{
   return getI8Imm((uint8_t)N->getZExtValue(), SDLoc(N));
 }]>;
 
-def FROUND_NO_EXC : ImmLeaf<i32, [{ return Imm == 8; }]>;
-def FROUND_CURRENT : ImmLeaf<i32, [{
-  return Imm == X86::STATIC_ROUNDING::CUR_DIRECTION;
-}]>;
+def FROUND_NO_EXC : PatLeaf<(i32 8)>;
+def FROUND_CURRENT : PatLeaf<(i32 4)>;
 
 // BYTE_imm - Transform bit immediates into byte immediates.
 def BYTE_imm  : SDNodeXForm<imm, [{
