@@ -18,5 +18,6 @@ int f(){
 }
 int main(){
   double res = f();
+  double res1 = f();
   printf("%g\n", res);
 }
