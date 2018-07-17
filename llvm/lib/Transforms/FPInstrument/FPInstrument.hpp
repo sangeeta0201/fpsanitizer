@@ -15,7 +15,7 @@ using namespace llvm;
 std::map<Value*, Instruction*> varMap;
 std::map<Instruction*, Value*> loadMap;
 std::map<Instruction*, Instruction*> regIdMap;
-std::map<Value*, double> consMap;
+std::map<Value*, size_t> consMap;
 std::map<Instruction*, double> insMap;
 std::map<Instruction*, Instruction*> newPhiMap;
 std::map<Function*, Value*> funArgMap;
@@ -46,6 +46,7 @@ public:
   void handleConstant(Instruction *I, BinaryOperator* binOp, Function &F);
   //void handlePhi(Instruction *I, PHINode *PN, Function &F);
   void handlePhi(Function &F);
+  void handleFcmp(Instruction *I, FCmpInst *cmp, Function &F);
   void handleMathFunc(Instruction *I, CallInst *callInst, Function &F);
   Instruction* getReal(Instruction *I, Value *Addr, Function &F);
   void addnewInline(Instruction *newI, Instruction *oldI);
@@ -66,7 +67,7 @@ private:
   SmallVector<Function*, 8> AllFuncList;
   DebugInfoFinder debugInfo;  
   double consCount = 0;
-  double insCount = 0;
+  size_t insCount = 0;
   Value* Test;
   Value* SetRealConstant;
   Value* SetRealTemp;
