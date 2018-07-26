@@ -12,7 +12,6 @@ endif()
 
 add_llvm_loadable_module( LLVMFPInstrument
   FPInstrument.cpp
-  Transformer.cpp
   DEPENDS
   intrinsics_gen
   )
