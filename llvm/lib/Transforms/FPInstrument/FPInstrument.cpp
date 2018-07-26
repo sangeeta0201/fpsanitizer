@@ -1,4 +1,4 @@
-#include "FPInstrument.hpp"
+#include "FPInstrument.h"
 
 /* TODO
 1. Handle conversions

@@ -124,10 +124,10 @@ void handleOp(size_t opCode, mpfr_t *res, mpfr_t *op1, mpfr_t *op2){
 }
 
 //extern "C" size_t handleOp_rr(size_t opCode, size_t regIndex1, size_t regIndex2, size_t insIndex){
-extern "C" void* computeRealCC(size_t opCode, void* ptrRegIndex1, void* ptrRegIndex2, size_t insIndex){
-extern "C" void* computeRealCV(size_t opCode, void* ptrRegIndex1, void* ptrRegIndex2, size_t insIndex){
-extern "C" void* computeRealVC(size_t opCode, void* ptrRegIndex1, void* ptrRegIndex2, size_t insIndex){
-extern "C" void* computeRealVV(size_t opCode, void* ptrRegIndex1, void* ptrRegIndex2, size_t insIndex){
+extern "C" void* computeRealCC(size_t opCode, void* ptrRegIndex1, void* ptrRegIndex2, size_t insIndex){}
+extern "C" void* computeRealCV(size_t opCode, void* ptrRegIndex1, void* ptrRegIndex2, size_t insIndex){}
+extern "C" void* computeRealVC(size_t opCode, void* ptrRegIndex1, void* ptrRegIndex2, size_t insIndex){}
+extern "C" void* computeRealVV(size_t opCode, void* ptrRegIndex1, void* ptrRegIndex2, size_t insIndex){}
 extern "C" void* computeReal(size_t opCode, void* ptrRegIndex1, void* ptrRegIndex2, size_t insIndex){
   if(debug){
     std::cout<<"*****handleOp_rr: insIndex:"<<insIndex<<"\n";
