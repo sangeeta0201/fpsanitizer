@@ -8,19 +8,27 @@
 #define PRECISION 100
 #define debug 1
 
-double regIndex = 200; //assuming there are 200 constants in the program
-std::map<double, double>shadowRegResMap;
-std::map<std::map<size_t, size_t>, size_t> shadowFunArgMap; // thi will link function argument to shadowMap
-std::map<size_t, struct Real*> shadowMap;
-std::map<double, struct Real*> shadowRegMap;
+struct ErrorAggregate {
+  double max_error;
+  double total_error;
+  long long int num_evals;
+};
+
 struct Real{
   mpfr_t mpfr_val;
 };
+double regIndex = 200; //assuming there are 200 constants in the program
+std::map<size_t, struct ErrorAggregate*>errorMap;
+//this will link ins index to index of result in shadow mem
+std::map<size_t, size_t>insMap;
+std::map<std::map<size_t, size_t>, size_t> shadowFunArgMap; // thi will link function argument to shadowMap
+std::map<size_t, struct Real*> shadowMap;
 
 double getDouble(Real *real);
 unsigned long ulpd(double x, double y);
 void handleOp(size_t opCode, mpfr_t *res, mpfr_t *op1, mpfr_t *op2);
-double updateError(Real *realVal, double computedVal);
+double updateError(Real *realVal, double computedVal, size_t insIndex);
+void initializeErrorAggregate(ErrorAggregate *eagg);
 
 extern "C" size_t getNewRegIndex();
 extern "C" void* handleOp_1(size_t opCode, void *op1, void *op2);

@@ -10,6 +10,7 @@
 //
 //===----------------------------------------------------------------------===//
 
+#include "llvm/IR/DebugInfo.h"
 #include "llvm/IR/IRBuilder.h"
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
@@ -39,7 +40,8 @@ public:
   //its called for CallInst to handle functions other than math functions
   void handleFunc(Instruction *I, CallInst *CI, Function &F);
   //Its called for every BinaryOperator in floating point instruction
-  void handleOp(Instruction *I, BinaryOperator* BO, Function &F);
+  //void handleOp(Instruction *I, BinaryOperator* BO, Function &F);
+  void handleOp(Instruction *I, BasicBlock *BB, BinaryOperator* BO, Function &F);
   //this is called inside from handleOp to handle each operand, it it could be constant, temp or loaded from memory
   BitCastInst* handleOperand(Instruction *I, Value* OP, Function &F, bool *IsConstant, bool *IsReg);
   //it gives unique index to every instruction
@@ -49,6 +51,7 @@ public:
   //its called for every math library functions
   void handleMathFunc(Instruction *I, CallInst *CI, Function &F); 
   void createPrintFunc(Instruction *I, CallInst *CI, Function &F); 
+  void handleMainRet(Instruction *I, Function &F);
   static char ID; // Pass identification, replacement for typeid
 private:
   SmallVector<Function*, 8> AllFuncList;
@@ -86,6 +89,7 @@ private:
   Value* SetRealReg;
   Value* GetRegIndex;
   Value* PrintOp;
+  Value* Finish;
   
 };
 }

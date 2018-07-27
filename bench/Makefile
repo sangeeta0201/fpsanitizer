@@ -1,5 +1,5 @@
 ifneq (,$(shell which clang++ 2>/dev/null))
-CXX=clang++ -Xclang -load -Xclang /home/sangeeta/project/float_p/fpsanitizer/build/lib/LLVMFPInstrument.so
+CXX=clang++ -Xclang -load -Xclang /home/sangeeta/fpsanitizer/build/lib/LLVMFPInstrument.so
 #CXX=clang++ 
 CXXFLAGS =  -I$(FPROOT) -O0
 else
