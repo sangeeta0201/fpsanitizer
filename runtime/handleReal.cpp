@@ -1,5 +1,6 @@
 #include "handleReal.h"
 #include <string.h>
+#include <fstream>
 
 /*TODO : 
 1. Handle all math functions
@@ -50,7 +51,35 @@ extern "C" size_t getRegRes(size_t insIndex){
   return 0;
 }
 
-extern "C" void* handleMathFunc(size_t funcCode, void *op1){
+extern "C" void* handleMathFuncC(size_t funcCode, double op1){
+  mpfr_t op1_mpfr;
+  mpfr_t res_mpfr;
+  struct Real* real_res = new Real;
+  
+  mpfr_init2 (op1_mpfr, PRECISION);                                                                                               
+
+  mpfr_set_d (op1_mpfr, op1, MPFR_RNDD);
+
+  switch(funcCode){
+      case 1: //sqrt
+        mpfr_sqrt(real_res->mpfr_val, op1_mpfr, MPFR_RNDD);
+        break;
+      case 2: //floor
+        mpfr_floor(real_res->mpfr_val, op1_mpfr);
+        break;
+      default:
+        break;
+  }
+  if(debug){
+    std::cout<<"handleMathFunc res:\n";
+    mpfr_out_str (stdout, 10, 0, real_res->mpfr_val, MPFR_RNDD);
+    std::cout<<"\n";
+  }
+  size_t Addr = (size_t) real_res;
+  shadowMap.insert(std::pair<size_t, struct Real*>(Addr, real_res));
+  return real_res;
+}
+extern "C" void* handleMathFuncV(size_t funcCode, void *op1){
   mpfr_t op1_mpfr;
   mpfr_t res_mpfr;
   struct Real* real_res = new Real;
@@ -67,6 +96,21 @@ extern "C" void* handleMathFunc(size_t funcCode, void *op1){
     switch(funcCode){
       case 1: //sqrt
         mpfr_sqrt(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
+        break;
+      case 2: //floor
+        mpfr_floor(real_res->mpfr_val, real1->mpfr_val);
+        break;
+      case 3: //tan
+        mpfr_tan(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
+        break;
+      case 4: //sin
+        mpfr_sin(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
+        break;
+      case 5: //cos
+        mpfr_cos(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
+        break;
+      case 6: //atan
+        mpfr_atan(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
         break;
       default:
         break;
@@ -306,7 +350,7 @@ extern "C" size_t setRealReg(size_t index, double value){
   return index;
 }
 
-extern "C" void setRealFunArg(size_t index, void *funAddr, void *toAddr/*store 2nd operand*/){
+extern "C" void setRealFunArg(size_t index, void *funAddr, void *toAddr/*store 2nd operand*/, double op){
   size_t funAddrInt = (size_t) funAddr;
   size_t toAddrInt = (size_t) toAddr;
   size_t shadowAddr;
@@ -326,7 +370,12 @@ extern "C" void setRealFunArg(size_t index, void *funAddr, void *toAddr/*store 2
 
   }
   else{
-    std::cout<<"Error!!! Not found in shadowFunArgMap\n";
+    std::cout<<"\nNot found in shadowFunArgMap, it means its a constant\n";
+    std::cout<<"setRealFunArg op: "<<op<<"\n";
+    struct Real* toReal = new Real;
+    mpfr_init2(toReal->mpfr_val, PRECISION);
+    mpfr_set_d(toReal->mpfr_val, op, MPFR_RNDN);
+    shadowMap.insert(std::pair<size_t, struct Real*>(toAddrInt, toReal)); 
   }
 }
 //TODO
@@ -407,12 +456,19 @@ extern "C" void setRealConstant(void *Addr, double value){
 }
 
 extern "C" void finish(){
-  
+   FILE * pFile;
+   int n;
+   char name [100];
+
+   pFile = fopen ("error.out","w");
+
   for (std::map<size_t, struct ErrorAggregate*>::iterator it=errorMap.begin(); it!=errorMap.end(); ++it){
     double avg = it->second->total_error/it->second->num_evals;
+    printf("%f\n",avg);
     if(avg > 0.0)
-      std::cout<<"Average Error "<<avg<<"\n";
+      fprintf (pFile, "%f bits average error\n",avg);
   }
+  fclose (pFile);
 }
 
 float getFloat(Real *real){  

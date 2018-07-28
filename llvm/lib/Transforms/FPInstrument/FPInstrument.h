@@ -49,9 +49,10 @@ public:
   //its called for every FCmpInst
   void handleFcmp(Instruction *I, FCmpInst *FCI, Function &F);
   //its called for every math library functions
-  void handleMathFunc(Instruction *I, CallInst *CI, Function &F); 
+  void handleMathFunc(Instruction *I, CallInst *CI, Function &F, int funcCode); 
   void createPrintFunc(Instruction *I, CallInst *CI, Function &F); 
   void handleMainRet(Instruction *I, Function &F);
+  void handleFuncReturn(Instruction *I, ReturnInst *RI, Function &F);
   static char ID; // Pass identification, replacement for typeid
 private:
   SmallVector<Function*, 8> AllFuncList;
@@ -73,6 +74,8 @@ private:
   //of the argument or index of the argument in callee. Using index and fucntion address we can ask 
   //runtime for its address or index. 
   std::map<Argument*, size_t> ArgMap;
+  std::map<Function*, CallInst*> RetMap;
+  std::map<CallInst*, Value*> ReturnIndex;
   //this is index for constants 
   size_t ConsCount = 0;
   //this is index for instructions

@@ -7,6 +7,8 @@
 4. Handle error aggregation
 5. Branch conditions
 */
+//TODO:1. handle volatile, right not pass crashes
+//TODO:2. handle float, right not pass crashes
 bool ret = true;
 LLVMContext *C;  
 bool FPInstrument::runOnModule(Module &M) {
@@ -37,7 +39,6 @@ bool FPInstrument::runOnModule(Module &M) {
   }
 
   for (Function *F : AllFuncList) {
-    errs()<<"********"<<F->getName()<<"*****\n";
     //All function arguments are given unique index and stored in ArgMap
     for (Function::arg_iterator ait = F->arg_begin(), aend = F->arg_end();
                 ait != aend; ++ait) {
@@ -60,7 +61,6 @@ bool FPInstrument::runOnModule(Module &M) {
       for (auto &I : BB) {
         if (LoadInst *Load = dyn_cast<LoadInst>(&I)){
           Value *Addr = Load->getPointerOperand();
-          errs()<<"LoadMap insert:"<<*Addr<<":"<<I<<"\n";
           LoadMap.insert(std::pair<Instruction*, Value*>(&I, Addr)); 
         }
         if (dyn_cast<FPTruncInst>(&I)){ // it means we have new fp
@@ -114,9 +114,32 @@ bool FPInstrument::runOnModule(Module &M) {
           Function *Callee = CI->getCalledFunction();
           if (Callee) {
             std::string name = Callee->getName();
-            //TODO: do not call runtime for math functions for int
-            if(name == "sqrt") 
-              handleMathFunc(&I, CI, *F);  //we handle math functions for fp
+            //TODO: some better way to do it
+            int funcCode = 0;
+            if(name == "sqrt"){ 
+              funcCode = 1;
+              handleMathFunc(&I, CI, *F, funcCode);  //we handle math functions for fp
+            }
+            else if(name == "llvm.floor.f64"){
+              funcCode = 2;
+              handleMathFunc(&I, CI, *F, funcCode);  //we handle math functions for fp
+            }
+            else if(name == "tan"){
+              funcCode = 3;
+              handleMathFunc(&I, CI, *F, funcCode);  //we handle math functions for fp
+            }
+            else if(name == "sin"){
+              funcCode = 4;
+              handleMathFunc(&I, CI, *F, funcCode);  //we handle math functions for fp
+            }
+            else if(name == "cos"){
+              funcCode = 5;
+              handleMathFunc(&I, CI, *F, funcCode);  //we handle math functions for fp
+            }
+            else if(name == "atan"){
+              funcCode = 6;
+              handleMathFunc(&I, CI, *F, funcCode);  //we handle math functions for fp
+            }
             if(name == "printValue") {
               createPrintFunc(&I, CI, *F);
             }
@@ -126,15 +149,20 @@ bool FPInstrument::runOnModule(Module &M) {
           }
         }
         if (FCmpInst *FCI = dyn_cast<FCmpInst>(&I)){
-          errs()<<"fcmp\n";
           handleFcmp(&I, FCI, *F);
         }
+        if (ReturnInst *RI = dyn_cast<ReturnInst>(&I))
+        {
+          if (RI->getNumOperands() != 0)
+          {
+            handleFuncReturn(&I, RI, *F);
+          }
+        } 
       }
     }
     handleNewPhi(*F);
     NewPhiMap.clear(); 
     LoadMap.clear();
-//  F->dump(); 
   }
   return true;
 }
@@ -153,17 +181,16 @@ bool FPInstrument::instrumentFunctions(StringRef FN) {
 }
 
 void FPInstrument::handleMainRet(Instruction *I, Function &F){
-  errs()<<"handleMainRet****:"<<"\n";
   Module *M = F.getParent();
   IRBuilder<> IRB(I);
   Type* VoidTy = Type::getVoidTy(M->getContext());
   Type* PtrVoidTy = PointerType::getUnqual(Type::getInt8Ty(M->getContext()));
   const DebugLoc &Loc = I->getDebugLoc();
-
+/*
   auto *Scope = cast<DIScope>(Loc->getScope());
   StringRef fileName = Scope->getFilename();
   errs()<<"fileName:"<<fileName<<"\n";
- 
+ */
  // TODO:Send name of file
   Finish = M->getOrInsertFunction("finish", VoidTy);
   IRB.CreateCall(Finish, {});
@@ -178,10 +205,9 @@ If value is function argument then index for shadow memory is the function addre
 other cases index is the address where value is stored.
 **/
 void FPInstrument::setReal(Instruction *I, Value *ToAddr, Value *OP, Function &F){
+  errs()<<"setReal:"<<*I<<"\n";
   Module *M = F.getParent();
   IRBuilder<> IRB(I);
-  errs()<<"setReal Instruction :"<<*I<<"\n";
-  errs()<<"setReal ToAddr:"<<*ToAddr<<"\n";
   Type *OpTy = OP->getType();
   BitCastInst* BCToAddr = new BitCastInst(ToAddr,PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
 
@@ -189,30 +215,23 @@ void FPInstrument::setReal(Instruction *I, Value *ToAddr, Value *OP, Function &F
   Type* VoidTy = Type::getVoidTy(M->getContext());
   Type* PtrVoidTy = PointerType::getUnqual(Type::getInt8Ty(M->getContext()));
   Type* DoubleTy = Type::getDoubleTy(M->getContext());
-  errs()<<"setReal: OpTy->getTypeID():"<<OpTy->getTypeID()<<"\n";
 
   if(OpTy->getTypeID() == Type::PointerTyID){
     SetRealTemp = M->getOrInsertFunction("setRealTemp", VoidTy, PtrVoidTy, PtrVoidTy);
-    errs()<<"OpTy->getTypeID():"<<OpTy->getTypeID()<<"\n";                                                              
     //if its not a constant, not a temp, then it could be a pointer, 
     //since we already have address of variable inside pointer, we will pass it to runtime 
     BitCastInst* BCOp = new BitCastInst(OP,PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
     IRB.CreateCall(SetRealTemp, {BCToAddr, BCOp});
   }else if(isa<Argument>(OP) && (ArgMap.count(dyn_cast<Argument>(OP)) != 0)){
     size_t index =  ArgMap.at(dyn_cast<Argument>(OP));
-    errs()<<"setReal: index:"<<index<<"\n";
-    errs()<<"setReal: funarg\n";
     Argument *arg0 = dyn_cast<Argument>(OP);
-    errs()<<"setReal: arg"<<*arg0<<"\n";
-    errs()<<"setReal: arg no"<<arg0->getArgNo()<<"\n";
-    SetRealFunArg = M->getOrInsertFunction("setRealFunArg", VoidTy, Int32Ty, PtrVoidTy, PtrVoidTy);
+    SetRealFunArg = M->getOrInsertFunction("setRealFunArg", VoidTy, Int32Ty, PtrVoidTy, PtrVoidTy, DoubleTy);
     BitCastInst* BCFunc = new BitCastInst(&F,PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
     Constant* argNo = ConstantInt::get(Type::getInt32Ty(M->getContext()), index); //TODO: Remove this
-    IRB.CreateCall(SetRealFunArg, {argNo, BCFunc, BCToAddr});
+    IRB.CreateCall(SetRealFunArg, {argNo, BCFunc, BCToAddr, OP});
   }
   else if (isa<ConstantFP>(OP)) {
     //if its constant we don't need to look for its address, we need to create new shadow space for this constant
-    errs()<<"setReal:OP is a constant"<<"\n";
     SetRealConstant = M->getOrInsertFunction("setRealConstant", VoidTy, PtrVoidTy, DoubleTy);
     IRB.CreateCall(SetRealConstant, {BCToAddr, OP});
   }
@@ -221,12 +240,17 @@ void FPInstrument::setReal(Instruction *I, Value *ToAddr, Value *OP, Function &F
     Instruction *OpIns = dyn_cast<Instruction>(I->getOperand(0));
     SetRealTemp = M->getOrInsertFunction("setRealTemp", VoidTy, PtrVoidTy, PtrVoidTy);
     if(LoadMap.count(OpIns) != 0){
-      errs()<<"setReal:found in LoadMap:"<<"\n";
       Value *realI = LoadMap.at(OpIns);
       BitCastInst* BCAddr = new BitCastInst(realI, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
       IRB.CreateCall(SetRealTemp, {BCToAddr, BCAddr});
     } 
     else{
+      CallInst *CI = dyn_cast<CallInst>(OP); 
+      errs()<<"setReal: looking for call inst:"<<OP<<"\n";
+      if(ReturnIndex.count(CI) != 0){
+        errs()<<"setReal: found in ReturnIndex\n";
+      }
+      else
         errs()<<"setReal: not a pointer, not a constant, not in load map and not a func arg";
         //it means that ita variables passed through call by val, address of this valiable is stored in 
         //funArg with the address of a called function 
@@ -242,15 +266,10 @@ in LoadMap and link the fpext instruction with it.
 **/
 void FPInstrument::setRealCastFToD(Instruction *I, Value *OP, Function &F){
   IRBuilder<> IRB(I);
-  errs()<<"setRealCast Instruction :"<<*I<<"\n";
-  errs()<<"setRealCast OP:"<<*OP<<"\n";
   Type *OpTy = OP->getType();
-  errs()<<"setRealCast: OpTy->getTypeID():"<<OpTy->getTypeID()<<"\n";
   Instruction *OpIns = dyn_cast<Instruction>(I->getOperand(0));
   if(LoadMap.count(OpIns) != 0){
-    errs()<<"setRealCast: found in LoadMap:"<<"\n";
     Value *realI = LoadMap.at(OpIns);
-    errs()<<"setRealCast: realI:"<<*realI<<"\n";
     LoadMap.insert(std::pair<Instruction*, Value*>(I, realI));
   } 
   else{
@@ -263,16 +282,13 @@ void FPInstrument::setRealCastIToD(Instruction *I, Value *OP, Function &F){
   //Type cast from int to double always changes interger to integer.0, I am doing this in runtime.
   Module *M = F.getParent();
   IRBuilder<> IRB(I);
-  errs()<<"setRealCast Instruction :"<<*I<<":OP:"<<*OP<<"\n";
   Type* VoidTy = Type::getVoidTy(M->getContext());
   Type* PtrVoidTy = PointerType::getUnqual(Type::getInt8Ty(M->getContext()));
   Type* Int32Ty = Type::getInt64Ty(M->getContext());
   Instruction *OpIns = dyn_cast<Instruction>(I->getOperand(0));
 
   if(LoadMap.count(OpIns) != 0){
-    errs()<<"setRealCast: found in LoadMap:"<<"\n";
     Value *RealI = LoadMap.at(OpIns);
-    errs()<<"setRealCast: RealI:"<<*RealI<<"\n";
     SetRealCastIToD = M->getOrInsertFunction("setRealCastIToD", VoidTy, PtrVoidTy, Int32Ty);
     LoadMap.insert(std::pair<Instruction*, Value*>(I, RealI)); //we maintain list of variables mapped to instructions,
   } 
@@ -292,17 +308,12 @@ void FPInstrument::createPrintFunc(Instruction *I, CallInst *CI, Function &F){
   Function *Callee = CI->getCalledFunction();
   if (!instrumentFunctions(Callee->getName())) return;
 
-  errs()<<"createPrintFunc:"<<Callee->getName()<<"\n";
-  errs()<<"createPrintFunc:"<<CI->getNumArgOperands()<<"\n";
-
   Type* VoidTy = Type::getVoidTy(M->getContext());
   Type* DoubleTy = Type::getDoubleTy(M->getContext()); 
 
-  errs()<<"createPrintFunc:"<<Callee->getName()<<"\n";
   Value *op = CI->getArgOperand(0);
   Instruction* OpIns = dyn_cast<Instruction>(op);  
   if(RegIdMap.count(OpIns) != 0){ //if operand 1 is reg
-    errs()<<"createPrintFunc got index";
     Instruction* index = RegIdMap.at(OpIns);
     PrintOp = M->getOrInsertFunction("printRegValue", VoidTy, DoubleTy, DoubleTy);
     IRB.CreateCall(PrintOp, {index, op});
@@ -319,10 +330,11 @@ void FPInstrument::handleFunc(Instruction *I, CallInst *CI, Function &F){
   IRBuilder<> IRB(I);
   Function *Callee = CI->getCalledFunction();
   if (!instrumentFunctions(Callee->getName())) return;
+  errs()<<"handleFunc:"<<F.getName()<<"\n";
 
-  errs()<<"handleFunc:"<<Callee->getName()<<"\n";
-  errs()<<"handleFunc:"<<CI->getNumArgOperands()<<"\n";
-
+          errs()<<"call inst:"<<*CI<<"\n";
+          errs()<<"RetMap.insert:"<<&F<<":"<<CI<<"\n";
+          RetMap.insert(std::pair<Function*, CallInst*>(&F, CI)); //old instruction, new instruction
   Type* Int32Ty = Type::getInt32Ty(M->getContext());
   Type* VoidTy = Type::getVoidTy(M->getContext());
   Type* PtrVoidTy = PointerType::getUnqual(Type::getInt8Ty(M->getContext()));
@@ -334,15 +346,9 @@ void FPInstrument::handleFunc(Instruction *I, CallInst *CI, Function &F){
     Op[i] = CI->getArgOperand(i);
     OpTy[i] = Op[i]->getType(); // this should be of float
 
-    errs()<<"handleFunc:"<<*I<<"\n";
-    errs()<<"handleFunc callI:"<<*CI<<"\n";
-    errs()<<"handleFunc Op:"<<i<<" "<<*Op[i]<<"\n";
-    errs()<<"handleFunc Op:"<<i<<"type:"<<*OpTy[i]<<"\n";
-
     if(OpTy[i]->getTypeID() != Type::PointerTyID){
       Instruction *OpIns = dyn_cast<Instruction>(Op[i]);
       if(LoadMap.count(OpIns) != 0){
-        errs()<<"handleFunc found in LoadMap:"<<"\n";
         Value *OpAddr = LoadMap.at(OpIns);
         BitCastInst* BCCallee = new BitCastInst(Callee, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
         BitCastInst* BCOpAddr = new BitCastInst(OpAddr,PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
@@ -350,6 +356,9 @@ void FPInstrument::handleFunc(Instruction *I, CallInst *CI, Function &F){
         Constant* ArgNo = ConstantInt::get(Type::getInt32Ty(M->getContext()), i);
         AddFunArg = M->getOrInsertFunction("addFunArg", VoidTy, Int32Ty, PtrVoidTy, PtrVoidTy);
         IRB.CreateCall(AddFunArg, {ArgNo, BCCallee, BCOpAddr});
+      }
+      else if (isa<ConstantFP>(Op[i])) {
+        errs()<<"handleFunc op is constant\n";
       }
     }
   }
@@ -361,8 +370,10 @@ temp loaded from memory, temp - result of another fp instruction, temp - registe
 address of temp loaded from memory or index for register and call runtime with the indices to perform
 mpfr equivalent function.
 **/
-void FPInstrument::handleMathFunc(Instruction *I, CallInst *CI, Function &F){
-  errs()<<"handleMathFunc called\n";
+void FPInstrument::handleMathFunc(Instruction *I, CallInst *CI, Function &F, int funcCode){
+  if(funcCode == 0){
+    return;
+  }
   IRBuilder<> IRB(I);
   Module *M = F.getParent();
   Type* PtrVoidTy = PointerType::getUnqual(Type::getInt8Ty(M->getContext()));
@@ -370,34 +381,29 @@ void FPInstrument::handleMathFunc(Instruction *I, CallInst *CI, Function &F){
 
   Type* Int32Ty = Type::getInt32Ty(M->getContext());
   Value *OP = CI->getOperand(0);
-  Constant* funcCode = ConstantInt::get(Type::getInt32Ty(M->getContext()), 1);
   BitCastInst* BCOp;
+
+  Constant* FuncCode = ConstantInt::get(Type::getInt32Ty(M->getContext()), funcCode);
   Function *Callee = CI->getCalledFunction();
   if (Callee) {
     std::string name = Callee->getName();
-    errs()<<"handleMathFunc func name:"<<name<<"\n";
-    errs()<<"handleMathFunc operand name:"<<*OP<<"\n";
     //Assuming operand is a temp
     if (isa<ConstantFP>(OP)) { 
       BCOp = new BitCastInst(OP, Type::getDoubleTy(M->getContext()),"", I);
-      HandleFunc = M->getOrInsertFunction("handleMathFunc", PtrVoidTy, Int32Ty, DoubleTy);
-      Instruction* NewIns = IRB.CreateCall(HandleFunc, {funcCode, BCOp});
+      HandleFunc = M->getOrInsertFunction("handleMathFuncC", PtrVoidTy, Int32Ty, DoubleTy);
+      Instruction* NewIns = IRB.CreateCall(HandleFunc, {FuncCode, BCOp});
       Value *Addr = dyn_cast<Value>(NewIns);
       LoadMap.insert(std::pair<Instruction*, Value*>(I, Addr)); //old instruction, new instruction
-      errs()<<"handleMathFunc LoadMap insert:"<<*Addr<<":"<<*I<<"\n";
     }
     else{
-      errs()<<"handleMathFunc OP is not a constant, finding in LoadMap\n";
       Instruction *OpIns = dyn_cast<Instruction>(OP);
       if(LoadMap.count(OpIns) != 0){
-        errs()<<"handleMathFunc found in LoadMap:"<<"\n";
         Value *OpAddr = LoadMap.at(OpIns);
         BCOp = new BitCastInst(OpAddr, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
-        HandleFunc = M->getOrInsertFunction("handleMathFunc", PtrVoidTy, Int32Ty, PtrVoidTy);
-        Instruction* NewIns = IRB.CreateCall(HandleFunc, {funcCode, BCOp});
+        HandleFunc = M->getOrInsertFunction("handleMathFuncV", PtrVoidTy, Int32Ty, PtrVoidTy);
+        Instruction* NewIns = IRB.CreateCall(HandleFunc, {FuncCode, BCOp});
         Value *Addr = dyn_cast<Value>(NewIns);
         LoadMap.insert(std::pair<Instruction*, Value*>(I, Addr)); //old instruction, new instruction
-        errs()<<"handleMathFunc LoadMap insert:"<<*Addr<<":"<<*I<<"\n";
       }
       else{
         errs()<<("handleMathFunc Not found in LoadMap\n");
@@ -419,7 +425,6 @@ void FPInstrument::handleNewPhi(Function &F){
   Instruction* Next;
   for(auto it = NewPhiMap.begin(); it != NewPhiMap.end(); ++it)
   {
-    errs()<<"handleNewPhi called:"<<"\n";
     Instruction* OldPhi = it->first;
     Instruction* NewPhi = it->second;
 
@@ -430,10 +435,8 @@ void FPInstrument::handleNewPhi(Function &F){
       BasicBlock *IBB = PN->getIncomingBlock(PI);
       Value *IncValue = PN->getIncomingValue(PI);  
       if (IncValue == PN) continue; //TODO
-      errs()<<"handleNewPhi IncValue"<<*IncValue<<"\n"; 
       Instruction* IValue = dyn_cast<Instruction>(IncValue);  
       if(RegIdMap.count(IValue) != 0){ //handling registers
-        errs()<<"handleNewPhi found in reg map\n";
         Instruction* I = RegIdMap.at(IValue);
         iPHI->addIncoming(I, IBB);
       }
@@ -450,7 +453,6 @@ void FPInstrument::handleNewPhi(Function &F){
           Index = ConsCount++; 
           ConsMap.insert(std::pair<Value*, size_t>(IncValue, ConsCount));
         }
-        errs()<<"handleNewPhi Index "<<Index<<"\n";
         Constant* consIndex = ConstantInt::get(Type::getInt32Ty(M->getContext()), Index); 
         SetRealConstant = M->getOrInsertFunction("setRealReg", Int32Ty, Int32Ty, DoubleTy);
         Instruction *NewIns = IRB.CreateCall(SetRealConstant, {consIndex, IncValue});
@@ -458,7 +460,6 @@ void FPInstrument::handleNewPhi(Function &F){
         iPHI->addIncoming(NewIns, IBB);
       } 
     }
-//    F.dump();
   }
 }
 
@@ -468,9 +469,7 @@ This create a new phi node for every phi node of type double.
 void FPInstrument::handlePhi(Instruction *I, PHINode *PN, Function &F){
   Module *M = F.getParent();
   Type* Int32Ty = Type::getInt32Ty(M->getContext());
-  errs()<<"handlePhi:"<<*I<<"\n";
   IRBuilder<> IRB(I);
-  errs()<<"handlePhi called:"<<*I<<"\n";
 
   PHINode* iPHI = IRB.CreatePHI (Int32Ty, 2);
   //Wherever old phi node has been used, we need to replace it with new phi node. That's
@@ -486,25 +485,20 @@ load or its a register so that we can trac index of operand.
 **/
 BitCastInst* FPInstrument::handleOperand(Instruction *I, Value* OP, Function &F, 
                                         bool *IsConstant, bool *IsReg){
-  errs()<<"handleOperand called\n";
   IRBuilder<> IRB(I);
   Module *M = F.getParent();
   BitCastInst* BC = NULL;
 
   if (isa<ConstantFP>(OP)) {
-    errs()<<"handleOperand op is a constant\n";
     *IsConstant = true;
   } 
   else {
-    errs()<<"handleOperand op is not a constant, finding in LoadMap\n";
     Instruction *OpIns = dyn_cast<Instruction>(OP);
     if(LoadMap.count(OpIns) != 0){
-      errs()<<"found in LoadMap:"<<"\n";
       Value *OpAddr = LoadMap.at(OpIns);
       BC = new BitCastInst(OpAddr, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
     }
     else if(RegIdMap.count(OpIns) != 0){ //handling registers
-      errs()<<"found in RegMap:"<<"\n";
       Instruction *index = RegIdMap.at(OpIns);
       BC = new BitCastInst(index, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
       *IsReg = true;
@@ -517,7 +511,6 @@ BitCastInst* FPInstrument::handleOperand(Instruction *I, Value* OP, Function &F,
 It provides unique index to all instructions.
 **/
 void FPInstrument::handleIns(Instruction *I, BinaryOperator* BO, Function &F){
-  errs()<<"handleIns called\n";
   InsMap.insert(std::pair<Instruction*, size_t>(I, InsCount));
   InsCount++; 
 }
@@ -542,7 +535,6 @@ void FPInstrument::handleFcmp(Instruction *I, FCmpInst *FCI, Function &F){
   bool IsRegOp2 = false;
   
   Type *FcmpType = FCI->getType();
-  errs()<<"fcmp type:"<<FcmpType->getTypeID()<<"\n";
   BCI1 = handleOperand(I, FCI->getOperand(0), F, &IsConstantOp1, &IsRegOp1);
   BCI2 = handleOperand(I, FCI->getOperand(1), F, &IsConstantOp2, &IsRegOp2);
 
@@ -560,9 +552,7 @@ void FPInstrument::handleFcmp(Instruction *I, FCmpInst *FCI, Function &F){
   }
   //both operands are registers, passing index 
   else if(IsRegOp1 && IsRegOp2) {
-    errs()<<"op0 and op1 are reg or memory\n";
     HandleOp = M->getOrInsertFunction("checkBranchVV", PtrVoidTy, PtrVoidTy, PtrVoidTy);
-    errs()<<"handleOp RegIdMap\n";
     IRB.CreateCall(HandleOp, {BCI1, BCI2});
   }
   if(IsConstantOp1 && IsRegOp2){
@@ -574,17 +564,14 @@ void FPInstrument::handleFcmp(Instruction *I, FCmpInst *FCI, Function &F){
       IRB.CreateCall(HandleOp, {BCI1, FCI->getOperand(1), FCI});
   } //TODO: have to do something here
   else if(IsConstantOp1){
-    errs()<<"handleOp LoadMap\n";
     HandleOp = M->getOrInsertFunction("checkBranchCV", PtrVoidTy, DoubleTy, PtrVoidTy);
     IRB.CreateCall(HandleOp, {FCI->getOperand(0), BCI2});
   }
   else if(IsConstantOp2){
-    errs()<<"handleOp LoadMap\n";
     HandleOp = M->getOrInsertFunction("checkBranchVC", PtrVoidTy, PtrVoidTy, DoubleTy);
     IRB.CreateCall(HandleOp, {BCI1, FCI->getOperand(1)});
   }
   else if(BCI1 != NULL && BCI2 != NULL){
-    errs()<<"handleOp LoadMap\n";
     HandleOp = M->getOrInsertFunction("checkBranchVV", PtrVoidTy, PtrVoidTy, PtrVoidTy);
     IRB.CreateCall(HandleOp, {BCI1, BCI2});
   }
@@ -607,7 +594,6 @@ void FPInstrument::handleOp(Instruction *I, BasicBlock *BB, BinaryOperator* BO, 
       break;
     }
   }
-  errs()<<"handleOp called:"<<*I<<"\n";
   IRBuilder<> IRB(Next);
   Module *M = F.getParent();
   Type* Int32Ty = Type::getInt32Ty(M->getContext());
@@ -623,7 +609,6 @@ void FPInstrument::handleOp(Instruction *I, BasicBlock *BB, BinaryOperator* BO, 
   //get index of ins
   size_t InsIndex;
   InsIndex = InsMap.at(I);
-  errs()<<"Ins index:"<<InsIndex<<"\n";
   Constant* ConsInsIndex = ConstantInt::get(Type::getInt32Ty(M->getContext()), InsIndex); 
     //if its not found in LoadMap, it means its register var
     //first we will insert this var in RegIdMap by giving it a unique id
@@ -644,59 +629,70 @@ void FPInstrument::handleOp(Instruction *I, BasicBlock *BB, BinaryOperator* BO, 
     NewIns = IRB.CreateCall(HandleOp, {OpCode, BO->getOperand(0), BO->getOperand(1), BO, ConsInsIndex}); //passing operands without typecasting
     //have to test case when constant is of type float
     RegIdMap.insert(std::pair<Instruction*, Instruction*>(I, NewIns)); 
-    errs()<<"handleOp RegIdMap insert:"<<*I<<":"<<*NewIns<<"\n";
   }
   //both operands are registers, passing index 
   else if(IsRegOp1 && IsRegOp2) {
-    errs()<<"op0 and op1 are reg or memory\n";
     HandleOp = M->getOrInsertFunction("computeRealVV", PtrVoidTy, Int32Ty, PtrVoidTy, PtrVoidTy, DoubleTy, Int32Ty);
-    errs()<<"handleOp RegIdMap\n";
       NewIns = IRB.CreateCall(HandleOp, {OpCode, BCI1, BCI2, BO, ConsInsIndex});
       RegIdMap.insert(std::pair<Instruction*, Instruction*>(I, NewIns)); 
-      errs()<<"handleOp RegIdMap insert:"<<*I<<":"<<*NewIns<<"\n";
   }
   if(IsConstantOp1 && IsRegOp2){
       HandleOp = M->getOrInsertFunction("computeRealCV", PtrVoidTy, Int32Ty, DoubleTy, PtrVoidTy, DoubleTy, Int32Ty);
       NewIns = IRB.CreateCall(HandleOp, {OpCode, BO->getOperand(0), BCI2, BO, ConsInsIndex});
       RegIdMap.insert(std::pair<Instruction*, Instruction*>(I, NewIns)); 
-      errs()<<"handleOp RegIdMap insert:"<<*I<<":"<<*NewIns<<"\n";
   }
   if(IsRegOp1 && IsConstantOp2){
       HandleOp = M->getOrInsertFunction("computeRealVC", PtrVoidTy, Int32Ty, PtrVoidTy, DoubleTy, DoubleTy, Int32Ty);
       NewIns = IRB.CreateCall(HandleOp, {OpCode, BCI1, BO->getOperand(1), BO, ConsInsIndex});
       RegIdMap.insert(std::pair<Instruction*, Instruction*>(I, NewIns)); 
-      errs()<<"handleOp RegIdMap insert:"<<*I<<":"<<*NewIns<<"\n";
   } //TODO: have to do something here
-  else if(IsConstantOp1){
-    errs()<<"handleOp LoadMap1\n";
+  else if(IsConstantOp1 && BCI2 != NULL){
     HandleOp = M->getOrInsertFunction("computeRealCV", PtrVoidTy, Int32Ty, DoubleTy, PtrVoidTy, DoubleTy, Int32Ty);
     NewIns = IRB.CreateCall(HandleOp, {OpCode, BO->getOperand(0), BCI2, BO, ConsInsIndex});
   
     Value *Addr = dyn_cast<Value>(NewIns);
     LoadMap.insert(std::pair<Instruction*, Value*>(I, Addr)); //old instruction, new instruction
-    errs()<<"handleOp LoadMap insert:"<<*Addr<<":"<<*I<<"\n";
   }
   else if(IsConstantOp2){
-    errs()<<"handleOp LoadMap2\n";
     HandleOp = M->getOrInsertFunction("computeRealVC", PtrVoidTy, Int32Ty, PtrVoidTy, DoubleTy, DoubleTy, Int32Ty);
     NewIns = IRB.CreateCall(HandleOp, {OpCode, BCI1, BO->getOperand(1), BO, ConsInsIndex});
   
     Value *Addr = dyn_cast<Value>(NewIns);
     LoadMap.insert(std::pair<Instruction*, Value*>(I, Addr)); //old instruction, new instruction
-    errs()<<"handleOp LoadMap insert:"<<*Addr<<":"<<*I<<"\n";
   }
   else if(BCI1 != NULL && BCI2 != NULL){
-    errs()<<"handleOp LoadMap3\n";
     HandleOp = M->getOrInsertFunction("computeRealVV", PtrVoidTy, Int32Ty, PtrVoidTy, PtrVoidTy, DoubleTy, Int32Ty);
     NewIns = IRB.CreateCall(HandleOp, {OpCode, BCI1, BCI2, BO, ConsInsIndex});
   
     Value *Addr = dyn_cast<Value>(NewIns);
     LoadMap.insert(std::pair<Instruction*, Value*>(I, Addr)); //old instruction, new instruction
-    errs()<<"handleOp LoadMap insert:"<<*Addr<<":"<<*I<<"\n";
   }
   else
     errs()<<"handleOp Error!!! operand not found\n";
-//  F.dump(); 
+}
+
+void FPInstrument::handleFuncReturn(Instruction *I, ReturnInst *RI, Function &F){
+  errs()<<"handleFuncReturn:"<<F.getName()<<"\n";
+  Value *OP = RI->getOperand(0);
+  Instruction *OpIns = dyn_cast<Instruction>(OP);
+  if(LoadMap.count(OpIns) != 0){
+    Value *OpAddr = LoadMap.at(OpIns);
+    if(RetMap.count(&F) != 0){
+      CallInst *CI = RetMap.at(&F);
+      errs()<<"handleFuncReturn found CI in RetMap:"<<CI<<"\n";
+      Instruction *CIIns = dyn_cast<Instruction>(CI);
+      errs()<<"ReturnIndex.insert:"<<CI<<":"<<OpAddr<<"\n";
+      ReturnIndex.insert(std::pair<CallInst*, Value*>(CI, OpAddr));
+    }
+    else
+      errs()<<"handleFuncReturn Not found in RetMap\n";
+    //ReturnMap.insert(std::pair<Value*, Value*>(I, Addr)); //old instruction, new instruction
+   // BC = new BitCastInst(OpAddr, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
+  }
+  else if(RegIdMap.count(OpIns) != 0){ //handling registers
+    Instruction *index = RegIdMap.at(OpIns);
+  //  BC = new BitCastInst(index, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
+  }
 }
 
 void addFPPass(const PassManagerBuilder &Builder, legacy::PassManagerBase &PM) {
