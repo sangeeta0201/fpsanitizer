@@ -4,9 +4,10 @@
 #include <gmp.h>
 #include <mpfr.h>
 #include <vector>
+#include <stack>
 
 #define PRECISION 100
-#define debug 1
+#define debug 0
 
 struct ErrorAggregate {
   double max_error;
@@ -20,7 +21,9 @@ struct Real{
 double regIndex = 200; //assuming there are 200 constants in the program
 std::map<size_t, struct ErrorAggregate*>errorMap;
 //this will link ins index to index of result in shadow mem
+std::stack<size_t> retTrack;
 std::map<size_t, size_t>insMap;
+std::map<size_t, size_t>returnMap;
 std::map<std::map<size_t, size_t>, size_t> shadowFunArgMap; // thi will link function argument to shadowMap
 std::map<size_t, struct Real*> shadowMap;
 

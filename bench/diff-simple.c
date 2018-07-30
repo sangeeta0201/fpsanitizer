@@ -1,12 +1,7 @@
-#include <iostream>
 #include <stdio.h>
 #include <math.h>
 #include <string.h>
 
-void check(){
-  std::string fileName = "sangeeta";
-  std::cout<<fileName<<"\n"; 
-}
 int main() {
   double x,y;
   x = 1e16;

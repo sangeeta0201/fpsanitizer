@@ -15,6 +15,7 @@
 #include "llvm/IR/LegacyPassManager.h"
 #include "llvm/Transforms/IPO/PassManagerBuilder.h"
 #include <fstream>
+#include <queue>
 
 using namespace llvm;
 
@@ -45,7 +46,7 @@ public:
   //this is called inside from handleOp to handle each operand, it it could be constant, temp or loaded from memory
   BitCastInst* handleOperand(Instruction *I, Value* OP, Function &F, bool *IsConstant, bool *IsReg);
   //it gives unique index to every instruction
-  void handleIns(Instruction *I, BinaryOperator* BO, Function &F);
+  void handleIns(Instruction *I);
   //its called for every FCmpInst
   void handleFcmp(Instruction *I, FCmpInst *FCI, Function &F);
   //its called for every math library functions
@@ -53,6 +54,8 @@ public:
   void createPrintFunc(Instruction *I, CallInst *CI, Function &F); 
   void handleMainRet(Instruction *I, Function &F);
   void handleFuncReturn(Instruction *I, ReturnInst *RI, Function &F);
+  size_t findCallSite(Function *F);
+  void handleConstant(Instruction *I, BinaryOperator* binOp, Function &F);
   static char ID; // Pass identification, replacement for typeid
 private:
   SmallVector<Function*, 8> AllFuncList;
@@ -74,8 +77,10 @@ private:
   //of the argument or index of the argument in callee. Using index and fucntion address we can ask 
   //runtime for its address or index. 
   std::map<Argument*, size_t> ArgMap;
-  std::map<Function*, CallInst*> RetMap;
+  std::map<Function*, Value*> RetMap;
   std::map<CallInst*, Value*> ReturnIndex;
+  std::queue<Value*> return_values;  
+  std::map<Value*, Instruction*> consMap;
   //this is index for constants 
   size_t ConsCount = 0;
   //this is index for instructions
@@ -93,6 +98,7 @@ private:
   Value* GetRegIndex;
   Value* PrintOp;
   Value* Finish;
+  Value* HandleReturn;
   
 };
 }

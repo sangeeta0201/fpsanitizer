@@ -1,6 +1,7 @@
 #include "handleReal.h"
 #include <string.h>
 #include <fstream>
+#include <queue>
 
 /*TODO : 
 1. Handle all math functions
@@ -32,7 +33,7 @@ extern "C" Real* getRealReg(size_t index){
 extern "C" void addFunArg(size_t argNo, void *funAddr, void *argAddr){
   size_t funAddrInt = (size_t) funAddr;
   size_t argAddrInt = (size_t) argAddr;
-
+  std::cout<<"addFunArg: insert in shadowFunArgMap funAddrInt:"<<funAddrInt<<" argNo:"<<argNo<<" argAddrInt:"<<argAddrInt<<"\n";
   std::map<size_t, size_t> data;
   data.insert(std::pair<size_t, size_t>(funAddrInt, argNo));
   shadowFunArgMap.insert(std::pair<std::map<size_t, size_t>, size_t>(data, argAddrInt));
@@ -112,6 +113,9 @@ extern "C" void* handleMathFuncV(size_t funcCode, void *op1){
       case 6: //atan
         mpfr_atan(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
         break;
+      case 7: //atan
+//        mpfr_fma(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
+        break;
       default:
         break;
     }
@@ -166,6 +170,23 @@ void handleOp(size_t opCode, mpfr_t *res, mpfr_t *op1, mpfr_t *op2){
     std::cout<<"\n";
   }
 }
+
+extern "C" size_t setRealConstant(void *Addr, double value){
+  size_t AddrInt = (size_t) Addr;
+  if(!shadowMap.count(AddrInt)){ //if not in map
+    //if its a constant we need to look other ways to handle it, but we have always set its value to constant
+    struct Real* real = new Real;
+    mpfr_init2(real->mpfr_val, PRECISION);
+    mpfr_set_d(real->mpfr_val, value, MPFR_RNDN);
+    shadowMap.insert(std::pair<size_t, struct Real*>(AddrInt, real)); 
+  }  
+  else{
+    Real *real = getReal(Addr);
+    mpfr_set_d (real->mpfr_val, value, MPFR_RNDD);
+  }
+  return AddrInt;
+}
+
 #if 1
 extern "C" size_t computeRealCV(size_t opCode, double op1, void* op2, double computedRes, size_t insIndex){
   mpfr_t op1_mpfr;
@@ -175,7 +196,7 @@ extern "C" size_t computeRealCV(size_t opCode, double op1, void* op2, double com
   if(!newRegIdx){
     newRegIdx = getNewRegIndex();
     if(debug)
-      std::cout<<"new index:"<<insIndex<<":"<<newRegIdx<<"\n";
+      std::cout<<"Inst index:"<<insIndex<<": new index:"<<newRegIdx<<"\n";
     addRegRes(insIndex, newRegIdx);
   }
 
@@ -286,7 +307,7 @@ extern "C" size_t computeRealVV(size_t opCode, void* op1, void* op2, double comp
       std::cout<<"new index:"<<insIndex<<":"<<newRegIdx<<"\n";
     addRegRes(insIndex, newRegIdx);
   }
-
+  std::cout<<"*****computeRealVV: new result idx:"<<newRegIdx<<"\n";
   mpfr_init2 (real_res->mpfr_val, PRECISION); 
 
   Real *real1 = getRealReg(regIndex1);
@@ -333,6 +354,21 @@ extern "C" void checkBranchVC(double op1, void* op2, int computedRes){
     std::cout<<"Error !!!!!! Branch flip\n"; 
 }
 
+extern "C" size_t setConstant(double value){
+  int index = 1; 
+  if(debug){
+    std::cout<<"setRealReg value:"<<value<<"\n"; 
+  }
+  if(!shadowMap.count(index)){
+    struct Real* real = new Real;
+    mpfr_init2(real->mpfr_val, PRECISION);
+    mpfr_set_d(real->mpfr_val, value, MPFR_RNDN);
+    shadowMap.insert(std::pair<size_t, struct Real*>(index, real)); 
+    if(debug)
+      std::cout<<"setRealReg: added to shadow mem\n";
+  }
+  return index;
+}
 extern "C" size_t setRealReg(size_t index, double value){
  
   if(debug){
@@ -354,29 +390,62 @@ extern "C" void setRealFunArg(size_t index, void *funAddr, void *toAddr/*store 2
   size_t funAddrInt = (size_t) funAddr;
   size_t toAddrInt = (size_t) toAddr;
   size_t shadowAddr;
- // std::cout<<"setRealFunArg starts****\n";
   std::vector<size_t>::iterator it; 
   std::map<size_t, size_t> shadowAddrMap;
   shadowAddrMap.insert(std::pair<size_t, size_t>(funAddrInt, index));
   if(shadowFunArgMap.count(shadowAddrMap) != 0){ 
+  std::cout<<"setRealFunArg: found in shadowFunArgMap\n";
     size_t shadowAddr = shadowFunArgMap.at(shadowAddrMap);
       if(shadowMap.count(shadowAddr) != 0){
         Real* fromReal = shadowMap.at(shadowAddr);
 
         struct Real* toReal = new Real;
         memcpy(toReal,fromReal, sizeof(struct Real));
-        shadowMap.insert(std::pair<size_t, struct Real*>(toAddrInt, toReal)); 
+        std::map<size_t, struct Real*>::iterator it = shadowMap.find(toAddrInt); 
+        //TODO: instead of updating shadow mem, we should clean it once function exit
+        if (it != shadowMap.end()){
+          std::cout<<"setRealFunArg updating shadowMap\n";
+          it->second = toReal;
+        }
+        else{
+          shadowMap.insert(std::pair<size_t, struct Real*>(toAddrInt, toReal)); 
+          std::cout<<"setRealFunArg inserting shadowMap\n";
+        }
       }
-
   }
   else{
-    std::cout<<"\nNot found in shadowFunArgMap, it means its a constant\n";
+    std::cout<<"\nsetRealFunArg:Not found in shadowFunArgMap, it means its a constant\n";
     std::cout<<"setRealFunArg op: "<<op<<"\n";
     struct Real* toReal = new Real;
     mpfr_init2(toReal->mpfr_val, PRECISION);
     mpfr_set_d(toReal->mpfr_val, op, MPFR_RNDN);
+
+    std::map<size_t, struct Real*>::iterator it = shadowMap.find(toAddrInt); 
+    if (it != shadowMap.end()){
+      std::cout<<"setRealFunArg updating shadowMap\n";
+      it->second = toReal;
+    }
+    else{
+      shadowMap.insert(std::pair<size_t, struct Real*>(toAddrInt, toReal)); 
+      std::cout<<"setRealFunArg inserting shadowMap\n";
+    }
+  }
+}
+
+extern "C" void setRealReturn(void *toAddr){
+  size_t toAddrInt = (size_t) toAddr;
+  std::cout<<"setRealReturn: called\n";
+  if(!retTrack.empty()){
+    size_t idx = retTrack.top();
+    retTrack.pop();
+    std::cout<<"setRealReturn: idx:"<<idx<<"\n";
+    Real* fromReal = shadowMap.at(idx);
+    struct Real* toReal = new Real;
+    memcpy(toReal,fromReal, sizeof(struct Real));
     shadowMap.insert(std::pair<size_t, struct Real*>(toAddrInt, toReal)); 
   }
+  else
+    std::cout<<"Error !!!! return value not found in stack\n";
 }
 //TODO
 extern "C" void setRealCastIToF(void *Addr, int value){
@@ -438,10 +507,10 @@ extern "C" void setRealTemp(void *toAddr, void *fromAddr){
 //      std::cout<<"fromAddr and toAddr not found in map\n"; //TODO check what to do here
   }  
 }
-
+/*
 extern "C" void setRealConstant(void *Addr, double value){
   size_t AddrInt = (size_t) Addr;
-  std::cout<<"setRealConstant index "<<AddrInt<<"\n";
+  std::cout<<"setRealConstant index "<<AddrInt<<":"<<value<<"\n";
   if(!shadowMap.count(AddrInt)){ //if not in map
 //if its a constant we need to look other ways to handle it, but we have always set its value to constant
     struct Real* real = new Real;
@@ -454,6 +523,12 @@ extern "C" void setRealConstant(void *Addr, double value){
     mpfr_set_d (real->mpfr_val, value, MPFR_RNDD);
   }
 }
+*/
+extern "C" void trackReturn(void *Index){
+  size_t Idx = (size_t) Index;
+  std::cout<<"trackReturn index: "<<Idx<<"\n";
+  retTrack.push(Idx);
+}
 
 extern "C" void finish(){
    FILE * pFile;
@@ -461,12 +536,19 @@ extern "C" void finish(){
    char name [100];
 
    pFile = fopen ("error.out","w");
-
+  bool flag = false;
   for (std::map<size_t, struct ErrorAggregate*>::iterator it=errorMap.begin(); it!=errorMap.end(); ++it){
     double avg = it->second->total_error/it->second->num_evals;
-    printf("%f\n",avg);
-    if(avg > 0.0)
+    std::cout<<"finish: num evals:"<<it->second->num_evals;
+    printf("avg error %f\n",avg);
+    if(avg > 0.0){
+      flag = true;
       fprintf (pFile, "%f bits average error\n",avg);
+    }
+  }
+  std::cout<<"flag:"<<flag<<"\n";
+  if(!flag){
+      fprintf (pFile, "No marks found!\n");
   }
   fclose (pFile);
 }
@@ -556,17 +638,17 @@ double updateError(Real *realVal, double computedVal, size_t insIndex){
   eagg->total_error += bitsError;
   eagg->num_evals += 1;
    if (debug){
-//    std::cout<<"The shadow value is ";
+    std::cout<<"eagg->num_evals:"<<eagg->num_evals<<"The shadow value is ";
     printReal(realVal);
     if (computedVal != computedVal){
-  //    std::cout<<", but NaN was computed.\n";
+      std::cout<<", but NaN was computed.\n";
     } else {
-    //  std::cout<<", but ";
+      std::cout<<", but ";
       ppFloat(computedVal);
-    //  std::cout<<" was computed.\n";
+      std::cout<<" was computed.\n";
     }
-//    printf("%f bits error (%llu ulps)\n",
- //               bitsError, ulpsError);
+    printf("%f bits error (%llu ulps)\n",
+                bitsError, ulpsError);
   }
   
   std::map<size_t, struct ErrorAggregate*>::iterator it = errorMap.find(insIndex); 

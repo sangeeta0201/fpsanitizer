@@ -1,22 +1,27 @@
-ifneq (,$(shell which clang++ 2>/dev/null))
-CXX=clang++ -Xclang -load -Xclang /home/sangeeta/fpsanitizer/build/lib/LLVMFPInstrument.so
-#CXX=clang++ 
-CXXFLAGS =  -I$(FPROOT) -O0
-else
-CXX=g++
-CXXFLAGS = -I$(FPROOT) -O0
-endif # clang++
+CFLAGS=-g -std=c11 -L$(FPROOT)/obj -lfpsanitizer -lmpfr -lm
+CAMLFLAGs=
+CSRC = $(wildcard *.c)
+COUT = $(patsubst %.c,%.c.out,$(CSRC))
 
-LIBS = -L$(FPROOT)/obj -lfpsanitizer -lmpfr
+CC = clang -Xclang -load -Xclang /home/sangeeta/fpsanitizer/build/lib/LLVMFPInstrument.so
 
-SRCS = $(wildcard *.cpp)
+all: $(COUT) $(CAMLOUT)
 
-PROGS = $(patsubst %.cpp,%,$(SRCS))
+testprog.c.out: testprog.c
+	$(CC) -o $@ $< $(CFLAGS) -lmpfr
+	chmod u+x $@
 
-all: $(PROGS)
+%.c.out: %.c
+	$(CC) -o $@ $< $(CFLAGS)
+	chmod u+x $@
 
-%: %.cpp
-	$(CXX) $(CXXFLAGS) -o $@ $< $(LIBS)
+%.sout: %.s
+	$(CC) -o $@ $< $(CFLAGS)
+	chmod u+x $@
+
+%.s: %.c
+	$(CC) $(CFLAGS) -S -o $@ $<
+
 
 clean:
-	rm -rf $(PROGS) *~ *.out util.pyc traces
+	rm -rf *.out *.sout *.dSYM
