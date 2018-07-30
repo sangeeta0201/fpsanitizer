@@ -7,7 +7,7 @@
 #include <stack>
 
 #define PRECISION 100
-#define debug 0
+#define debug 1
 
 struct ErrorAggregate {
   double max_error;
@@ -30,6 +30,7 @@ std::map<size_t, struct Real*> shadowMap;
 double getDouble(Real *real);
 unsigned long ulpd(double x, double y);
 void handleOp(size_t opCode, mpfr_t *res, mpfr_t *op1, mpfr_t *op2);
+int isNaN(Real *real);
 double updateError(Real *realVal, double computedVal, size_t insIndex);
 void initializeErrorAggregate(ErrorAggregate *eagg);
 

@@ -8,6 +8,8 @@
 2. Clean up shadow
 */
 
+FILE *pFile = fopen ("error.out","w");
+
 extern "C" size_t getNewRegIndex(){
   regIndex += 1;
   return regIndex;
@@ -52,46 +54,32 @@ extern "C" size_t getRegRes(size_t insIndex){
   return 0;
 }
 
-extern "C" void* handleMathFuncC(size_t funcCode, double op1){
-  mpfr_t op1_mpfr;
-  mpfr_t res_mpfr;
+extern "C" void* handleMathFunc(size_t funcCode, double op1, void *op1Ptr, 
+                                                double computedRes, size_t insIndex){ 
+  struct Real* real1 = NULL;
   struct Real* real_res = new Real;
   
-  mpfr_init2 (op1_mpfr, PRECISION);                                                                                               
-
-  mpfr_set_d (op1_mpfr, op1, MPFR_RNDD);
-
-  switch(funcCode){
-      case 1: //sqrt
-        mpfr_sqrt(real_res->mpfr_val, op1_mpfr, MPFR_RNDD);
-        break;
-      case 2: //floor
-        mpfr_floor(real_res->mpfr_val, op1_mpfr);
-        break;
-      default:
-        break;
-  }
-  if(debug){
-    std::cout<<"handleMathFunc res:\n";
-    mpfr_out_str (stdout, 10, 0, real_res->mpfr_val, MPFR_RNDD);
-    std::cout<<"\n";
-  }
-  size_t Addr = (size_t) real_res;
-  shadowMap.insert(std::pair<size_t, struct Real*>(Addr, real_res));
-  return real_res;
-}
-extern "C" void* handleMathFuncV(size_t funcCode, void *op1){
-  mpfr_t op1_mpfr;
-  mpfr_t res_mpfr;
-  struct Real* real_res = new Real;
-
-  mpfr_init2 (op1_mpfr, PRECISION); 
   mpfr_init2 (real_res->mpfr_val, PRECISION); 
-  Real *real1 = getReal(op1);
+  
+  if(op1Ptr == NULL){
+    real1 = new Real;
+    mpfr_init2 (real1->mpfr_val, PRECISION);
+    mpfr_set_d (real1->mpfr_val, op1, MPFR_RNDD);
+  }
+  else{
+    real1 = getReal(op1Ptr);
+  }
   if(debug){
     std::cout<<"handleMathFunc res:\n";
     mpfr_out_str (stdout, 10, 0, real1->mpfr_val, MPFR_RNDD);
     std::cout<<"\n";
+  }
+  size_t newRegIdx = getRegRes(insIndex);
+  if(!newRegIdx){
+    newRegIdx = getNewRegIndex();
+    if(debug)
+      std::cout<<"new index:"<<insIndex<<":"<<newRegIdx<<"\n";
+    addRegRes(insIndex, newRegIdx);
   }
   if(real1 != NULL){
     switch(funcCode){
@@ -113,9 +101,6 @@ extern "C" void* handleMathFuncV(size_t funcCode, void *op1){
       case 6: //atan
         mpfr_atan(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
         break;
-      case 7: //atan
-//        mpfr_fma(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
-        break;
       default:
         break;
     }
@@ -127,11 +112,84 @@ extern "C" void* handleMathFuncV(size_t funcCode, void *op1){
     mpfr_out_str (stdout, 10, 0, real_res->mpfr_val, MPFR_RNDD);
     std::cout<<"\n";
   }
-  size_t Addr = (size_t) real_res;
-  shadowMap.insert(std::pair<size_t, struct Real*>(Addr, real_res));
+  std::map<size_t, struct Real*>::iterator it = shadowMap.find(newRegIdx); 
+  if (it != shadowMap.end())
+    (*it).second = real_res;
+  else
+    shadowMap.insert(std::pair<size_t, struct Real*>(newRegIdx, real_res)); 
+  if(debug)
+    std::cout<<"*****computeRealVV: returned regIndex:"<<newRegIdx<<"\n";
+  updateError(real_res, computedRes, insIndex);
   return real_res;
 }
 
+extern "C" void* handleMathFunc3Args(size_t funcCode, double op1, void *op1Ptr,
+                                                double op2, void *op2Ptr,
+                                                double op3, void *op3Ptr,
+                                                double computedRes, size_t insIndex){ 
+  struct Real *real1, *real2, *real3;
+  struct Real* real_res = new Real;
+  
+  mpfr_init2 (real_res->mpfr_val, PRECISION); 
+  
+  if(op1Ptr == NULL){
+    real1 = new Real;
+    mpfr_init2 (real1->mpfr_val, PRECISION);
+    mpfr_set_d (real1->mpfr_val, op1, MPFR_RNDD);
+  }
+  else{
+    real1 = getReal(op1Ptr);
+  }
+  if(op2Ptr == NULL){
+    real2 = new Real;
+    mpfr_init2 (real2->mpfr_val, PRECISION);
+    mpfr_set_d (real2->mpfr_val, op1, MPFR_RNDD);
+  }
+  else{
+    real2 = getReal(op2Ptr);
+  }
+  if(op3Ptr == NULL){
+    real3 = new Real;
+    mpfr_init2 (real3->mpfr_val, PRECISION);
+    mpfr_set_d (real3->mpfr_val, op1, MPFR_RNDD);
+  }
+  else{
+    real3 = getReal(op3Ptr);
+  }
+  size_t newRegIdx = getRegRes(insIndex);
+  if(!newRegIdx){
+    newRegIdx = getNewRegIndex();
+    if(debug)
+      std::cout<<"new index:"<<insIndex<<":"<<newRegIdx<<"\n";
+    addRegRes(insIndex, newRegIdx);
+  }
+  
+  if(real1 != NULL && real2 != NULL && real3 != NULL){
+    switch(funcCode){
+      case 7: //fma
+        mpfr_fma(real_res->mpfr_val, real1->mpfr_val, real2->mpfr_val, real3->mpfr_val, MPFR_RNDD);
+        break;
+      default:
+        break;
+    }
+  }
+  else
+    std::cout<<"handleMathFunc3Args: Error!!!\n";
+  if(debug){
+    std::cout<<"handleMathFunc3Args res:\n";
+    mpfr_out_str (stdout, 10, 0, real_res->mpfr_val, MPFR_RNDD);
+    std::cout<<"\n";
+  }
+  std::map<size_t, struct Real*>::iterator it = shadowMap.find(newRegIdx); 
+  if (it != shadowMap.end())
+    (*it).second = real_res;
+  else
+    shadowMap.insert(std::pair<size_t, struct Real*>(newRegIdx, real_res)); 
+  if(debug)
+    std::cout<<"*****computeRealVV: returned regIndex:"<<newRegIdx<<"\n";
+  updateError(real_res, computedRes, insIndex);
+  return real_res;
+}
 void handleOp(size_t opCode, mpfr_t *res, mpfr_t *op1, mpfr_t *op2){
   switch(opCode) {                                                                                            
     case 12: //FADD
@@ -187,120 +245,55 @@ extern "C" size_t setRealConstant(void *Addr, double value){
   return AddrInt;
 }
 
+extern "C" size_t computeReal(size_t opCode, void* op1Ptr, void* op2Ptr, double op1, double op2, 
+                                    double computedRes, size_t insIndex){
+  if(op1Ptr == NULL)
+    std::cout<<"computeReal: op1Ptr is NULL\n";
+  if(op2Ptr == NULL)
+    std::cout<<"computeReal: op2Ptr is NULL\n";
+
+  size_t regIndex1;
+  size_t regIndex2;
+
+  Real *real1;
+  Real *real2;
+
+  mpfr_t op1_mpfr;
+  mpfr_t op2_mpfr;
+  struct Real* real_res = new Real;
+
+  size_t newRegIdx = getRegRes(insIndex);
 #if 1
-extern "C" size_t computeRealCV(size_t opCode, double op1, void* op2, double computedRes, size_t insIndex){
-  mpfr_t op1_mpfr;
-  struct Real* real_res = new Real;
-
-  size_t newRegIdx = getRegRes(insIndex);
-  if(!newRegIdx){
-    newRegIdx = getNewRegIndex();
-    if(debug)
-      std::cout<<"Inst index:"<<insIndex<<": new index:"<<newRegIdx<<"\n";
-    addRegRes(insIndex, newRegIdx);
+  if(op1Ptr == NULL){
+    real1 = new Real;
+    mpfr_init2 (real1->mpfr_val, PRECISION); 
+    mpfr_set_d (real1->mpfr_val, op1, MPFR_RNDD);
   }
-
-  mpfr_init2 (op1_mpfr, PRECISION); 
-  mpfr_init2 (real_res->mpfr_val, PRECISION); 
-
-  size_t AddrInt = (size_t) op2;
-  Real *real = getReal(op2);
-  mpfr_set_d (op1_mpfr, op1, MPFR_RNDD);
-  handleOp(opCode, &(real_res->mpfr_val), &(real->mpfr_val), &(op1_mpfr));
-  
-  std::map<size_t, struct Real*>::iterator it = shadowMap.find(newRegIdx); 
-  if (it != shadowMap.end())
-    (*it).second = real_res;
-  else
-    shadowMap.insert(std::pair<size_t, struct Real*>(newRegIdx, real_res)); 
-  if(debug)
-    std::cout<<"*****handleOp_rr: returned regIndex:"<<newRegIdx<<"\n";
-  updateError(real_res, computedRes, insIndex);
-  return newRegIdx;
-  
-}
-
-extern "C" size_t computeRealVC(size_t opCode, void* op1, double op2, double computedRes, size_t insIndex){
-  mpfr_t op2_mpfr;
-  mpfr_t res_mpfr;
-  size_t AddrInt = (size_t) op1;
-  struct Real* real_res = new Real;
-
-  std::cout<<"computeRealVC op1 index:"<<AddrInt<<" op2 "<<op2<<"\n";
-
-  size_t newRegIdx = getRegRes(insIndex);
-  if(!newRegIdx){
-    newRegIdx = getNewRegIndex();
-    if(debug)
-      std::cout<<"new index:"<<insIndex<<":"<<newRegIdx<<"\n";
-    addRegRes(insIndex, newRegIdx);
+  else{
+    regIndex1 = (size_t)  op1Ptr;
+    real1 = getRealReg(regIndex1);
+    if(real1 == NULL){
+      std::cout<<"Error !!!!!!\n";
+    }
   }
-
-  mpfr_init2 (op2_mpfr, PRECISION); 
-  mpfr_init2 (real_res->mpfr_val, PRECISION); 
-
-  Real *real = getReal(op1);
-  mpfr_set_d (op2_mpfr, op2, MPFR_RNDD);
-  handleOp(opCode, &(real_res->mpfr_val), &(real->mpfr_val), &(op2_mpfr));
-  
-  std::map<size_t, struct Real*>::iterator it = shadowMap.find(newRegIdx); 
-  if (it != shadowMap.end())
-    (*it).second = real_res;
-  else
-    shadowMap.insert(std::pair<size_t, struct Real*>(newRegIdx, real_res)); 
-  if(debug)
-    std::cout<<"*****handleOp_rr: returned regIndex:"<<newRegIdx<<"\n";
-  updateError(real_res, computedRes, insIndex);
-  return newRegIdx;
-}
-
-extern "C" size_t computeRealCC(size_t opCode, double op1, double op2, double computedRes, size_t insIndex){
-  mpfr_t op1_mpfr;
-  mpfr_t op2_mpfr;
-  struct Real* real_res = new Real;
-  std::cout<<"op1:"<<op1<<"\n";
-  std::cout<<"op2:"<<op2<<"\n";
-
-  size_t newRegIdx = getRegRes(insIndex);
-  if(!newRegIdx){
-    newRegIdx = getNewRegIndex();
-    if(debug)
-      std::cout<<"new index:"<<insIndex<<":"<<newRegIdx<<"\n";
-    addRegRes(insIndex, newRegIdx);
+  if(op2Ptr == NULL){
+    real2 = new Real;
+    mpfr_init2 (real2->mpfr_val, PRECISION); 
+    mpfr_set_d (real2->mpfr_val, op2, MPFR_RNDD);
   }
-  
-  mpfr_init2 (op1_mpfr, PRECISION); 
-  mpfr_init2 (op2_mpfr, PRECISION); 
-  mpfr_init2 (real_res->mpfr_val, PRECISION); 
-  mpfr_set_d (op1_mpfr, op1, MPFR_RNDD);
-  mpfr_set_d (op2_mpfr, op2, MPFR_RNDD);
-  handleOp(opCode, &(real_res->mpfr_val), &(op1_mpfr), &(op2_mpfr));
-
-  std::map<size_t, struct Real*>::iterator it = shadowMap.find(newRegIdx); 
-  if (it != shadowMap.end())
-    (*it).second = real_res;
-  else
-    shadowMap.insert(std::pair<size_t, struct Real*>(newRegIdx, real_res)); 
-  if(debug)
-    std::cout<<"*****handleOp_rr: returned regIndex:"<<newRegIdx<<"\n";
-  updateError(real_res, computedRes, insIndex);
-  return newRegIdx;
-}
-#endif
-extern "C" size_t computeRealVV(size_t opCode, void* op1, void* op2, double computedRes, size_t insIndex){
-
-  size_t regIndex1 = (size_t)  op1;
-  size_t regIndex2 = (size_t)  op2;
+  else{
+    size_t regIndex2 = (size_t) op2Ptr;
+    real2 = getRealReg(regIndex2);
+    if(real2 == NULL){
+      std::cout<<"Error !!!!!!\n";
+    }
+  }
   if(debug){
     std::cout<<"*****computeRealVV: insIndex:"<<insIndex<<"\n";
     std::cout<<"*****computeRealVV: regIndex1:"<<regIndex1<<"\n";
     std::cout<<"*****computeRealVV: regIndex2:"<<regIndex2<<"\n";
   }
   
-  mpfr_t res_mpfr;
-  struct Real* real_res = new Real;
-
-  size_t newRegIdx = getRegRes(insIndex);
   if(!newRegIdx){
     newRegIdx = getNewRegIndex();
     if(debug)
@@ -310,14 +303,6 @@ extern "C" size_t computeRealVV(size_t opCode, void* op1, void* op2, double comp
   std::cout<<"*****computeRealVV: new result idx:"<<newRegIdx<<"\n";
   mpfr_init2 (real_res->mpfr_val, PRECISION); 
 
-  Real *real1 = getRealReg(regIndex1);
-  if(real1 == NULL){
-    std::cout<<"Error !!!!!!\n";
-  }
-  Real *real2 = getRealReg(regIndex2);
-  if(real2 == NULL){
-    std::cout<<"Error !!!!!!\n";
-  }
   handleOp(opCode, &(real_res->mpfr_val), &(real1->mpfr_val), &(real2->mpfr_val));
  
   std::map<size_t, struct Real*>::iterator it = shadowMap.find(newRegIdx); 
@@ -328,30 +313,140 @@ extern "C" size_t computeRealVV(size_t opCode, void* op1, void* op2, double comp
   if(debug)
     std::cout<<"*****computeRealVV: returned regIndex:"<<newRegIdx<<"\n";
   updateError(real_res, computedRes, insIndex);
+#endif
   return newRegIdx;
 }
 
-extern "C" void checkBranchVC(double op1, void* op2, int computedRes){
-  int realRes = 0;
-  size_t regIndex2 = *(size_t *)  op2;
+int isNaN(Real *real){
+  return mpfr_nan_p(real->mpfr_val);                                                            
+}
+
+extern "C" void checkBranch(double op1, void* op1Ptr, double op2, void* op2Ptr, int fcmpFlag, bool computedRes){
+  size_t regIndex1;
+  size_t regIndex2;
+
+  Real *real1;
+  Real *real2;
+
+  mpfr_t op1_mpfr;
+  mpfr_t op2_mpfr;
+  struct Real* real_res = new Real;
+
+  if(op1Ptr == NULL){
+    real1 = new Real;
+    mpfr_init2 (real1->mpfr_val, PRECISION); 
+    mpfr_set_d (real1->mpfr_val, op1, MPFR_RNDD);
+  }
+  else{
+    regIndex1 = (size_t)  op1Ptr;
+    real1 = getRealReg(regIndex1);
+    if(real1 == NULL){
+      std::cout<<"Error !!!!!!\n";
+    }
+  }
+  if(op2Ptr == NULL){
+    real2 = new Real;
+    mpfr_init2 (real2->mpfr_val, PRECISION); 
+    mpfr_set_d (real2->mpfr_val, op2, MPFR_RNDD);
+  }
+  else{
+    size_t regIndex2 = (size_t) op2Ptr;
+    real2 = getRealReg(regIndex2);
+    if(real2 == NULL){
+      std::cout<<"Error !!!!!!\n";
+    }
+  }
   if(debug){
-    std::cout<<"*****checkBranchVC: regIndex2:"<<regIndex2<<"\n";
     std::cout<<"*****checkBranchVC: computedRes:"<<computedRes<<"\n";
   }
-  mpfr_t mpfr_val;
-  mpfr_init2(mpfr_val, PRECISION);
-  mpfr_set_d(mpfr_val, op1, MPFR_RNDN);
-  Real *real2 = getRealReg(regIndex2);
-  if(real2 == NULL){
-    std::cout<<"Error !!!!!!\n";
-  }
-  if(mpfr_val < real2->mpfr_val)
-    realRes = 1;
-  else
-    realRes = 2;
-   
+  bool realRes = false;
+  std::cout<<"fcmpFlag:"<<fcmpFlag<<"\n";
+  switch(fcmpFlag){
+    case 1: 
+            realRes = false;
+            break;
+    case 2: 
+            if(!isNaN(real1) && !isNaN(real2)){
+              if(real1->mpfr_val == real2->mpfr_val)
+                realRes = true;
+            }
+            break;
+    case 3: 
+            if(!isNaN(real1) && !isNaN(real2)){
+              if(real1->mpfr_val > real2->mpfr_val)
+                realRes = true;
+            }
+            break;
+    case 4: 
+            std::cout<<"NAN:"<<isNaN(real1)<<"\n";
+            std::cout<<"NAN:"<<isNaN(real2)<<"\n";
+            if(!isNaN(real1) && !isNaN(real2)){
+              std::cout<<"not a nan\n"<<"\n";
+              mpfr_out_str (stdout, 10, 0, real1->mpfr_val, MPFR_RNDD);
+              std::cout<<"\n real2 \n";
+              mpfr_out_str (stdout, 10, 0, real2->mpfr_val, MPFR_RNDD);
+              std::cout<<"\n  \n";
+             
+              if(real1->mpfr_val >= real2->mpfr_val)
+          
+                std::cout<<"real 1 > = real2\n"<<"\n";
+                realRes = true;
+            }
+            break;
+    case 5: 
+            if(!isNaN(real1) && !isNaN(real2)){
+              if(real1->mpfr_val < real2->mpfr_val)
+                realRes = true;
+            }
+            break;
+    case 6: 
+            if(!isNaN(real1) && !isNaN(real2)){
+              if(real1->mpfr_val <= real2->mpfr_val)
+                realRes = true;
+            }
+            break;
+    case 7: 
+            if(!isNaN(real1) && !isNaN(real2)){
+              if(real1->mpfr_val != real2->mpfr_val)
+                realRes = true;
+            }
+            break;
+    case 8: 
+            if(!isNaN(real1) && !isNaN(real2)){
+              realRes = true;
+            }
+            break;
+    case 9: 
+            if(real1->mpfr_val == real2->mpfr_val)
+              realRes = true;
+            break;
+    case 10: 
+            if(real1->mpfr_val > real2->mpfr_val)
+              realRes = true;
+            break;
+    case 11: 
+            if(real1->mpfr_val >= real2->mpfr_val)
+              realRes = true;
+            break;
+    case 12: 
+            if(real1->mpfr_val < real2->mpfr_val)
+              realRes = true;
+            break;
+    case 14: 
+            if(real1->mpfr_val <= real2->mpfr_val)
+              realRes = true;
+            break;
+    case 15: 
+            if(real1->mpfr_val != real2->mpfr_val)
+              realRes = true;
+            break;
+    case 16: 
+            if(isNaN(real1) || isNaN(real2))
+              realRes = true;
+            break;
+  }   
   if(realRes != computedRes)
-    std::cout<<"Error !!!!!! Branch flip\n"; 
+    fprintf (pFile, "Branch flip\n");
 }
 
 extern "C" size_t setConstant(double value){
@@ -531,25 +626,20 @@ extern "C" void trackReturn(void *Index){
 }
 
 extern "C" void finish(){
-   FILE * pFile;
    int n;
    char name [100];
 
-   pFile = fopen ("error.out","w");
   bool flag = false;
   for (std::map<size_t, struct ErrorAggregate*>::iterator it=errorMap.begin(); it!=errorMap.end(); ++it){
     double avg = it->second->total_error/it->second->num_evals;
     std::cout<<"finish: num evals:"<<it->second->num_evals;
     printf("avg error %f\n",avg);
-    if(avg > 0.0){
-      flag = true;
+  //  if(avg > 0.0){
+   //   flag = true;
       fprintf (pFile, "%f bits average error\n",avg);
-    }
+   // }
   }
   std::cout<<"flag:"<<flag<<"\n";
-  if(!flag){
-      fprintf (pFile, "No marks found!\n");
-  }
   fclose (pFile);
 }
 

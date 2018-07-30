@@ -48,9 +48,10 @@ public:
   //it gives unique index to every instruction
   void handleIns(Instruction *I);
   //its called for every FCmpInst
-  void handleFcmp(Instruction *I, FCmpInst *FCI, Function &F);
+  void handleFcmp(Instruction *I, BasicBlock *BB, FCmpInst *FCI, Function &F);
   //its called for every math library functions
-  void handleMathFunc(Instruction *I, CallInst *CI, Function &F, int funcCode); 
+  void handleMathFunc(Instruction *I, BasicBlock *BB, CallInst *CI, Function &F, int funcCode); 
+  void handleMathFunc3Args(Instruction *I, BasicBlock *BB, CallInst *CI, Function &F, int funcCode);
   void createPrintFunc(Instruction *I, CallInst *CI, Function &F); 
   void handleMainRet(Instruction *I, Function &F);
   void handleFuncReturn(Instruction *I, ReturnInst *RI, Function &F);
