@@ -49,14 +49,19 @@ public:
   void handleIns(Instruction *I);
   //its called for every FCmpInst
   void handleFcmp(Instruction *I, BasicBlock *BB, FCmpInst *FCI, Function &F);
-  //its called for every math library functions
+  //its called for every math library functions with one argument
   void handleMathFunc(Instruction *I, BasicBlock *BB, CallInst *CI, Function &F, int funcCode); 
+  //its called for every math library functions with 3 arguments
   void handleMathFunc3Args(Instruction *I, BasicBlock *BB, CallInst *CI, Function &F, int funcCode);
+  //it creates a call to runtime to print register real value
   void createPrintFunc(Instruction *I, CallInst *CI, Function &F); 
+  //it creates call to runtime for clean up and printing
   void handleMainRet(Instruction *I, Function &F);
+  //this function matches return value of callee to the caller
   void handleFuncReturn(Instruction *I, ReturnInst *RI, Function &F);
-  size_t findCallSite(Function *F);
-  void handleConstant(Instruction *I, BinaryOperator* binOp, Function &F);
+  //this function looks one instruction ahead and return it
+  Instruction* getNextInstruction(Instruction *I, BasicBlock *BB);
+  
   static char ID; // Pass identification, replacement for typeid
 private:
   SmallVector<Function*, 8> AllFuncList;
@@ -78,10 +83,6 @@ private:
   //of the argument or index of the argument in callee. Using index and fucntion address we can ask 
   //runtime for its address or index. 
   std::map<Argument*, size_t> ArgMap;
-  std::map<Function*, Value*> RetMap;
-  std::map<CallInst*, Value*> ReturnIndex;
-  std::queue<Value*> return_values;  
-  std::map<Value*, Instruction*> consMap;
   //this is index for constants 
   size_t ConsCount = 0;
   //this is index for instructions
