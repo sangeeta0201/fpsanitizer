@@ -7,7 +7,6 @@
 #include <stack>
 
 #define PRECISION 100
-#define debug 1
 
 struct ErrorAggregate {
   double max_error;

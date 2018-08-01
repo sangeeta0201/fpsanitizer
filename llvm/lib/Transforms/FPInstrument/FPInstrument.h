@@ -31,7 +31,7 @@ public:
   //its called for every store and set real in shadow memory
   void setReal(Instruction *I, Value *Addr, Value *OP, Function &F);
   //it is same as setReal except its called for SIToFPInst (casting from int to float)
-  void setRealCastIToD(Instruction *I, Value *OP, Function &F);
+  void setRealCastIToD(Instruction *I, Value *ToAddr, Value *OP, Function &F);
   //it is same as setReal except its called for FPExtInst (casting from float to double)
   void setRealCastFToD(Instruction *I, Value *OP, Function &F);
   //it is called for phi node to create a new phi node
@@ -65,6 +65,7 @@ public:
   static char ID; // Pass identification, replacement for typeid
 private:
   SmallVector<Function*, 8> AllFuncList;
+  std::map<Instruction*, SIToFPInst*> TrackIToFCast;
   //this is used to track address of a variable loaded from memory 
   std::map<Instruction*, Value*> LoadMap;
   //this is used to track reg index

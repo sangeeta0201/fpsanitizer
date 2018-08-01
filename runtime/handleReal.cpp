@@ -7,6 +7,7 @@
 1. Handle all math functions
 2. Clean up shadow
 */
+#define debug 0
 
 FILE *pFile = fopen ("error.out","w");
 
@@ -168,9 +169,11 @@ extern "C" void* handleMathFunc3Args(size_t funcCode, double op1, void *op1Ptr,
   updateError(real_res, computedRes, insIndex);
   return real_res;
 }
+
 void handleOp(size_t opCode, mpfr_t *res, mpfr_t *op1, mpfr_t *op2){
   switch(opCode) {                                                                                            
     case 12: //FADD
+      if(debug)
         std::cout<<"\nFADD\n";
       mpfr_add (*res, *op1, *op2, MPFR_RNDD);
       break;
@@ -245,7 +248,7 @@ extern "C" size_t computeReal(size_t opCode, void* op1Ptr, void* op2Ptr, double 
     regIndex1 = (size_t)  op1Ptr;
     real1 = getRealReg(regIndex1);
     if(real1 == NULL){
-      std::cout<<"Error !!!!!!\n";
+      std::cout<<"Error !!!!!! regIndex1 not found\n";
     }
   }
   if(op2Ptr == NULL){
@@ -257,7 +260,7 @@ extern "C" size_t computeReal(size_t opCode, void* op1Ptr, void* op2Ptr, double 
     size_t regIndex2 = (size_t) op2Ptr;
     real2 = getRealReg(regIndex2);
     if(real2 == NULL){
-      std::cout<<"Error !!!!!!\n";
+      std::cout<<"Error !!!!!! regIndex2 not found\n";
     }
   }
   
@@ -620,6 +623,8 @@ long long floatToInt(double f)
 }
 
 double updateError(Real *realVal, double computedVal, size_t insIndex){
+  if(debug)
+    std::cout<<"updateError: computedVal:"<<computedVal<<" insIndex:"<<insIndex<<"\n";
   struct ErrorAggregate* eagg;
   if(errorMap.count(insIndex) != 0){ 
     eagg = errorMap.at(insIndex);
