@@ -17,9 +17,14 @@ struct ErrorAggregate {
 struct Real{
   mpfr_t mpfr_val;
 };
+size_t mpfrClear = 0;
+size_t mpfrInit = 0;
+int varCount = 0;
+int opCount = 0;
 double regIndex = 200; //assuming there are 200 constants in the program
 std::map<size_t, struct ErrorAggregate*>errorMap;
 //this will link ins index to index of result in shadow mem
+std::stack<size_t> varTrack;
 std::stack<size_t> retTrack;
 std::map<size_t, size_t>insMap;
 std::map<size_t, size_t>returnMap;
@@ -59,7 +64,7 @@ We create shadow space for this variable, which is address of varaible and the r
 of this variable.
 It 
 */
-extern "C" void setRealTemp(void *toAddr, void *fromAddr);
+//extern "C" void setRealTemp(void *toAddr, void *fromAddr);
 
 /*
 For every store, we call setRealConstant if  store is storing constant to some variable. 

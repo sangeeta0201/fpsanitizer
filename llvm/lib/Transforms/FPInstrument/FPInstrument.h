@@ -61,7 +61,9 @@ public:
   void handleFuncReturn(Instruction *I, ReturnInst *RI, Function &F);
   //this function looks one instruction ahead and return it
   Instruction* getNextInstruction(Instruction *I, BasicBlock *BB);
-  
+  void handleFuncExit(Instruction *I, BasicBlock *BB, Function &F);  
+  void handleFuncInit(Function &F);  
+  void handleAlloca(Instruction *I, BasicBlock *BB, AllocaInst *A, Function &F);  void handleCleanup(Instruction *I, ReturnInst *RI, Function &F); 
   static char ID; // Pass identification, replacement for typeid
 private:
   SmallVector<Function*, 8> AllFuncList;
@@ -89,6 +91,7 @@ private:
   //this is index for instructions
   size_t InsCount = 0;
   //these are handlers for run time functions
+  std::map<size_t, Function*> ComputeRealIns;
   Value* SetRealConstant;
   Value* SetRealTemp;
   Value* HandleOp;
@@ -102,6 +105,9 @@ private:
   Value* PrintOp;
   Value* Finish;
   Value* HandleReturn;
+  Value* HandleAlloca;
+  Value* FuncInit;
+  Value* FuncExit;
   
 };
 }
