@@ -58,7 +58,7 @@ extern "C" void cleanComputeReal(size_t index){
 
     if (it != shadowMap.end()){
       if(it->second != NULL){
-//        if(debug)
+        if(debug)
           std::cout<<"cleaning up:"<<index<<"\n";
         mpfr_clear(it->second->mpfr_val);
         mpfrClear++;
@@ -376,7 +376,6 @@ extern "C" size_t computeReal(size_t opCode, void* op1Ptr, void* op2Ptr, double 
   struct Real* real_res = new Real;
   
   if(op1Ptr == NULL){
-    std::cout<<"computeReal mpfr_init 1";
     real1 = new Real;
     mpfr_init2 (real1->mpfr_val, PRECISION); 
     mpfrInit++;
@@ -386,7 +385,6 @@ extern "C" size_t computeReal(size_t opCode, void* op1Ptr, void* op2Ptr, double 
   else{
     real1 = getReal(op1Ptr);
     if(real1 == NULL){
-    std::cout<<"computeReal mpfr_init 2";
       //data might be set without store
       real1 = new Real;
       mpfr_init2(real1->mpfr_val, PRECISION);
@@ -398,7 +396,6 @@ extern "C" size_t computeReal(size_t opCode, void* op1Ptr, void* op2Ptr, double 
   }
   if(op2Ptr == NULL){
     real2 = new Real;
-    std::cout<<"computeReal mpfr_init 3";
     mpfr_init2 (real2->mpfr_val, PRECISION); 
     mpfrInit++;
     mpfr_set_d (real2->mpfr_val, op2, MPFR_RNDD);
@@ -407,7 +404,6 @@ extern "C" size_t computeReal(size_t opCode, void* op1Ptr, void* op2Ptr, double 
   else{
     real2 = getReal(op2Ptr);
     if(real2 == NULL){
-    std::cout<<"computeReal mpfr_init 4";
       real2 = new Real;
       mpfr_init2(real2->mpfr_val, PRECISION);
       mpfrInit++;
@@ -422,31 +418,27 @@ extern "C" size_t computeReal(size_t opCode, void* op1Ptr, void* op2Ptr, double 
     addRegRes(insIndex, newRegIdx);
   }
   mpfr_init2 (real_res->mpfr_val, PRECISION); 
-    std::cout<<"computeReal mpfr_init 5";
   mpfrInit++;
 
   handleOp(opCode, &(real_res->mpfr_val), &(real1->mpfr_val), &(real2->mpfr_val));
  
   std::map<size_t, struct Real*>::iterator it = shadowMap.find(newRegIdx); 
   if (it != shadowMap.end()){
-    (*it).second = real_res;
-    if(debug)
-      std::cout<<"computeReal update shadow mem:"<<newRegIdx<<"\n";
+    mpfr_clear(it->second->mpfr_val);
+    delete(it->second);
+    shadowMap.erase(it);
+    mpfrClear++;
   }
-  else{
-    shadowMap.insert(std::pair<size_t, struct Real*>(newRegIdx, real_res));
-    if(debug)
-      std::cout<<"computeReal insert shadow mem:"<<newRegIdx<<"\n";
-  }
+  shadowMap.insert(std::pair<size_t, struct Real*>(newRegIdx, real_res));
+  if(debug)
+    std::cout<<"computeReal insert shadow mem:"<<newRegIdx<<"\n";
   updateError(real_res, computedRes, insIndex);
   if(mpfrFlag1){
-    std::cout<<"computeReal mpfr_clear 1\n";
     mpfr_clear(real1->mpfr_val);
     delete  real1; 
     mpfrClear++;
   }
   if(mpfrFlag2){
-    std::cout<<"computeReal mpfr_clear 2\n";
     mpfr_clear(real2->mpfr_val);
     delete  real2; 
     mpfrClear++;
