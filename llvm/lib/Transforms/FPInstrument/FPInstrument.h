@@ -91,7 +91,7 @@ private:
   //this is index for instructions
   size_t InsCount = 0;
   //these are handlers for run time functions
-  std::map<size_t, Function*> ComputeRealIns;
+  std::map<size_t, Value*> ComputeRealIns;
   Value* SetRealConstant;
   Value* SetRealTemp;
   Value* HandleOp;

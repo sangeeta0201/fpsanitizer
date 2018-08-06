@@ -7,7 +7,7 @@
 1. Handle all math functions
 2. Clean up shadow
 */
-#define debug 0
+#define debug 1
 
 FILE *pFile = fopen ("error.out","w");
 
@@ -48,10 +48,10 @@ extern "C" size_t getRegRes(size_t insIndex){
 }
 
 extern "C" void cleanComputeReal(size_t index){
-  if(debug)
-    std::cout<<"cleanComputeReal:"<<index<<"\n";
    
   size_t newRegIdx = getRegRes(index);
+  if(debug)
+    std::cout<<"cleanComputeReal:"<<newRegIdx<<"\n";
   if(newRegIdx){
     std::map<size_t, struct Real*>::iterator it;
     it = shadowMap.find(newRegIdx);
@@ -59,7 +59,7 @@ extern "C" void cleanComputeReal(size_t index){
     if (it != shadowMap.end()){
       if(it->second != NULL){
         if(debug)
-          std::cout<<"cleaning up:"<<index<<"\n";
+          std::cout<<"cleaning up:"<<newRegIdx<<"\n";
         mpfr_clear(it->second->mpfr_val);
         mpfrClear++;
     
@@ -76,8 +76,6 @@ extern "C" void cleanComputeReal(size_t index){
 }
 
 void cleanup(size_t index){
-  if(debug)
-    std::cout<<"cleanup:"<<index<<"\n";
   std::map<size_t, struct Real*>::iterator it;
   it = shadowMap.find(index);
 
@@ -121,7 +119,7 @@ extern "C" void funcExit(void *funAddr){
       varTrack.pop();
       break;
     }
-    //cleanup(var);
+    cleanup(var);
     varTrack.pop();
   }
 }
@@ -133,15 +131,17 @@ extern "C" void handleAlloca(void *varAddr){
   varTrack.push(varAddrInt);
 }
 
-extern "C" void* handleMathFunc(size_t funcCode, double op1, void *op1Ptr, 
+extern "C" size_t handleMathFunc(size_t funcCode, double op1, void *op1Ptr, 
                                                 double computedRes, size_t insIndex){ 
   struct Real* real1 = NULL;
   struct Real* real_res = new Real;
+
   
   mpfr_init2 (real_res->mpfr_val, PRECISION); 
   mpfrInit++;
   bool mpfrFlag1 = false; 
   if(op1Ptr == NULL){
+    std::cout<<"handleMathFunc: op1Ptr is NULL\n";
     real1 = new Real;
     mpfr_init2 (real1->mpfr_val, PRECISION);
     mpfrInit++;
@@ -150,12 +150,15 @@ extern "C" void* handleMathFunc(size_t funcCode, double op1, void *op1Ptr,
   }
   else{
     real1 = getReal(op1Ptr);
+    if(real1 == NULL){
+      std::cout<<"handleMathFunc: real1 is NULL\n";
       real1 = new Real;
       mpfr_init2(real1->mpfr_val, PRECISION);
       mpfrInit++;
       mpfr_set_d(real1->mpfr_val, op1, MPFR_RNDN);
 
       mpfrFlag1 = true; 
+    }
   }
   if(debug){
   }
@@ -167,6 +170,7 @@ extern "C" void* handleMathFunc(size_t funcCode, double op1, void *op1Ptr,
   if(real1 != NULL){
     switch(funcCode){
       case 1: //sqrt
+        std::cout<<"handleMathFunc: sqrt:\n";
         mpfr_sqrt(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
         break;
       case 2: //floor
@@ -184,33 +188,41 @@ extern "C" void* handleMathFunc(size_t funcCode, double op1, void *op1Ptr,
       case 6: //atan
         mpfr_atan(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
         break;
+      case 8: //atan
+        mpfr_abs(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
+        break;
       default:
         break;
     }
   }
   else
     std::cout<<"handleMathFunc: Error!!!\n";
+    std::cout<<"handleMathFunc res:\n";
+    mpfr_out_str (stdout, 10, 0, real_res->mpfr_val, MPFR_RNDD);
+    std::cout<<"\n";
+    std::cout<<"handleMathFunc op1:\n";
+    mpfr_out_str (stdout, 10, 0, real1->mpfr_val, MPFR_RNDD);
+    std::cout<<"\n";
   std::map<size_t, struct Real*>::iterator it = shadowMap.find(newRegIdx); 
   if (it != shadowMap.end()){
-    (*it).second = real_res;
-    if(debug)
-      std::cout<<"handleMathFunc update shadow mem:"<<newRegIdx<<"\n";
+    mpfr_clear(it->second->mpfr_val);
+    delete(it->second);
+    shadowMap.erase(it);
+    mpfrClear++;
   }
-  else{
-    shadowMap.insert(std::pair<size_t, struct Real*>(newRegIdx, real_res)); 
-    if(debug)
-      std::cout<<"handleMathFunc insert shadow mem:"<<newRegIdx<<"\n";
-  }
+  shadowMap.insert(std::pair<size_t, struct Real*>(newRegIdx, real_res)); 
+  if(debug)
+    std::cout<<"handleMathFunc insert shadow mem:"<<newRegIdx<<"\n";
   if(mpfrFlag1){
     mpfr_clear(real1->mpfr_val);
     delete  real1; 
     mpfrClear++;
   }
   updateError(real_res, computedRes, insIndex);
-  return real_res;
+  return newRegIdx;
 }
 
-extern "C" void* handleMathFunc3Args(size_t funcCode, double op1, void *op1Ptr,
+extern "C" size_t handleMathFunc3Args(size_t funcCode, double op1, void *op1Ptr,
                                                 double op2, void *op2Ptr,
                                                 double op3, void *op3Ptr,
                                                 double computedRes, size_t insIndex){ 
@@ -273,15 +285,14 @@ extern "C" void* handleMathFunc3Args(size_t funcCode, double op1, void *op1Ptr,
     std::cout<<"handleMathFunc3Args: Error!!!\n";
   std::map<size_t, struct Real*>::iterator it = shadowMap.find(newRegIdx); 
   if (it != shadowMap.end()){
-    (*it).second = real_res;
-    if(debug)
-      std::cout<<"handleMathFunc3Args update shadow mem:"<<newRegIdx<<"\n";
+    mpfr_clear(it->second->mpfr_val);
+    delete(it->second);
+    shadowMap.erase(it);
+    mpfrClear++;
   }
-  else{
-    shadowMap.insert(std::pair<size_t, struct Real*>(newRegIdx, real_res)); 
-    if(debug)
-      std::cout<<"handleMathFunc3Args insert shadow mem:"<<newRegIdx<<"\n";
-  }
+  shadowMap.insert(std::pair<size_t, struct Real*>(newRegIdx, real_res)); 
+  if(debug)
+    std::cout<<"handleMathFunc3Args insert shadow mem:"<<newRegIdx<<"\n";
   
   if(mpfrFlag1){
     mpfr_clear(real1->mpfr_val);
@@ -299,7 +310,7 @@ extern "C" void* handleMathFunc3Args(size_t funcCode, double op1, void *op1Ptr,
     mpfrClear++;
   }
   updateError(real_res, computedRes, insIndex);
-  return real_res;
+  return newRegIdx;
 }
 
 void handleOp(size_t opCode, mpfr_t *res, mpfr_t *op1, mpfr_t *op2){
@@ -376,6 +387,8 @@ extern "C" size_t computeReal(size_t opCode, void* op1Ptr, void* op2Ptr, double 
   struct Real* real_res = new Real;
   
   if(op1Ptr == NULL){
+    if(debug)
+      std::cout<<"computeReal: op1Ptr is null, using op1 value:"<<op1<<"\n";
     real1 = new Real;
     mpfr_init2 (real1->mpfr_val, PRECISION); 
     mpfrInit++;
@@ -385,6 +398,8 @@ extern "C" size_t computeReal(size_t opCode, void* op1Ptr, void* op2Ptr, double 
   else{
     real1 = getReal(op1Ptr);
     if(real1 == NULL){
+      if(debug)
+        std::cout<<"computeReal: real1 is null, using op1 value:"<<op1<<"\n";
       //data might be set without store
       real1 = new Real;
       mpfr_init2(real1->mpfr_val, PRECISION);
@@ -395,6 +410,8 @@ extern "C" size_t computeReal(size_t opCode, void* op1Ptr, void* op2Ptr, double 
     }
   }
   if(op2Ptr == NULL){
+    if(debug)
+      std::cout<<"computeReal: op2Ptr is null, using op2 value:"<<op2<<"\n";
     real2 = new Real;
     mpfr_init2 (real2->mpfr_val, PRECISION); 
     mpfrInit++;
@@ -404,6 +421,8 @@ extern "C" size_t computeReal(size_t opCode, void* op1Ptr, void* op2Ptr, double 
   else{
     real2 = getReal(op2Ptr);
     if(real2 == NULL){
+      if(debug)
+        std::cout<<"computeReal: real2 is null, using op2 value:"<<op2<<"\n";
       real2 = new Real;
       mpfr_init2(real2->mpfr_val, PRECISION);
       mpfrInit++;
@@ -443,7 +462,6 @@ extern "C" size_t computeReal(size_t opCode, void* op1Ptr, void* op2Ptr, double 
     delete  real2; 
     mpfrClear++;
   }
-  //cleanComputeReal(insIndex);
 #endif
   return newRegIdx;
 }
@@ -452,7 +470,8 @@ int isNaN(Real *real){
   return mpfr_nan_p(real->mpfr_val);                                                            
 }
 
-extern "C" void checkBranch(double op1, void* op1Ptr, double op2, void* op2Ptr, int fcmpFlag, bool computedRes){
+extern "C" void checkBranch(double op1, void* op1Ptr, double op2, void* op2Ptr, 
+                            int fcmpFlag, bool computedRes, size_t insIndex){
   size_t regIndex1;
   size_t regIndex2;
 
@@ -469,7 +488,7 @@ extern "C" void checkBranch(double op1, void* op1Ptr, double op2, void* op2Ptr, 
     mpfr_init2 (real1->mpfr_val, PRECISION); 
     mpfrInit++;
     mpfr_set_d (real1->mpfr_val, op1, MPFR_RNDD);
-      mpfrFlag1 = true; 
+    mpfrFlag1 = true; 
   }
   else{
     real1 = getReal(op1Ptr);
@@ -479,7 +498,6 @@ extern "C" void checkBranch(double op1, void* op1Ptr, double op2, void* op2Ptr, 
       mpfr_init2(real1->mpfr_val, PRECISION);
       mpfrInit++;
       mpfr_set_d(real1->mpfr_val, op1, MPFR_RNDN);
-
       mpfrFlag1 = true; 
     }
   }
@@ -488,7 +506,7 @@ extern "C" void checkBranch(double op1, void* op1Ptr, double op2, void* op2Ptr, 
     mpfr_init2 (real2->mpfr_val, PRECISION); 
     mpfrInit++;
     mpfr_set_d (real2->mpfr_val, op2, MPFR_RNDD);
-      mpfrFlag2 = true; 
+    mpfrFlag2 = true; 
   }
   else{
     real2 = getReal(op2Ptr);
@@ -587,8 +605,7 @@ extern "C" void checkBranch(double op1, void* op1Ptr, double op2, void* op2Ptr, 
     delete real2;
     real2 = NULL;
   }
-//  if(realRes != computedRes)
-//    fprintf (pFile, "Branch flip\n");
+  updateBranchError(realRes, computedRes, insIndex);
 }
 
 extern "C" size_t setRealReg(size_t index, double value){
@@ -623,18 +640,15 @@ extern "C" void setRealFunArg(size_t index, void *funAddr, void *toAddr/*store 2
         mpfr_set(toReal->mpfr_val, fromReal->mpfr_val, MPFR_RNDD);
         //memcpy(toReal,fromReal, sizeof(struct Real));
         std::map<size_t, struct Real*>::iterator it = shadowMap.find(toAddrInt); 
-        //TODO: instead of updating shadow mem, we should clean it once function exit
-
         if (it != shadowMap.end()){
-          it->second = toReal;
-          if(debug)
-            std::cout<<"setRealFunArg update shadow mem:"<<toAddrInt<<"\n";
+          mpfr_clear(it->second->mpfr_val);
+          delete(it->second);
+          shadowMap.erase(it);
+          mpfrClear++;
         }
-        else{
-          shadowMap.insert(std::pair<size_t, struct Real*>(toAddrInt, toReal)); 
-          if(debug)
-            std::cout<<"setRealFunArg insert shadow mem:"<<toAddrInt<<"\n";
-        }
+        shadowMap.insert(std::pair<size_t, struct Real*>(toAddrInt, toReal)); 
+        if(debug)
+          std::cout<<"setRealFunArg insert shadow mem:"<<toAddrInt<<"\n";
       }
   }
   else{
@@ -645,15 +659,14 @@ extern "C" void setRealFunArg(size_t index, void *funAddr, void *toAddr/*store 2
 
     std::map<size_t, struct Real*>::iterator it = shadowMap.find(toAddrInt); 
     if (it != shadowMap.end()){
-      it->second = toReal;
-      if(debug)
-        std::cout<<"setRealFunArg update shadow mem:"<<toAddrInt<<"\n";
+      mpfr_clear(it->second->mpfr_val);
+      delete(it->second);
+      shadowMap.erase(it);
+      mpfrClear++;
     }
-    else{
-      shadowMap.insert(std::pair<size_t, struct Real*>(toAddrInt, toReal)); 
-      if(debug)
-        std::cout<<"setRealFunArg insert shadow mem:"<<toAddrInt<<"\n";
-    }
+    shadowMap.insert(std::pair<size_t, struct Real*>(toAddrInt, toReal)); 
+    if(debug)
+      std::cout<<"setRealFunArg insert shadow mem:"<<toAddrInt<<"\n";
   }
 }
 
@@ -668,7 +681,6 @@ extern "C" void setRealReturn(void *toAddr){
     mpfrInit++;
     mpfr_set(toReal->mpfr_val, fromReal->mpfr_val, MPFR_RNDD);
     cleanup(idx);
-//    memcpy(toReal,fromReal, sizeof(struct Real));
     shadowMap.insert(std::pair<size_t, struct Real*>(toAddrInt, toReal)); 
     if(debug)
       std::cout<<"setRealReturn insert shadow mem:"<<toAddrInt<<"\n";
@@ -683,7 +695,7 @@ extern "C" void setRealTemp(void *toAddr, void *fromAddr){
   if(shadowMap.count(toAddrInt) != 0){ //just copy from one shadow to another if found in map
     Real* fromReal = shadowMap.at(fromAddrInt);
     Real* toReal = shadowMap.at(toAddrInt);
-    memcpy(toReal,fromReal, sizeof(struct Real));
+    mpfr_set(toReal->mpfr_val, fromReal->mpfr_val, MPFR_RNDD);
     if(debug)
       std::cout<<"setRealTemp shadow mem copied from:"<<fromAddrInt<<" to:"<<toAddrInt<<"\n";
   }
@@ -695,7 +707,7 @@ extern "C" void setRealTemp(void *toAddr, void *fromAddr){
       mpfrInit++;
       mpfr_set(toReal->mpfr_val, fromReal->mpfr_val, MPFR_RNDD);
     
-      shadowMap.insert(std::pair<size_t, struct Real*>(toAddrInt, fromReal)); 
+      shadowMap.insert(std::pair<size_t, struct Real*>(toAddrInt, toReal)); 
       if(debug)
         std::cout<<"setRealTemp insert shadow mem from:"<<fromAddrInt<<" to:"<<toAddrInt<<"\n";
     }
@@ -705,23 +717,6 @@ extern "C" void setRealTemp(void *toAddr, void *fromAddr){
 extern "C" void trackReturn(void *Index){
   size_t Idx = (size_t) Index;
   retTrack.push(Idx);
-}
-
-extern "C" void finish(){
-   int n;
-   char name [100];
-  std::cout<<"size of Real:"<<sizeof(struct Real)<<"\n";
-  std::cout<<"size of mpfr:"<<sizeof(mpfr_t)<<"\n";
-  std::cout<<"mpfrInit:"<<mpfrInit<<"\n";
-  std::cout<<"mpfrClear:"<<mpfrClear<<"\n";
-  bool flag = false;
-  for (std::map<size_t, struct ErrorAggregate*>::iterator it=errorMap.begin(); it!=errorMap.end(); ++it){
-    double avg = it->second->total_error/it->second->num_evals;
-    std::cout<<"\nfinish: num evals:"<<it->second->num_evals<<"\n";
-    printf("avg error %f\n",avg);
-    //fprintf (pFile, "%f bits average error\n",avg);
-  }
-  fclose (pFile);
 }
 
 float getFloat(Real *real){  
@@ -789,6 +784,31 @@ long long floatToInt(double f)
     return r;
 }
 
+void updateBranchError(bool realRes, bool computedRes, size_t insIndex){
+  struct BrError* brErr;
+  if(errBrMap.count(insIndex) != 0){ 
+    brErr = errBrMap.at(insIndex);
+  }
+  else{
+    brErr = new BrError;
+    initializeBrError(brErr);
+  }
+ 
+  if(realRes != computedRes){
+    brErr->incorrRes += 1;
+  }
+  else{
+    brErr->corrRes += 1; 
+  }
+  brErr->num_evals += 1;
+
+  std::map<size_t, struct BrError*>::iterator it = errBrMap.find(insIndex); 
+  if (it != errBrMap.end()){
+    it->second = brErr; 
+  }
+  errBrMap.insert(std::pair<size_t, struct BrError*>(insIndex, brErr)); 
+}
+
 double updateError(Real *realVal, double computedVal, size_t insIndex){
   if(debug)
     std::cout<<"updateError: computedVal:"<<computedVal<<" insIndex:"<<insIndex<<"\n";
@@ -811,7 +831,9 @@ double updateError(Real *realVal, double computedVal, size_t insIndex){
   eagg->total_error += bitsError;
   eagg->num_evals += 1;
    if (debug){
-    std::cout<<"\neagg->num_evals:"<<eagg->num_evals<<"\nThe shadow value is ";
+    std::cout<<"\neagg->max_error:"<<eagg->max_error<<"\n";
+    std::cout<<"\neagg->num_evals:"<<eagg->num_evals<<" eagg->total_error:"<<eagg->total_error<<"\n";
+    std::cout<<"\nThe shadow value is ";
     printReal(realVal);
     if (computedVal != computedVal){
       std::cout<<", but NaN was computed.\n";
@@ -825,10 +847,10 @@ double updateError(Real *realVal, double computedVal, size_t insIndex){
   }
   
   std::map<size_t, struct ErrorAggregate*>::iterator it = errorMap.find(insIndex); 
-  if (it != errorMap.end())
-    it->second = eagg;
-  else
-    errorMap.insert(std::pair<size_t, struct ErrorAggregate*>(insIndex, eagg)); 
+  if (it != errorMap.end()){
+    it->second = eagg; 
+  } 
+  errorMap.insert(std::pair<size_t, struct ErrorAggregate*>(insIndex, eagg)); 
 
   return bitsError;
 }
@@ -850,10 +872,35 @@ unsigned long ulpd(double x, double y){
   return xx >= yy ? xx - yy : yy - xx;
 }
        
+void initializeBrError(BrError *err){ 
+  err->incorrRes = 0;
+  err->corrRes = 0;
+  err->num_evals = 0;
+}
+
 void initializeErrorAggregate(ErrorAggregate *eagg){ 
   eagg->max_error = -1;
   eagg->total_error = 0;
   eagg->num_evals = 0;
 }
 
+extern "C" void finish(){
+  int n;
+  char name [100];
+  bool flag = false;
+  std::cout<<"mpfrInit:"<<mpfrInit<<"\n";
+  std::cout<<"mpfrClear:"<<mpfrClear<<"\n";
+  for (std::map<size_t, struct ErrorAggregate*>::iterator it=errorMap.begin(); it!=errorMap.end(); ++it){
+    double avg = it->second->total_error/it->second->num_evals;
+    fprintf (pFile, "%f bits average error\n",avg);
+    fprintf (pFile, "%f max  error\n\n",  it->second->max_error);
+  }
+  for (std::map<size_t, struct BrError*>::iterator it=errBrMap.begin(); it!=errBrMap.end(); ++it){
+    fprintf (pFile, "compare\n");
+    fprintf (pFile, "branch flipped %lld",  it->second->incorrRes);
+    fprintf (pFile, " times out of %lld",  it->second->num_evals);
+    fprintf (pFile, " compare\n\n");
+  }
+  fclose (pFile);
+}
 
