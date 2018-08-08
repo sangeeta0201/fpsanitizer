@@ -197,11 +197,11 @@ extern "C" size_t handleMathFunc(size_t funcCode, double op1, void *op1Ptr,
   }
   else
     std::cout<<"handleMathFunc: Error!!!\n";
-    std::cout<<"handleMathFunc res:\n";
-    mpfr_out_str (stdout, 10, 0, real_res->mpfr_val, MPFR_RNDD);
+    std::cout<<"handleMathFunc res:";
+    printReal(real_res);
     std::cout<<"\n";
-    std::cout<<"handleMathFunc op1:\n";
-    mpfr_out_str (stdout, 10, 0, real1->mpfr_val, MPFR_RNDD);
+    std::cout<<"handleMathFunc op1:";
+    printReal(real1);
     std::cout<<"\n";
   std::map<size_t, struct Real*>::iterator it = shadowMap.find(newRegIdx); 
   if (it != shadowMap.end()){
@@ -339,7 +339,7 @@ void handleOp(size_t opCode, mpfr_t *res, mpfr_t *op1, mpfr_t *op2){
       // do nothing
       break;
   } 
-  if(debug){
+  if(0){
     std::cout<<"handleOp res:\n";
     mpfr_out_str (stdout, 10, 0, *res, MPFR_RNDD);
     std::cout<<"\n";
@@ -440,6 +440,13 @@ extern "C" size_t computeReal(size_t opCode, void* op1Ptr, void* op2Ptr, double 
   mpfrInit++;
 
   handleOp(opCode, &(real_res->mpfr_val), &(real1->mpfr_val), &(real2->mpfr_val));
+  std::cout<<"res:";
+  printReal(real_res);
+  std::cout<<"\nop1:";
+  printReal(real1);
+  std::cout<<"\nop2:";
+  printReal(real2);
+  std::cout<<"\n";
  
   std::map<size_t, struct Real*>::iterator it = shadowMap.find(newRegIdx); 
   if (it != shadowMap.end()){
@@ -681,6 +688,13 @@ extern "C" void setRealReturn(void *toAddr){
     mpfrInit++;
     mpfr_set(toReal->mpfr_val, fromReal->mpfr_val, MPFR_RNDD);
     cleanup(idx);
+    std::map<size_t, struct Real*>::iterator it = shadowMap.find(toAddrInt); 
+    if (it != shadowMap.end()){
+      mpfr_clear(it->second->mpfr_val);
+      delete(it->second);
+      shadowMap.erase(it);
+      mpfrClear++;
+    }
     shadowMap.insert(std::pair<size_t, struct Real*>(toAddrInt, toReal)); 
     if(debug)
       std::cout<<"setRealReturn insert shadow mem:"<<toAddrInt<<"\n";
@@ -734,10 +748,10 @@ void printReal(Real *real){
   char* shadowValStr;
   mpfr_exp_t shadowValExpt;
 
-//  shadowValStr = mpfr_get_str(NULL, &shadowValExpt, 10, 15, real->mpfr_val, MPFR_RNDN);
-//  printf("%c.%se%ld", shadowValStr[0], shadowValStr+1, shadowValExpt-1);
-//  mpfr_free_str(shadowValStr);
-  mpfr_out_str (stdout, 10, 0, real->mpfr_val, MPFR_RNDD);
+  shadowValStr = mpfr_get_str(NULL, &shadowValExpt, 10, 15, real->mpfr_val, MPFR_RNDN);
+  printf("%c.%se%ld", shadowValStr[0], shadowValStr+1, shadowValExpt-1);
+  mpfr_free_str(shadowValStr);
+//  mpfr_out_str (stdout, 10, 0, real->mpfr_val, MPFR_RNDD);
 } 
 
 void ppFloat(double val){                                                                                                         
@@ -830,7 +844,7 @@ double updateError(Real *realVal, double computedVal, size_t insIndex){
   }
   eagg->total_error += bitsError;
   eagg->num_evals += 1;
-   if (debug){
+   if (1){
     std::cout<<"\neagg->max_error:"<<eagg->max_error<<"\n";
     std::cout<<"\neagg->num_evals:"<<eagg->num_evals<<" eagg->total_error:"<<eagg->total_error<<"\n";
     std::cout<<"\nThe shadow value is ";

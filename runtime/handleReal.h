@@ -6,7 +6,7 @@
 #include <vector>
 #include <stack>
 
-#define PRECISION 100
+#define PRECISION 1000
 
 struct ErrorAggregate {
   double max_error;
@@ -45,6 +45,7 @@ void initializeBrError(BrError *err);
 double updateError(Real *realVal, double computedVal, size_t insIndex);
 void updateBranchError(bool realRes, bool computedRes, size_t insIndex);
 void initializeErrorAggregate(ErrorAggregate *eagg);
+void printReal(Real *real);
 /*
 When we compute any floating point operation on real, we save the result in shadow map with its value 
 and return the address of this saved value to LLVM Pass. LLVM pass creates the mapping of real result and 
