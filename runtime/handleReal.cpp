@@ -4,7 +4,7 @@
 #include <queue>
 
 /*TODO : 
-1. Handle all math functions
+1. Handle const in llvm - gsl-modpi.c
 2. Clean up shadow
 */
 #define debug 1
@@ -174,21 +174,27 @@ extern "C" size_t handleMathFunc(size_t funcCode, double op1, void *op1Ptr,
         mpfr_sqrt(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
         break;
       case 2: //floor
+        std::cout<<"handleMathFunc: floor:\n";
         mpfr_floor(real_res->mpfr_val, real1->mpfr_val);
         break;
       case 3: //tan
+        std::cout<<"handleMathFunc: tan:\n";
         mpfr_tan(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
         break;
       case 4: //sin
+        std::cout<<"handleMathFunc: sin:\n";
         mpfr_sin(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
         break;
       case 5: //cos
+        std::cout<<"handleMathFunc: cos:\n";
         mpfr_cos(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
         break;
       case 6: //atan
+        std::cout<<"handleMathFunc: atan:\n";
         mpfr_atan(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
         break;
       case 8: //atan
+        std::cout<<"handleMathFunc: abs:\n";
         mpfr_abs(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
         break;
       default:
@@ -859,7 +865,7 @@ double updateError(Real *realVal, double computedVal, size_t insIndex){
     printf("%f bits error (%llu ulps)\n",
                 bitsError, ulpsError);
   }
-  
+  std::cout<<"\n\n"; 
   std::map<size_t, struct ErrorAggregate*>::iterator it = errorMap.find(insIndex); 
   if (it != errorMap.end()){
     it->second = eagg; 

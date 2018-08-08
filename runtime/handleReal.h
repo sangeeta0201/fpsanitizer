@@ -6,7 +6,7 @@
 #include <vector>
 #include <stack>
 
-#define PRECISION 1000
+#define PRECISION 10000
 
 struct ErrorAggregate {
   double max_error;
