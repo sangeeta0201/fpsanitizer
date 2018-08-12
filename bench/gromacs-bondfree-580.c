@@ -1,12 +1,12 @@
 #include <math.h>
 #include <stdio.h>
  
-static inline float iprod(float* a,float* b)
+static inline double iprod(double* a,double* b)
 {
   return (a[0]*b[0]+a[1]*b[1]+a[2]*b[2]);
 }
 
-float r_kj[10][3] = {
+double r_kj[10][3] = {
   {268453443323035648, 0.71653062105178833008, 1389.514892578125},
   {2.0770905828637609147e-10, 4.5552733528942065653e-24, 2.793811015866509706e-10},
   {0.092040725052356719971, 0.0022920905612409114838, 5.4301075065642613301e-21},
@@ -20,9 +20,11 @@ float r_kj[10][3] = {
 };
 
 int main() {
-  float nrkj2, nrkj;
-  for (int i = 0; i < 10; i++){
+  double nrkj2, nrkj;
+//  int i =0;
+  for (int i = 0; i < 2; i++){
     nrkj2 = iprod(r_kj[i], r_kj[i]);
+    printf("********nrkj2*****:%e\n",nrkj2);
     nrkj = sqrt(nrkj2);
     printf("%e\n", nrkj);
   }

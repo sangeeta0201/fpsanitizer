@@ -14,7 +14,7 @@
 
 #define OMEGA (1.95)
 
-#define OUTPUT_PRECISION float
+#define OUTPUT_PRECISION double
 
 #define BOOL int
 #define TRUE (-1)

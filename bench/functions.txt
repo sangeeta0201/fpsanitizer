@@ -2,3 +2,5 @@ main
 calcY
 add
 addTwo
+iprod
+sum

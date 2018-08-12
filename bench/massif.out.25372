@@ -1,0 +1,81 @@
+desc: (none)
+cmd: ./memorytest.out
+time_unit: i
+#-----------
+snapshot=0
+#-----------
+time=0
+mem_heap_B=0
+mem_heap_extra_B=0
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=1
+#-----------
+time=2501193
+mem_heap_B=72704
+mem_heap_extra_B=8
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=2
+#-----------
+time=2507866
+mem_heap_B=72728
+mem_heap_extra_B=24
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=3
+#-----------
+time=2514597
+mem_heap_B=72752
+mem_heap_extra_B=40
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=4
+#-----------
+time=2514956
+mem_heap_B=72776
+mem_heap_extra_B=56
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=5
+#-----------
+time=2519468
+mem_heap_B=72776
+mem_heap_extra_B=56
+mem_stacks_B=0
+heap_tree=peak
+n2: 72776 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 72704 0x5447344: ??? (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.24)
+  n1: 72704 0x40106B8: call_init.part.0 (dl-init.c:72)
+   n1: 72704 0x40107C9: _dl_init (dl-init.c:30)
+    n0: 72704 0x4000C68: ??? (in /lib/x86_64-linux-gnu/ld-2.23.so)
+ n0: 72 in 1 place, below massif's threshold (1.00%)
+#-----------
+snapshot=6
+#-----------
+time=2519468
+mem_heap_B=72752
+mem_heap_extra_B=40
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=7
+#-----------
+time=2519548
+mem_heap_B=72728
+mem_heap_extra_B=24
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=8
+#-----------
+time=2519628
+mem_heap_B=72704
+mem_heap_extra_B=8
+mem_stacks_B=0
+heap_tree=empty

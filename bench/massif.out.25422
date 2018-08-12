@@ -1,0 +1,55 @@
+desc: (none)
+cmd: ./memorytest_d.out
+time_unit: i
+#-----------
+snapshot=0
+#-----------
+time=0
+mem_heap_B=0
+mem_heap_extra_B=0
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=1
+#-----------
+time=2500291
+mem_heap_B=72704
+mem_heap_extra_B=8
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=2
+#-----------
+time=2504673
+mem_heap_B=73728
+mem_heap_extra_B=16
+mem_stacks_B=0
+heap_tree=empty
+#-----------
+snapshot=3
+#-----------
+time=2517813
+mem_heap_B=73728
+mem_heap_extra_B=16
+mem_stacks_B=0
+heap_tree=peak
+n2: 73728 (heap allocation functions) malloc/new/new[], --alloc-fns, etc.
+ n1: 72704 0x5447344: ??? (in /usr/lib/x86_64-linux-gnu/libstdc++.so.6.0.24)
+  n1: 72704 0x40106B8: call_init.part.0 (dl-init.c:72)
+   n1: 72704 0x40107C9: _dl_init (dl-init.c:30)
+    n0: 72704 0x4000C68: ??? (in /lib/x86_64-linux-gnu/ld-2.23.so)
+ n1: 1024 0x59C71D3: _IO_file_doallocate (filedoalloc.c:127)
+  n1: 1024 0x59D5592: _IO_doallocbuf (genops.c:398)
+   n1: 1024 0x59D48F6: _IO_file_overflow@@GLIBC_2.2.5 (fileops.c:820)
+    n1: 1024 0x59D328B: _IO_file_xsputn@@GLIBC_2.2.5 (fileops.c:1331)
+     n1: 1024 0x59A723F: vfprintf (vfprintf.c:1320)
+      n1: 1024 0x59AF897: printf (printf.c:33)
+       n0: 1024 0x4006B7: main (memorytest_d.cpp:11)
+#-----------
+snapshot=4
+#-----------
+time=2517813
+mem_heap_B=72704
+mem_heap_extra_B=8
+mem_stacks_B=0
+heap_tree=empty
