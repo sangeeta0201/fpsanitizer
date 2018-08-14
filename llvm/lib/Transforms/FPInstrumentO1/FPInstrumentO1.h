@@ -69,7 +69,7 @@ public:
   static char ID; // Pass identification, replacement for typeid
 private:
   SmallVector<Function*, 8> AllFuncList;
-  std::map<Instruction*, SIToFPInst*> TrackIToFCast;
+  std::map<Instruction*, Instruction*> TrackIToFCast;
   //this is used to track address of a variable loaded from memory 
   std::map<Instruction*, Value*> LoadMap;
   //this is used to track reg index

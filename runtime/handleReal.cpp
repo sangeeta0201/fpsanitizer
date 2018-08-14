@@ -34,9 +34,7 @@ extern "C" size_t getAddr(void *Addr){
   return AddrInt;
 }
 
-extern "C" void addFunArg(size_t argNo, void *funAddr, void *argAddr){
-  size_t funAddrInt = (size_t) funAddr;
-  size_t argAddrInt = (size_t) argAddr;
+extern "C" void addFunArg(size_t argNo, size_t funAddrInt, size_t argAddrInt){
   std::map<size_t, size_t> data;
   data.insert(std::pair<size_t, size_t>(funAddrInt, argNo));
   shadowFunArgMap.insert(std::pair<std::map<size_t, size_t>, size_t>(data, argAddrInt));
@@ -864,6 +862,12 @@ extern "C" void finish(){
   int n;
   char name [100];
   bool flag = false;
+  for (std::map<size_t, struct Real*>::iterator it=shadowMap.begin(); it!=shadowMap.end(); ++it){
+    mpfr_clear(it->second->mpfr_val);
+    delete(it->second);
+    shadowMap.erase(it);
+    mpfrClear++;
+  }
   std::cout<<"mpfrInit:"<<mpfrInit<<"\n";
   std::cout<<"mpfrClear:"<<mpfrClear<<"\n";
   for (std::map<size_t, struct ErrorAggregate*>::iterator it=errorMap.begin(); it!=errorMap.end(); ++it){

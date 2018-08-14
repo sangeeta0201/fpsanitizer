@@ -1,9 +1,9 @@
-CFLAGS=-g -std=c11 -L$(FPROOT)/obj -lfpsanitizer -lmpfr -lm
+CFLAGS=-O2 -g -std=c11 -L$(FPROOT)/obj -lfpsanitizer -lmpfr -lm
 CAMLFLAGs=
 CSRC = $(wildcard *.c)
 COUT = $(patsubst %.c,%.c.out,$(CSRC))
 
-CC = clang -Xclang -load -Xclang /home/sangeeta/fpsanitizer/build/lib/LLVMFPInstrument.so
+CC = clang -Xclang -load -Xclang /home/sangeeta/fpsanitizer/build/lib/LLVMFPInstrumentO1.so
 
 all: $(COUT) $(CAMLOUT)
 
