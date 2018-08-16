@@ -1,4 +1,4 @@
-//===-llvm/lib/Transforms/FPInstrumentO1.h  - Interface ----------*- C++ -*-===//
+//===-llvm/lib/Transforms/FPInstrument.h  - Interface ----------*- C++ -*-===//
 //
 //
 //
@@ -20,10 +20,10 @@
 using namespace llvm;
 
 namespace {
-struct FPInstrumentO1 : public ModulePass {
+struct FPInstrument : public ModulePass {
   
 public:
-  FPInstrumentO1() : ModulePass(ID) {}
+  FPInstrument() : ModulePass(ID) {}
 
   virtual bool runOnModule(Module &module);
   //it returns true if function is in the list of instrumented functions

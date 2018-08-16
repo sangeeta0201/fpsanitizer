@@ -1,4 +1,4 @@
-#include "FPInstrumentO1.h"
+#include "FPInstrument.h"
 #include "llvm/IR/CallSite.h"  
 #include "llvm/IR/ConstantFolder.h"
 
@@ -22,7 +22,7 @@ Test this with microbenchmark
   %div148 = fdiv double %conv, 4.950000e+01
   %242 = bitcast i8* null to i8*
 */
-bool FPInstrumentO1::runOnModule(Module &M) {
+bool FPInstrument::runOnModule(Module &M) {
  
   size_t count = 0;
   //All functions needed to be instrumented are added in AllFuncList 
@@ -220,7 +220,7 @@ bool FPInstrumentO1::runOnModule(Module &M) {
 
 //take name of the function and check if it is in list of functions given by 
 //developer and return true else false.
-bool FPInstrumentO1::instrumentFunctions(StringRef FN) {
+bool FPInstrument::instrumentFunctions(StringRef FN) {
   std::ifstream infile("functions.txt");
   std::string line;
   while (std::getline(infile, line)) {
@@ -232,7 +232,7 @@ bool FPInstrumentO1::instrumentFunctions(StringRef FN) {
 }
 
 //creates a finish call to run time
-void FPInstrumentO1::handleMainRet(Instruction *I, Function &F){
+void FPInstrument::handleMainRet(Instruction *I, Function &F){
   Module *M = F.getParent();
   IRBuilder<> IRB(I);
   Type* VoidTy = Type::getVoidTy(M->getContext());
@@ -256,7 +256,7 @@ of some floating point instruction) and calls respective function at run time to
 If value is function argument then index for shadow memory is the function address and index of the argument for all 
 other cases index is the address where value is stored.
 **/
-void FPInstrumentO1::setReal(Instruction *I, Value *ToAddr, Value *OP, Function &F){
+void FPInstrument::setReal(Instruction *I, Value *ToAddr, Value *OP, Function &F){
   Module *M = F.getParent();
   IRBuilder<> IRB(I);
   Type *OpTy = OP->getType();
@@ -325,7 +325,7 @@ This is called for fpext. The 'fpext' instruction extends the value from a small
 floating point type to a larger floating point type. We need to find small fp stored 
 in LoadMap and link the fpext instruction with it.
 **/
-void FPInstrumentO1::setRealCastFToD(Instruction *I, Value *OP, Function &F){
+void FPInstrument::setRealCastFToD(Instruction *I, Value *OP, Function &F){
   IRBuilder<> IRB(I);
   Instruction *OpIns = dyn_cast<Instruction>(I->getOperand(0));
   if(RegIdMap.count(OpIns) != 0){
@@ -338,7 +338,7 @@ void FPInstrumentO1::setRealCastFToD(Instruction *I, Value *OP, Function &F){
 }
 
 //TODO: Check this later with example and write comment for it
-void FPInstrumentO1::setRealCastIToD(Instruction *I, Value *ToAddr, Value *OP, Function &F){
+void FPInstrument::setRealCastIToD(Instruction *I, Value *ToAddr, Value *OP, Function &F){
   //Type cast from int to double always changes interger to integer.0, I am doing this in runtime.
   Module *M = F.getParent();
   IRBuilder<> IRB(I);
@@ -360,7 +360,7 @@ void FPInstrumentO1::setRealCastIToD(Instruction *I, Value *ToAddr, Value *OP, F
 To print real value of register(temporary) we need to call runtime function with the index of
 register.
 **/
-void FPInstrumentO1::createPrintFunc(Instruction *I, CallInst *CI, Function &F){
+void FPInstrument::createPrintFunc(Instruction *I, CallInst *CI, Function &F){
   Module *M = F.getParent();
   IRBuilder<> IRB(I);
   Function *Callee = CI->getCalledFunction();
@@ -383,7 +383,7 @@ It passes the argument number, function address and argument address to addFunAr
 function address and argument number as index of argument address in a map. When called function is 
 parsed it will ask this map for address of the argument using index(function address and argument number).
 **/
-void FPInstrumentO1::handleFunc(Instruction *I, CallInst *CI, Function &F){
+void FPInstrument::handleFunc(Instruction *I, CallInst *CI, Function &F){
   Module *M = F.getParent();
   IRBuilder<> IRB(I);
   Function *Callee = CI->getCalledFunction();
@@ -419,7 +419,7 @@ void FPInstrumentO1::handleFunc(Instruction *I, CallInst *CI, Function &F){
   }
 }
 
-void FPInstrumentO1::handleFuncInit(Function &F){
+void FPInstrument::handleFuncInit(Function &F){
   Function::iterator Fit = F.begin();
   BasicBlock &BB = *Fit; 
   BasicBlock::iterator BBit = BB.begin();
@@ -441,7 +441,7 @@ void FPInstrumentO1::handleFuncInit(Function &F){
   IRB.CreateCall(FuncInit, {ToAddrIdx});
 }
 
-void FPInstrumentO1::handleFuncExit(Instruction *I, BasicBlock *BB, Function &F){
+void FPInstrument::handleFuncExit(Instruction *I, BasicBlock *BB, Function &F){
   Module *M = F.getParent();
   IRBuilder<> IRB(I);
 
@@ -458,7 +458,7 @@ void FPInstrumentO1::handleFuncExit(Instruction *I, BasicBlock *BB, Function &F)
   IRB.CreateCall(FuncExit, {ToAddrIdx});
 }
 
-void FPInstrumentO1::handleLoad(Instruction *I, LoadInst *LI, Function &F){
+void FPInstrument::handleLoad(Instruction *I, LoadInst *LI, Function &F){
   Module *M = F.getParent();
   IRBuilder<> IRB(I);
   Type* VoidTy = Type::getVoidTy(M->getContext());
@@ -473,7 +473,7 @@ void FPInstrumentO1::handleLoad(Instruction *I, LoadInst *LI, Function &F){
   RegIdMap.insert(std::pair<Instruction*, Instruction*>(I, NewIns)); 
 }
 
-void FPInstrumentO1::handleAlloca(Instruction *I, BasicBlock *BB, AllocaInst *A, Function &F){
+void FPInstrument::handleAlloca(Instruction *I, BasicBlock *BB, AllocaInst *A, Function &F){
   Module *M = F.getParent();
 
   Instruction *Next = getNextInstruction(I, BB);
@@ -494,7 +494,7 @@ void FPInstrumentO1::handleAlloca(Instruction *I, BasicBlock *BB, AllocaInst *A,
 //We need to call runtime function once floating point computation is executed, since
 //we need to pass computed result to runtime to compare. To do that we need to instrument
 //call after insted of before.
-Instruction* FPInstrumentO1::getNextInstruction(Instruction *I, BasicBlock *BB){
+Instruction* FPInstrument::getNextInstruction(Instruction *I, BasicBlock *BB){
   Instruction *Next;
   for (BasicBlock::iterator BBit = BB->begin(), BBend = BB->end(); 
               BBit != BBend; ++BBit) {
@@ -508,7 +508,7 @@ Instruction* FPInstrumentO1::getNextInstruction(Instruction *I, BasicBlock *BB){
 }
 
 //This function handles any math function with three arguments, otherwise its similar to handleMathFunc
-void FPInstrumentO1::handleMathFunc3Args(Instruction *I, BasicBlock *BB, CallInst *CI, Function &F, int FuncCode){
+void FPInstrument::handleMathFunc3Args(Instruction *I, BasicBlock *BB, CallInst *CI, Function &F, int FuncCode){
   if(FuncCode == 0){
     return;
   }
@@ -560,7 +560,7 @@ temp loaded from memory, temp - result of another fp instruction, temp - registe
 address of temp loaded from memory or index for register and call runtime with the indices to perform
 mpfr equivalent function.
 **/
-void FPInstrumentO1::handleMathFunc(Instruction *I, BasicBlock *BB, CallInst *CI, Function &F, int FuncCode){
+void FPInstrument::handleMathFunc(Instruction *I, BasicBlock *BB, CallInst *CI, Function &F, int FuncCode){
   if(FuncCode == 0){
     return;
   }
@@ -618,7 +618,7 @@ run time function setRealReg and provides index of the constant and value of the
 setRealReg creates the entry in shadow memory with this index and value and return index.
 If incoming value is register then we find the index in RegIdMap and add it to new phi node. 
 **/
-void FPInstrumentO1::handleNewPhi(Function &F){
+void FPInstrument::handleNewPhi(Function &F){
   Module *M = F.getParent();
   Type* DoubleTy = Type::getDoubleTy(M->getContext());
   Type* Int8Ty = Type::getInt8Ty(M->getContext());
@@ -674,7 +674,7 @@ void FPInstrumentO1::handleNewPhi(Function &F){
 /**
 This create a new phi node for every phi node of type double.
 **/
-void FPInstrumentO1::handlePhi(Instruction *I, PHINode *PN, Function &F){
+void FPInstrument::handlePhi(Instruction *I, PHINode *PN, Function &F){
   Module *M = F.getParent();
   Type* Int64Ty = Type::getInt64Ty(M->getContext());
   IRBuilder<> IRB(I);
@@ -691,7 +691,7 @@ void FPInstrumentO1::handlePhi(Instruction *I, PHINode *PN, Function &F){
 It handles operands of BinOp instruction. It check whether operand is a constant or is memory
 load or its a register so that we can trac index of operand.
 **/
-void FPInstrumentO1::handleOperand(Instruction *I, Instruction **Index, Value* OP, Function &F, 
+void FPInstrument::handleOperand(Instruction *I, Instruction **Index, Value* OP, Function &F, 
                                             bool *IsConstant, bool *IsReg){
   IRBuilder<> IRB(I);
   Module *M = F.getParent();
@@ -712,12 +712,12 @@ void FPInstrumentO1::handleOperand(Instruction *I, Instruction **Index, Value* O
 /**
 It provides unique index to all instructions.
 **/
-void FPInstrumentO1::handleIns(Instruction *I){
+void FPInstrument::handleIns(Instruction *I){
   InsMap.insert(std::pair<Instruction*, size_t>(I, InsCount));
   InsCount++; 
 }
 
-void FPInstrumentO1::handleSelect(Instruction *I, SelectInst *SI, Function &F){
+void FPInstrument::handleSelect(Instruction *I, SelectInst *SI, Function &F){
   IRBuilder<> IRB(I);
   Module *M = F.getParent();
   Type* DoubleTy = Type::getDoubleTy(M->getContext());
@@ -787,7 +787,7 @@ We need four kinds of run time handlers - checkBranchCC (both arguments are cons
 arguments are temp), checkBranchCV (operand 1 is constant and operand 2 is temp ).
 **/
 #if 1
-void FPInstrumentO1::handleFcmp(Instruction *I, BasicBlock *BB, FCmpInst *FCI, Function &F){
+void FPInstrument::handleFcmp(Instruction *I, BasicBlock *BB, FCmpInst *FCI, Function &F){
   errs()<<"handleFcmp:"<<*FCI<<"\n";
   Instruction *Next = getNextInstruction(I, BB);
   IRBuilder<> IRB(Next);
@@ -849,7 +849,7 @@ void FPInstrumentO1::handleFcmp(Instruction *I, BasicBlock *BB, FCmpInst *FCI, F
 This is called for every BinOp instruction. It tracks operands indices and call runtime with 
 those indices so that equivalent operation can be performed with mpfr.
 **/
-void FPInstrumentO1::handleOp(Instruction *I, BasicBlock *BB, BinaryOperator* BO, Function &F){
+void FPInstrument::handleOp(Instruction *I, BasicBlock *BB, BinaryOperator* BO, Function &F){
   Instruction *Next = getNextInstruction(I, BB);
   IRBuilder<> IRB(Next);
   Module *M = F.getParent();
@@ -920,7 +920,7 @@ void FPInstrumentO1::handleOp(Instruction *I, BasicBlock *BB, BinaryOperator* BO
   }
 }
 
-void FPInstrumentO1::handleFuncReturn(Instruction *I, ReturnInst *RI, Function &F){
+void FPInstrument::handleFuncReturn(Instruction *I, ReturnInst *RI, Function &F){
   Module *M = F.getParent();
   IRBuilder<> IRB(I);
 
@@ -945,7 +945,7 @@ void FPInstrumentO1::handleFuncReturn(Instruction *I, ReturnInst *RI, Function &
   }
 }
 
-void FPInstrumentO1::handleCleanup(Instruction *I, ReturnInst *RI, Function &F){
+void FPInstrument::handleCleanup(Instruction *I, ReturnInst *RI, Function &F){
   Module *M = F.getParent();
   IRBuilder<> IRB(I);
 
@@ -972,7 +972,7 @@ void FPInstrumentO1::handleCleanup(Instruction *I, ReturnInst *RI, Function &F){
 }
 
 void addFPPass(const PassManagerBuilder &Builder, legacy::PassManagerBase &PM) {
-  PM.add(new FPInstrumentO1());
+  PM.add(new FPInstrument());
 }
 
 RegisterStandardPasses SOpt(PassManagerBuilder::EP_OptimizerLast,
@@ -980,5 +980,5 @@ RegisterStandardPasses SOpt(PassManagerBuilder::EP_OptimizerLast,
 RegisterStandardPasses S(PassManagerBuilder::EP_EnabledOnOptLevel0,
                          addFPPass);
 
-char FPInstrumentO1::ID = 0;
-static const RegisterPass<FPInstrumentO1> Y("fpO1", "instrument fp operations", false, false);
+char FPInstrument::ID = 0;
+static const RegisterPass<FPInstrument> Y("fp", "instrument fp operations", false, false);
