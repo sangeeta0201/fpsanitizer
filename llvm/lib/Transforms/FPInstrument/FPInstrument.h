@@ -1,4 +1,4 @@
-//===-llvm/lib/Transforms/FPInstrument.h  - Interface ----------*- C++ -*-===//
+//===-llvm/lib/Transforms/FPInstrumentO1.h  - Interface ----------*- C++ -*-===//
 //
 //
 //
@@ -20,10 +20,10 @@
 using namespace llvm;
 
 namespace {
-struct FPInstrument : public ModulePass {
+struct FPInstrumentO1 : public ModulePass {
   
 public:
-  FPInstrument() : ModulePass(ID) {}
+  FPInstrumentO1() : ModulePass(ID) {}
 
   virtual bool runOnModule(Module &module);
   //it returns true if function is in the list of instrumented functions
@@ -44,7 +44,7 @@ public:
   //void handleOp(Instruction *I, BinaryOperator* BO, Function &F);
   void handleOp(Instruction *I, BasicBlock *BB, BinaryOperator* BO, Function &F);
   //this is called inside from handleOp to handle each operand, it it could be constant, temp or loaded from memory
-  BitCastInst* handleOperand(Instruction *I, Value* OP, Function &F, bool *IsConstant, bool *IsReg);
+  void handleOperand(Instruction *I, Instruction **Index, Value* OP, Function &F, bool *IsConstant, bool *IsReg);
   //it gives unique index to every instruction
   void handleIns(Instruction *I);
   //its called for every FCmpInst
@@ -64,10 +64,12 @@ public:
   void handleFuncExit(Instruction *I, BasicBlock *BB, Function &F);  
   void handleFuncInit(Function &F);  
   void handleAlloca(Instruction *I, BasicBlock *BB, AllocaInst *A, Function &F);  void handleCleanup(Instruction *I, ReturnInst *RI, Function &F); 
+  void handleSelect(Instruction *I, SelectInst *SI, Function &F);
+  void handleLoad(Instruction *I, LoadInst *LI, Function &F);
   static char ID; // Pass identification, replacement for typeid
 private:
   SmallVector<Function*, 8> AllFuncList;
-  std::map<Instruction*, SIToFPInst*> TrackIToFCast;
+  std::map<Instruction*, Instruction*> TrackIToFCast;
   //this is used to track address of a variable loaded from memory 
   std::map<Instruction*, Value*> LoadMap;
   //this is used to track reg index
@@ -91,7 +93,7 @@ private:
   //this is index for instructions
   size_t InsCount = 0;
   //these are handlers for run time functions
-  std::map<size_t, Value*> ComputeRealIns;
+  std::map<size_t, Instruction*> ComputeRealIns;
   Value* SetRealConstant;
   Value* SetRealTemp;
   Value* HandleOp;
@@ -108,7 +110,8 @@ private:
   Value* HandleAlloca;
   Value* FuncInit;
   Value* FuncExit;
-  
+  Value* GetAddr;
+  BitCastInst *BCNull;  
 };
 }
 
