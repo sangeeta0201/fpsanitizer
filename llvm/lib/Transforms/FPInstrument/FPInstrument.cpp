@@ -25,6 +25,13 @@ Test this with microbenchmark
 bool FPInstrument::runOnModule(Module &M) {
  
   size_t count = 0;
+  for (Module::iterator Mit = M.begin(), Mend = M.end(); Mit != Mend; ++Mit) {
+    Function &F = *Mit;
+    if (F.isDeclaration()) continue;
+		
+    std::string name = F.getName();
+    instrumentAllFunctions(name);
+  } 
   //All functions needed to be instrumented are added in AllFuncList 
   for (Module::iterator Mit = M.begin(), Mend = M.end(); Mit != Mend; ++Mit) {
     Function &F = *Mit;
@@ -58,13 +65,12 @@ bool FPInstrument::runOnModule(Module &M) {
     }
   }
   //All function arguments are given unique index and stored in ArgMap
+#if 1
   for (Function *F : AllFuncList) {
     Function::iterator Fit = F->begin();
     BasicBlock &BB = *Fit; 
     BasicBlock::iterator BBit = BB.begin();
     Instruction* I = &*BBit;
-    Value *V = ConstantPointerNull::get(PointerType::get(Type::getInt8Ty(M.getContext()), 0));
-    BCNull = new BitCastInst(V, PointerType::getUnqual(Type::getInt8Ty(M.getContext())),"", I);
     for (Function::arg_iterator ait = F->arg_begin(), aend = F->arg_end();
                 ait != aend; ++ait) {
       Argument *A = &*ait;
@@ -143,8 +149,11 @@ bool FPInstrument::runOnModule(Module &M) {
             case Instruction::Xor:
             case Instruction::BinaryOpsEnd:{}
           }
-       }
-       else if (CallInst *CI = dyn_cast<CallInst>(&I)){ //handle math library functions
+       } 
+			else if(ExtractValueInst *EVI = dyn_cast<ExtractValueInst>(&I)){
+				handleExtractValue(&I, EVI, *F);
+			}
+			else if (CallInst *CI = dyn_cast<CallInst>(&I)){ //handle math library functions
           Function *Callee = CI->getCalledFunction();
           if (Callee) {
             std::string name = Callee->getName();
@@ -182,6 +191,10 @@ bool FPInstrument::runOnModule(Module &M) {
               FuncCode = 8;
               handleMathFunc(&I, &BB, CI, *F, FuncCode);  //we handle math functions for fp
             }
+            else if(name == "log"){
+              FuncCode = 9;
+              handleMathFunc(&I, &BB, CI, *F, FuncCode);  //we handle math functions for fp
+            }
             if(name == "printValue") {
               createPrintFunc(&I, CI, *F);
             }
@@ -215,7 +228,19 @@ bool FPInstrument::runOnModule(Module &M) {
     ComputeRealIns.clear();
     NewPhiMap.clear(); 
   }
+#endif
   return true;
+}
+
+void FPInstrument::instrumentAllFunctions(std::string FN) {
+	std::ofstream myfile;
+	myfile.open("functions.txt", std::ios::out|std::ios::app);
+  if (myfile.is_open())
+  {
+    myfile <<FN;
+    myfile << "\n";
+    myfile.close();
+  }
 }
 
 //take name of the function and check if it is in list of functions given by 
@@ -283,7 +308,7 @@ void FPInstrument::setReal(Instruction *I, Value *ToAddr, Value *OP, Function &F
   }else if(isa<Argument>(OP) && (ArgMap.count(dyn_cast<Argument>(OP)) != 0)){
     size_t index =  ArgMap.at(dyn_cast<Argument>(OP));
     SetRealFunArg = M->getOrInsertFunction("setRealFunArg", VoidTy, Int32Ty, Int64Ty, Int64Ty, OpTy);
-    BitCastInst* BCFunc = new BitCastInst(&F, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
+  	BitCastInst* BCFunc = new BitCastInst(&F, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
     Instruction *FuncIdx = IRB.CreateCall(GetAddr, {BCFunc});
     Constant* argNo = ConstantInt::get(Type::getInt32Ty(M->getContext()), index); //TODO: Remove this
     IRB.CreateCall(SetRealFunArg, {argNo, FuncIdx, ToAddrIdx, OP});
@@ -312,7 +337,7 @@ void FPInstrument::setReal(Instruction *I, Value *ToAddr, Value *OP, Function &F
       } 
       else{
         errs()<<"setReal: Error !!! setReal: not a pointer, not a constant, not in load map and not a func arg\n";
-        errs()<<"setReal:"<<*I<<"\n";
+        errs()<<"setReal:"<<*OP<<"\n";
         //it means that ita variables passed through call by val, address of this valiable is stored in 
         //funArg with the address of a called function 
         //TODO look for better way to check if its arg passed by value
@@ -397,6 +422,9 @@ void FPInstrument::handleFunc(Instruction *I, CallInst *CI, Function &F){
   size_t NumOperands = CI->getNumArgOperands();
   Value *Op[NumOperands];
   Type *OpTy[NumOperands];
+  BitCastInst* BCCallee = new BitCastInst(Callee, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
+  GetAddr = M->getOrInsertFunction("getAddr", Int64Ty, PtrVoidTy);
+  Instruction *CalleeIdx = IRB.CreateCall(GetAddr, {BCCallee});
   for(size_t i = 0; i<NumOperands; i++){
     Op[i] = CI->getArgOperand(i);
     OpTy[i] = Op[i]->getType(); // this should be of float
@@ -405,9 +433,7 @@ void FPInstrument::handleFunc(Instruction *I, CallInst *CI, Function &F){
       Instruction *OpIns = dyn_cast<Instruction>(Op[i]);
       if(RegIdMap.count(OpIns) != 0){
         Instruction *OpIdx = RegIdMap.at(OpIns);
-        BitCastInst* BCCallee = new BitCastInst(Callee, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
-        GetAddr = M->getOrInsertFunction("getAddr", Int64Ty, PtrVoidTy);
-        Instruction *CalleeIdx = IRB.CreateCall(GetAddr, {BCCallee});
+				errs()<<"handleFunc: OpIdx:"<<*OpIdx<<" OpIns "<<*OpIns<<"\n";
         Constant* ArgNo = ConstantInt::get(Type::getInt32Ty(M->getContext()), i);
         AddFunArg = M->getOrInsertFunction("addFunArg", VoidTy, Int32Ty, Int64Ty, Int64Ty);
         IRB.CreateCall(AddFunArg, {ArgNo, CalleeIdx, OpIdx});
@@ -432,9 +458,9 @@ void FPInstrument::handleFuncInit(Function &F){
   Type* PtrVoidTy = PointerType::getUnqual(Type::getInt8Ty(M->getContext()));
   Type* Int64Ty = Type::getInt64Ty(M->getContext());
   
-  BitCastInst* BCToAddr = new BitCastInst(&F, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", First);
+  BitCastInst *BCFunc = new BitCastInst(&F, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", First);
   GetAddr = M->getOrInsertFunction("getAddr", Int64Ty, PtrVoidTy);
-  Instruction *ToAddrIdx = IRB.CreateCall(GetAddr, {BCToAddr});
+  Instruction *ToAddrIdx = IRB.CreateCall(GetAddr, {BCFunc});
 
   FuncInit = M->getOrInsertFunction("funcInit", VoidTy, Int64Ty);
 
@@ -696,6 +722,9 @@ void FPInstrument::handleOperand(Instruction *I, Instruction **Index, Value* OP,
   IRBuilder<> IRB(I);
   Module *M = F.getParent();
 
+  Type* Int64Ty = Type::getInt64Ty(M->getContext());
+  Type *PtrVoidTy = PointerType::getUnqual(Type::getInt8Ty(M->getContext()));
+
   Instruction *OpIns = dyn_cast<Instruction>(OP);
   if (isa<ConstantFP>(OP) || TrackIToFCast.count(OpIns)) {
     *IsConstant = true;
@@ -704,8 +733,19 @@ void FPInstrument::handleOperand(Instruction *I, Instruction **Index, Value* OP,
     *Index = RegIdMap.at(OpIns);
     *IsReg = true;  
   }
+  else if (CallInst *CI = dyn_cast<CallInst>(OP)){
+  	Function *Callee = CI->getCalledFunction();
+  	if (Callee) {
+     	BitCastInst* BCCallee = new BitCastInst(Callee, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
+      GetAddr = M->getOrInsertFunction("getAddr", Int64Ty, PtrVoidTy);
+      Instruction *CalleeIdx = IRB.CreateCall(GetAddr, {BCCallee});
+  		SetRealTemp = M->getOrInsertFunction("getRealReturn", Int64Ty, Int64Ty);
+  		*Index = IRB.CreateCall(SetRealTemp, {CalleeIdx});
+    	*IsReg = true;  
+   	}
+  } 
   else{
-    errs()<<"handleOperand: op not found:"<<OP<<"\n";
+    errs()<<"handleOperand: op not found:"<<*OP<<"\n";
   }
 }
 
@@ -715,6 +755,46 @@ It provides unique index to all instructions.
 void FPInstrument::handleIns(Instruction *I){
   InsMap.insert(std::pair<Instruction*, size_t>(I, InsCount));
   InsCount++; 
+}
+
+void FPInstrument::handleExtractValue(Instruction *I, ExtractValueInst *EVI, Function &F){
+  IRBuilder<> IRB(I);
+  Module *M = F.getParent();
+  Type* DoubleTy = Type::getDoubleTy(M->getContext());
+  Type* Int8Ty = Type::getInt8Ty(M->getContext());
+  Type* Int32Ty = Type::getInt32Ty(M->getContext());
+  Type* Int64Ty = Type::getInt64Ty(M->getContext());
+  Type *PtrVoidTy = PointerType::getUnqual(Type::getInt8Ty(M->getContext()));
+	errs()<<"ExtractValue:"<<*EVI->getAggregateOperand()<<"\n";
+	if (EVI->getType()->isStructTy()){
+		errs()<<"TODO: handle struct in struct\n";
+	}
+	if(EVI->getNumIndices() != 1){
+		errs()<<"TODO: handle extraction from more than 1 level\n";
+	} 
+	Value *AggVal = EVI->getAggregateOperand();
+	if (AggVal->getType()->isStructTy()) {
+		unsigned i = *EVI->idx_begin();
+		errs()<<"Extracting from struct\n";
+		
+//  	Instruction *OpIns = dyn_cast<Instruction>(AggVal);
+		if (CallInst *CI = dyn_cast<CallInst>(AggVal)){ //handle math library functions
+    	Function *Callee = CI->getCalledFunction();
+
+      BitCastInst* BCCallee = new BitCastInst(Callee, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
+      GetAddr = M->getOrInsertFunction("getAddr", Int64Ty, PtrVoidTy);
+      Instruction *CalleeIdx = IRB.CreateCall(GetAddr, {BCCallee});
+      Constant* EVIdx = ConstantInt::get(Type::getInt32Ty(M->getContext()), i);
+      HandleExtractValue = M->getOrInsertFunction("handleExtractValue", Int64Ty, Int32Ty, Int64Ty);
+      Instruction *NewIns = IRB.CreateCall(HandleExtractValue, {EVIdx, CalleeIdx});
+  		RegIdMap.insert(std::pair<Instruction*, Instruction*>(EVI, NewIns)); 
+    }
+		else{
+			errs()<<"ExtractValue: not found in regMap\n";
+		}
+	} else {
+			errs()<<"Extracting from an array\n";
+	}
 }
 
 void FPInstrument::handleSelect(Instruction *I, SelectInst *SI, Function &F){
@@ -929,15 +1009,18 @@ void FPInstrument::handleFuncReturn(Instruction *I, ReturnInst *RI, Function &F)
   Type* DoubleTy = Type::getDoubleTy(M->getContext());
 
   Value *OP = RI->getOperand(0);
+	errs()<<"handleFuncReturn:"<<*OP<<"\n";
   Instruction *OpIns = dyn_cast<Instruction>(OP);
   //return operand is in loadMap then it means we need to return real
   if(RegIdMap.count(OpIns) != 0){ //handling registers
     Instruction *Index = RegIdMap.at(OpIns);
-
-    errs()<<"handleFuncReturn found in RegMap\n";
-
-    HandleReturn = M->getOrInsertFunction("trackReturn", VoidTy, Int64Ty);
-    IRB.CreateCall(HandleReturn, {Index});
+		errs()<<F.getReturnType()->getTypeID();
+    errs()<<"handleFuncReturn found in RegMap:"<<*Index<<"\n";
+		
+    BitCastInst* BCFunc = new BitCastInst(&F, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
+    Instruction *FuncIdx = IRB.CreateCall(GetAddr, {BCFunc});
+    HandleReturn = M->getOrInsertFunction("trackReturn", VoidTy, Int64Ty, Int64Ty);
+    IRB.CreateCall(HandleReturn, {FuncIdx, Index});
   //  BC = new BitCastInst(index, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
   }
   else{
