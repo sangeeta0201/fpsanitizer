@@ -34,6 +34,8 @@ std::stack<size_t> varTrack;
 std::stack<size_t> retTrack;
 std::map<size_t, size_t>insMap;
 std::map<size_t, size_t>returnMap;
+std::map<size_t, size_t>funRetMap;
+
 std::map<std::map<size_t, size_t>, size_t> shadowFunArgMap; // thi will link function argument to shadowMap
 std::map<size_t, struct Real*> shadowMap;
 

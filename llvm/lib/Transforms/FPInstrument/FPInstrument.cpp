@@ -51,7 +51,7 @@ bool FPInstrument::runOnModule(Module &M) {
     for (auto &BB : F) {
       for (auto &I : BB) {
         if(dyn_cast<ReturnInst>(&I)){
-          handleFuncExit(&I, &BB, F);
+          //handleFuncExit(&I, &BB, F);
         }
       }
     } 
@@ -197,6 +197,9 @@ bool FPInstrument::runOnModule(Module &M) {
             }
             if(name == "printValue") {
               createPrintFunc(&I, CI, *F);
+            }
+            if(name == "llvm.memcpy.p0i8.p0i8.i64") {
+              handleLLVMMemcpy(&I, CI, *F);
             }
             else{
               handleFunc(&I, CI, *F); // handle other functions in app
@@ -369,7 +372,7 @@ void FPInstrument::setRealCastIToD(Instruction *I, Value *ToAddr, Value *OP, Fun
   IRBuilder<> IRB(I);
   Type* VoidTy = Type::getVoidTy(M->getContext());
   Type* PtrVoidTy = PointerType::getUnqual(Type::getInt8Ty(M->getContext()));
-  Type* Int32Ty = Type::getInt64Ty(M->getContext());
+  Type* Int32Ty = Type::getInt32Ty(M->getContext());
   Instruction *OpIns = dyn_cast<Instruction>(I->getOperand(0));
   
   BitCastInst* BCToAddr = new BitCastInst(ToAddr, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
@@ -381,6 +384,29 @@ void FPInstrument::setRealCastIToD(Instruction *I, Value *ToAddr, Value *OP, Fun
   RegIdMap.insert(std::pair<Instruction*, Instruction*>(I, newI)); //we maintain list of variables mapped to instructions,
 }
 
+void FPInstrument::handleLLVMMemcpy(Instruction *I, CallInst *CI, Function &F){
+  Module *M = F.getParent();
+  IRBuilder<> IRB(I);
+  Function *Callee = CI->getCalledFunction();
+
+  Type* VoidTy = Type::getVoidTy(M->getContext());
+  Type* PtrVoidTy = PointerType::getUnqual(Type::getInt8Ty(M->getContext()));
+  Type* Int64Ty = Type::getInt64Ty(M->getContext());
+
+  Value *Dst = CI->getArgOperand(0);
+  Value *Src = CI->getArgOperand(1);
+	Value *Size = CI->getArgOperand(2);
+  BitCastInst* BCDst = new BitCastInst(Dst, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
+  BitCastInst* BCSrc = new BitCastInst(Src, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
+  BitCastInst* BCSize = new BitCastInst(Size, Type::getInt64Ty(M->getContext()),"", I);
+    
+  GetAddr = M->getOrInsertFunction("getAddr", Int64Ty, PtrVoidTy);
+  Instruction *DstIdx = IRB.CreateCall(GetAddr, {BCDst});
+  Instruction *SrcIdx = IRB.CreateCall(GetAddr, {BCSrc});
+
+	SetRealTemp = M->getOrInsertFunction("handleLLVMMemcpy", VoidTy, Int64Ty, Int64Ty, Int64Ty);
+	IRB.CreateCall(SetRealTemp, {DstIdx, SrcIdx, BCSize});
+}
 /**
 To print real value of register(temporary) we need to call runtime function with the index of
 register.

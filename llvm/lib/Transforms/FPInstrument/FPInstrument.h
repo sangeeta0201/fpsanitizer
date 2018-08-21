@@ -66,6 +66,9 @@ public:
   void handleAlloca(Instruction *I, BasicBlock *BB, AllocaInst *A, Function &F);  void handleCleanup(Instruction *I, ReturnInst *RI, Function &F); 
   void handleSelect(Instruction *I, SelectInst *SI, Function &F);
   void handleLoad(Instruction *I, LoadInst *LI, Function &F);
+	void instrumentAllFunctions(std::string FN);
+	void handleExtractValue(Instruction *I, ExtractValueInst *EVI, Function &F);
+	void handleLLVMMemcpy(Instruction *I, CallInst *CI, Function &F);
   static char ID; // Pass identification, replacement for typeid
 private:
   SmallVector<Function*, 8> AllFuncList;
@@ -111,7 +114,9 @@ private:
   Value* FuncInit;
   Value* FuncExit;
   Value* GetAddr;
-  BitCastInst *BCNull;  
+  Value* HandleExtractValue;
+	BitCastInst *BCFunc;
+	Instruction *FuncIdx;
 };
 }
 
