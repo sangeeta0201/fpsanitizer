@@ -106,7 +106,7 @@ double inputs[] = {
 
 int main() {
   volatile double x,y;
-  //int i = 0;
+//  int i =0 ;
   for (int i = 0; i < 10; i++){
     x = fabs(inputs[i]);
     y = sqrt(x + 1) - sqrt(x);

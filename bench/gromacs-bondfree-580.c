@@ -21,11 +21,11 @@ double r_kj[10][3] = {
 
 int main() {
   double nrkj2, nrkj;
-//  int i =0;
-  for (int i = 0; i < 2; i++){
+//  int i = 0;
+  for (int i = 0; i < 10; i++){
     nrkj2 = iprod(r_kj[i], r_kj[i]);
-    printf("********nrkj2*****:%e\n",nrkj2);
     nrkj = sqrt(nrkj2);
+    printf("%e\n", nrkj2);
     printf("%e\n", nrkj);
   }
   return 0;

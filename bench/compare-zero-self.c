@@ -2,8 +2,8 @@
 
 int main() {
   volatile double x;
-  int cmp;
+  double cmp;
   x = 0.0;
   cmp = (x == 0.0);
-  printf("%d\n", cmp);
+  printf("%e\n", cmp);
 }

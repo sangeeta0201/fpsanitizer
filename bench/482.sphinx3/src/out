@@ -1,0 +1,6 @@
+terminate called after throwing an instance of 'std::out_of_range'
+  what():  map::at
+INFO: spec_main_live_pretend.c(120): Processing 1 beamsets
+INFO: cmd_ln.c(276): Parsing command line:
+INFO: kbcore.c(95): Initializing core models:
+INFO: logs3.c(99): Initializing logbase: 1.000300e+00 (add table: 1)

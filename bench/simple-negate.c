@@ -2,9 +2,9 @@
 #include <math.h>
 
 int main() {
-  volatile double x = 1e-20;
-  volatile double y = (- x);
-  volatile double z = 5.0;
-  double w = (y + z) - z;
+  volatile float x = 1e-20;
+  volatile float y = (- x);
+  volatile float z = 5.0;
+  float w = (y + z) - z;
   printf("%e\n", w);
 }

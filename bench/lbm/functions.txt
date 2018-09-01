@@ -1,3 +1,8 @@
+main
+MAIN_parseCommandLine
+MAIN_printInfo
+MAIN_initialize
+MAIN_finalize
 LBM_allocateGrid
 LBM_freeGrid
 LBM_initializeGrid
@@ -6,14 +11,9 @@ LBM_loadObstacleFile
 LBM_initializeSpecialCellsForLDC
 LBM_initializeSpecialCellsForChannel
 LBM_performStreamCollide
-LBM_showGridStatistics
 LBM_handleInOutFlow
-storeValue
-loadValue
+LBM_showGridStatistics
 LBM_storeVelocityField
+storeValue
 LBM_compareVelocityField
-main
-MAIN_parseCommandLine
-MAIN_printInfo
-MAIN_initialize
-MAIN_finalize
+loadValue

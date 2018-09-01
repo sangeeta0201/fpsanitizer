@@ -1,1012 +1,1115 @@
-funcInit: insert func addr:4196784
-handleAlloca:varTrack push:140736737172136
-handleAlloca:varTrack push:140736737172144
-getAddr:6299792
-getReal:6299792
-handleMathFunc: real1 is NULL
-handleMathFunc: abs:
-handleMathFunc res:1.06687256697924e41
-handleMathFunc op1:1.06687256697924e41
-handleMathFunc insert shadow mem:201
-updateError: computedVal:1.06687e+41 insIndex:21
+x: 2.200000e+00:
+y: 3.200000e+00:
+computeReal op1Idx:0
+computeReal op2Idx:0
+computeReal: real1 is null, using op1 value:3.2
+computeReal: real2 is null, using op2 value:0.2
+newRegIdx:201
+funcCount:2
+
+FADD
+handleOp res:
+3.4000000476837158314147302462515
+handleOp op1:
+3.2000000476837158203125000000000
+handleOp op2:
+2.0000000000000001110223024625156e-1
+res:3.40000004768372e0
+op1:3.20000004768372e0
+op2:2.00000000000000e-1
+computeReal insert shadow mem::201
+updateError: computedVal:3.4 insIndex:201
 
 eagg->max_error:0
 
 eagg->num_evals:1 eagg->total_error:0
 
-The shadow value is 1.06687256697924e41, but 1.066873e41 was computed.
+The shadow value is 3.40000004768372e0, but 3.400000 was computed.
 0.000000 bits error (0 ulps)
 
 
-getAddr:140736737172136
-setRealTemp fromAddrInt:201
-setRealTemp toAddrInt:140736737172136
-setRealTemp insert shadow mem from:201 to:140736737172136
-getAddr:140736737172136
-computeReal op1Idx:140736737172136
+computeReal op1Idx:0
 computeReal op2Idx:0
-getReal:140736737172136
-getReal:0
-computeReal: real2 is null, using op2 value:1
+computeReal: real1 is null, using op1 value:2.2
+computeReal: real2 is null, using op2 value:-0.2
+newRegIdx:202
+funcCount:2
 
 FADD
-res:1.06687256697924e41
-op1:1.06687256697924e41
-op2:1.00000000000000e0
-computeReal insert shadow mem:202
-updateError: computedVal:1.06687e+41 insIndex:24
+handleOp res:
+2.0000000476837158092102697537484
+handleOp op1:
+2.2000000476837158203125000000000
+handleOp op2:
+-2.0000000000000001110223024625157e-1
+res:2.00000004768372e0
+op1:2.20000004768372e0
+op2:-.200000000000000e-1
+computeReal insert shadow mem::202
+updateError: computedVal:2 insIndex:202
 
 eagg->max_error:0
 
 eagg->num_evals:1 eagg->total_error:0
 
-The shadow value is 1.06687256697924e41, but 1.066873e41 was computed.
+The shadow value is 2.00000004768372e0, but 2.000000 was computed.
 0.000000 bits error (0 ulps)
 
 
-getReal:202
-handleMathFunc: sqrt:
-handleMathFunc res:3.26630152769037e20
-handleMathFunc op1:1.06687256697924e41
-handleMathFunc insert shadow mem:203
-updateError: computedVal:3.2663e+20 insIndex:25
+addFunArg: insert:202
+addFunArg: insert:201
+x: 2.000000e+00:
+y: 3.400000e+00:
+computeReal op1Idx:201
+computeReal op2Idx:0
+computeReal: real2 is null, using op2 value:0.2
+newRegIdx:203
+funcCount:3
+
+FADD
+handleOp res:
+3.6000000476837158425169604925031
+handleOp op1:
+3.4000000476837158314147302462515
+handleOp op2:
+2.0000000000000001110223024625156e-1
+res:3.60000004768372e0
+op1:3.40000004768372e0
+op2:2.00000000000000e-1
+computeReal insert shadow mem::203
+updateError: computedVal:3.6 insIndex:203
+
+eagg->max_error:1
+
+eagg->num_evals:1 eagg->total_error:1
+
+The shadow value is 3.60000004768372e0, but 3.600000 was computed.
+1.000000 bits error (1 ulps)
+
+
+computeReal op1Idx:202
+computeReal op2Idx:0
+computeReal: real2 is null, using op2 value:-0.2
+newRegIdx:204
+funcCount:3
+
+FADD
+handleOp res:
+1.8000000476837157981080395074968
+handleOp op1:
+2.0000000476837158092102697537484
+handleOp op2:
+-2.0000000000000001110223024625157e-1
+res:1.80000004768372e0
+op1:2.00000004768372e0
+op2:-.200000000000000e-1
+computeReal insert shadow mem::204
+updateError: computedVal:1.8 insIndex:204
+
+eagg->max_error:1
+
+eagg->num_evals:1 eagg->total_error:1
+
+The shadow value is 1.80000004768372e0, but 1.800000 was computed.
+1.000000 bits error (1 ulps)
+
+
+addFunArg: insert:204
+addFunArg: insert:203
+x: 1.800000e+00:
+y: 3.600000e+00:
+computeReal op1Idx:203
+computeReal op2Idx:0
+computeReal: real2 is null, using op2 value:0.2
+newRegIdx:205
+funcCount:4
+
+FADD
+handleOp res:
+3.8000000476837158536191907387546
+handleOp op1:
+3.6000000476837158425169604925031
+handleOp op2:
+2.0000000000000001110223024625156e-1
+res:3.80000004768372e0
+op1:3.60000004768372e0
+op2:2.00000000000000e-1
+computeReal insert shadow mem::205
+updateError: computedVal:3.8 insIndex:205
+
+eagg->max_error:1
+
+eagg->num_evals:1 eagg->total_error:1
+
+The shadow value is 3.80000004768372e0, but 3.800000 was computed.
+1.000000 bits error (1 ulps)
+
+
+computeReal op1Idx:204
+computeReal op2Idx:0
+computeReal: real2 is null, using op2 value:-0.2
+newRegIdx:206
+funcCount:4
+
+FADD
+handleOp res:
+1.6000000476837157870058092612453
+handleOp op1:
+1.8000000476837157981080395074968
+handleOp op2:
+-2.0000000000000001110223024625157e-1
+res:1.60000004768372e0
+op1:1.80000004768372e0
+op2:-.200000000000000e-1
+computeReal insert shadow mem::206
+updateError: computedVal:1.6 insIndex:206
 
 eagg->max_error:0
 
 eagg->num_evals:1 eagg->total_error:0
 
-The shadow value is 3.26630152769037e20, but 3.266302e20 was computed.
+The shadow value is 1.60000004768372e0, but 1.600000 was computed.
 0.000000 bits error (0 ulps)
 
 
-getAddr:140736737172136
-getReal:140736737172136
-handleMathFunc: sqrt:
-handleMathFunc res:3.26630152769037e20
-handleMathFunc op1:1.06687256697924e41
-handleMathFunc insert shadow mem:204
-updateError: computedVal:3.2663e+20 insIndex:27
+addFunArg: insert:206
+addFunArg: insert:205
+x: 1.600000e+00:
+y: 3.800000e+00:
+computeReal op1Idx:205
+computeReal op2Idx:0
+computeReal: real2 is null, using op2 value:0.2
+newRegIdx:207
+funcCount:5
+
+FADD
+handleOp res:
+4.0000000476837158647214209850062
+handleOp op1:
+3.8000000476837158536191907387546
+handleOp op2:
+2.0000000000000001110223024625156e-1
+res:4.00000004768372e0
+op1:3.80000004768372e0
+op2:2.00000000000000e-1
+computeReal insert shadow mem::207
+updateError: computedVal:4 insIndex:207
+
+eagg->max_error:1
+
+eagg->num_evals:1 eagg->total_error:1
+
+The shadow value is 4.00000004768372e0, but 4.000000 was computed.
+1.000000 bits error (1 ulps)
+
+
+computeReal op1Idx:206
+computeReal op2Idx:0
+computeReal: real2 is null, using op2 value:-0.2
+newRegIdx:208
+funcCount:5
+
+FADD
+handleOp res:
+1.4000000476837157759035790149937
+handleOp op1:
+1.6000000476837157870058092612453
+handleOp op2:
+-2.0000000000000001110223024625157e-1
+res:1.40000004768372e0
+op1:1.60000004768372e0
+op2:-.200000000000000e-1
+computeReal insert shadow mem::208
+updateError: computedVal:1.4 insIndex:208
 
 eagg->max_error:0
 
 eagg->num_evals:1 eagg->total_error:0
 
-The shadow value is 3.26630152769037e20, but 3.266302e20 was computed.
+The shadow value is 1.40000004768372e0, but 1.400000 was computed.
 0.000000 bits error (0 ulps)
 
 
-computeReal op1Idx:203
-computeReal op2Idx:204
-getReal:203
-getReal:204
-FSUB
-res:1.53078335163243e-21
-op1:3.26630152769037e20
-op2:3.26630152769037e20
-computeReal insert shadow mem:205
-updateError: computedVal:0 insIndex:28
-
-eagg->max_error:61.8976
-
-eagg->num_evals:1 eagg->total_error:61.8976
-
-The shadow value is 1.53078335163243e-21, but 0.000000 was computed.
-61.897554 bits error (4295565885602597373 ulps)
-
-
-getAddr:140736737172144
-setRealTemp fromAddrInt:205
-setRealTemp toAddrInt:140736737172144
-setRealTemp insert shadow mem from:205 to:140736737172144
-getAddr:140736737172144
-0.000000e+00
-getAddr:6299800
-getReal:6299800
-handleMathFunc: real1 is NULL
-handleMathFunc: abs:
-handleMathFunc res:2.30621218311210e120
-handleMathFunc op1:2.30621218311210e120
-handleMathFunc insert shadow mem:201
-updateError: computedVal:2.30621e+120 insIndex:21
-
-eagg->max_error:0
-
-eagg->num_evals:2 eagg->total_error:0
-
-The shadow value is 2.30621218311210e120, but 2.306212e120 was computed.
-0.000000 bits error (0 ulps)
-
-
-getAddr:140736737172136
-setRealTemp fromAddrInt:201
-setRealTemp toAddrInt:140736737172136
-setRealTemp shadow mem copied from:201 to:140736737172136
-getAddr:140736737172136
-computeReal op1Idx:140736737172136
+addFunArg: insert:208
+addFunArg: insert:207
+x: 1.400000e+00:
+y: 4.000000e+00:
+computeReal op1Idx:207
 computeReal op2Idx:0
-getReal:140736737172136
-getReal:0
-computeReal: real2 is null, using op2 value:1
+computeReal: real2 is null, using op2 value:0.2
+newRegIdx:209
+funcCount:6
 
 FADD
-res:2.30621218311210e120
-op1:2.30621218311210e120
-op2:1.00000000000000e0
-computeReal insert shadow mem:202
-updateError: computedVal:2.30621e+120 insIndex:24
+handleOp res:
+4.2000000476837158758236512312578
+handleOp op1:
+4.0000000476837158647214209850062
+handleOp op2:
+2.0000000000000001110223024625156e-1
+res:4.20000004768372e0
+op1:4.00000004768372e0
+op2:2.00000000000000e-1
+computeReal insert shadow mem::209
+updateError: computedVal:4.2 insIndex:209
 
-eagg->max_error:0
+eagg->max_error:1
 
-eagg->num_evals:2 eagg->total_error:0
+eagg->num_evals:1 eagg->total_error:1
 
-The shadow value is 2.30621218311210e120, but 2.306212e120 was computed.
-0.000000 bits error (0 ulps)
-
-
-getReal:202
-handleMathFunc: sqrt:
-handleMathFunc res:1.51862180384456e60
-handleMathFunc op1:2.30621218311210e120
-handleMathFunc insert shadow mem:203
-updateError: computedVal:1.51862e+60 insIndex:25
-
-eagg->max_error:0
-
-eagg->num_evals:2 eagg->total_error:0
-
-The shadow value is 1.51862180384456e60, but 1.518622e60 was computed.
-0.000000 bits error (0 ulps)
+The shadow value is 4.20000004768372e0, but 4.200000 was computed.
+1.000000 bits error (1 ulps)
 
 
-getAddr:140736737172136
-getReal:140736737172136
-handleMathFunc: sqrt:
-handleMathFunc res:1.51862180384456e60
-handleMathFunc op1:2.30621218311210e120
-handleMathFunc insert shadow mem:204
-updateError: computedVal:1.51862e+60 insIndex:27
-
-eagg->max_error:0
-
-eagg->num_evals:2 eagg->total_error:0
-
-The shadow value is 1.51862180384456e60, but 1.518622e60 was computed.
-0.000000 bits error (0 ulps)
-
-
-computeReal op1Idx:203
-computeReal op2Idx:204
-getReal:203
-getReal:204
-FSUB
-res:3.29245898310030e-61
-op1:1.51862180384456e60
-op2:1.51862180384456e60
-computeReal insert shadow mem:205
-updateError: computedVal:0 insIndex:28
-
-eagg->max_error:61.8976
-
-eagg->num_evals:2 eagg->total_error:123.581
-
-The shadow value is 3.29245898310030e-61, but 0.000000 was computed.
-61.683097 bits error (3702220802875944133 ulps)
-
-
-getAddr:140736737172144
-setRealTemp fromAddrInt:205
-setRealTemp toAddrInt:140736737172144
-setRealTemp shadow mem copied from:205 to:140736737172144
-getAddr:140736737172144
-0.000000e+00
-getAddr:6299808
-getReal:6299808
-handleMathFunc: real1 is NULL
-handleMathFunc: abs:
-handleMathFunc res:2.10451314108857e114
-handleMathFunc op1:-.210451314108857e114
-handleMathFunc insert shadow mem:201
-updateError: computedVal:2.10451e+114 insIndex:21
-
-eagg->max_error:0
-
-eagg->num_evals:3 eagg->total_error:0
-
-The shadow value is 2.10451314108857e114, but 2.104513e114 was computed.
-0.000000 bits error (0 ulps)
-
-
-getAddr:140736737172136
-setRealTemp fromAddrInt:201
-setRealTemp toAddrInt:140736737172136
-setRealTemp shadow mem copied from:201 to:140736737172136
-getAddr:140736737172136
-computeReal op1Idx:140736737172136
+computeReal op1Idx:208
 computeReal op2Idx:0
-getReal:140736737172136
-getReal:0
-computeReal: real2 is null, using op2 value:1
+computeReal: real2 is null, using op2 value:-0.2
+newRegIdx:210
+funcCount:6
 
 FADD
-res:2.10451314108857e114
-op1:2.10451314108857e114
-op2:1.00000000000000e0
-computeReal insert shadow mem:202
-updateError: computedVal:2.10451e+114 insIndex:24
+handleOp res:
+1.2000000476837157648013487687421
+handleOp op1:
+1.4000000476837157759035790149937
+handleOp op2:
+-2.0000000000000001110223024625157e-1
+res:1.20000004768372e0
+op1:1.40000004768372e0
+op2:-.200000000000000e-1
+computeReal insert shadow mem::210
+updateError: computedVal:1.2 insIndex:210
 
 eagg->max_error:0
 
-eagg->num_evals:3 eagg->total_error:0
+eagg->num_evals:1 eagg->total_error:0
 
-The shadow value is 2.10451314108857e114, but 2.104513e114 was computed.
+The shadow value is 1.20000004768372e0, but 1.200000 was computed.
 0.000000 bits error (0 ulps)
 
 
-getReal:202
-handleMathFunc: sqrt:
-handleMathFunc res:1.45069402049108e57
-handleMathFunc op1:2.10451314108857e114
-handleMathFunc insert shadow mem:203
-updateError: computedVal:1.45069e+57 insIndex:25
-
-eagg->max_error:0
-
-eagg->num_evals:3 eagg->total_error:0
-
-The shadow value is 1.45069402049108e57, but 1.450694e57 was computed.
-0.000000 bits error (0 ulps)
-
-
-getAddr:140736737172136
-getReal:140736737172136
-handleMathFunc: sqrt:
-handleMathFunc res:1.45069402049108e57
-handleMathFunc op1:2.10451314108857e114
-handleMathFunc insert shadow mem:204
-updateError: computedVal:1.45069e+57 insIndex:27
-
-eagg->max_error:0
-
-eagg->num_evals:3 eagg->total_error:0
-
-The shadow value is 1.45069402049108e57, but 1.450694e57 was computed.
-0.000000 bits error (0 ulps)
-
-
-computeReal op1Idx:203
-computeReal op2Idx:204
-getReal:203
-getReal:204
-FSUB
-res:3.44662618675952e-58
-op1:1.45069402049108e57
-op2:1.45069402049108e57
-computeReal insert shadow mem:205
-updateError: computedVal:0 insIndex:28
-
-eagg->max_error:61.8976
-
-eagg->num_evals:3 eagg->total_error:185.281
-
-The shadow value is 3.44662618675952e-58, but 0.000000 was computed.
-61.700581 bits error (3747363019434053670 ulps)
-
-
-getAddr:140736737172144
-setRealTemp fromAddrInt:205
-setRealTemp toAddrInt:140736737172144
-setRealTemp shadow mem copied from:205 to:140736737172144
-getAddr:140736737172144
-0.000000e+00
-getAddr:6299816
-getReal:6299816
-handleMathFunc: real1 is NULL
-handleMathFunc: abs:
-handleMathFunc res:3.98287816164809e160
-handleMathFunc op1:-.398287816164809e160
-handleMathFunc insert shadow mem:201
-updateError: computedVal:3.98288e+160 insIndex:21
-
-eagg->max_error:0
-
-eagg->num_evals:4 eagg->total_error:0
-
-The shadow value is 3.98287816164809e160, but 3.982878e160 was computed.
-0.000000 bits error (0 ulps)
-
-
-getAddr:140736737172136
-setRealTemp fromAddrInt:201
-setRealTemp toAddrInt:140736737172136
-setRealTemp shadow mem copied from:201 to:140736737172136
-getAddr:140736737172136
-computeReal op1Idx:140736737172136
+addFunArg: insert:210
+addFunArg: insert:209
+x: 1.200000e+00:
+y: 4.200000e+00:
+computeReal op1Idx:209
 computeReal op2Idx:0
-getReal:140736737172136
-getReal:0
-computeReal: real2 is null, using op2 value:1
+computeReal: real2 is null, using op2 value:0.2
+newRegIdx:211
+funcCount:7
 
 FADD
-res:3.98287816164809e160
-op1:3.98287816164809e160
-op2:1.00000000000000e0
-computeReal insert shadow mem:202
-updateError: computedVal:3.98288e+160 insIndex:24
+handleOp res:
+4.4000000476837158869258814775093
+handleOp op1:
+4.2000000476837158758236512312578
+handleOp op2:
+2.0000000000000001110223024625156e-1
+res:4.40000004768372e0
+op1:4.20000004768372e0
+op2:2.00000000000000e-1
+computeReal insert shadow mem::211
+updateError: computedVal:4.4 insIndex:211
 
-eagg->max_error:0
+eagg->max_error:1
 
-eagg->num_evals:4 eagg->total_error:0
+eagg->num_evals:1 eagg->total_error:1
 
-The shadow value is 3.98287816164809e160, but 3.982878e160 was computed.
-0.000000 bits error (0 ulps)
-
-
-getReal:202
-handleMathFunc: sqrt:
-handleMathFunc res:1.99571494999864e80
-handleMathFunc op1:3.98287816164809e160
-handleMathFunc insert shadow mem:203
-updateError: computedVal:1.99571e+80 insIndex:25
-
-eagg->max_error:0
-
-eagg->num_evals:4 eagg->total_error:0
-
-The shadow value is 1.99571494999864e80, but 1.995715e80 was computed.
-0.000000 bits error (0 ulps)
+The shadow value is 4.40000004768372e0, but 4.400000 was computed.
+1.000000 bits error (1 ulps)
 
 
-getAddr:140736737172136
-getReal:140736737172136
-handleMathFunc: sqrt:
-handleMathFunc res:1.99571494999864e80
-handleMathFunc op1:3.98287816164809e160
-handleMathFunc insert shadow mem:204
-updateError: computedVal:1.99571e+80 insIndex:27
-
-eagg->max_error:0
-
-eagg->num_evals:4 eagg->total_error:0
-
-The shadow value is 1.99571494999864e80, but 1.995715e80 was computed.
-0.000000 bits error (0 ulps)
-
-
-computeReal op1Idx:203
-computeReal op2Idx:204
-getReal:203
-getReal:204
-FSUB
-res:2.50536781317562e-81
-op1:1.99571494999864e80
-op2:1.99571494999864e80
-computeReal insert shadow mem:205
-updateError: computedVal:0 insIndex:28
-
-eagg->max_error:61.8976
-
-eagg->num_evals:4 eagg->total_error:246.842
-
-The shadow value is 2.50536781317562e-81, but 0.000000 was computed.
-61.560693 bits error (3401065552206510636 ulps)
-
-
-getAddr:140736737172144
-setRealTemp fromAddrInt:205
-setRealTemp toAddrInt:140736737172144
-setRealTemp shadow mem copied from:205 to:140736737172144
-getAddr:140736737172144
-0.000000e+00
-getAddr:6299824
-getReal:6299824
-handleMathFunc: real1 is NULL
-handleMathFunc: abs:
-handleMathFunc res:3.81207391841274e-116
-handleMathFunc op1:3.81207391841274e-116
-handleMathFunc insert shadow mem:201
-updateError: computedVal:3.81207e-116 insIndex:21
-
-eagg->max_error:0
-
-eagg->num_evals:5 eagg->total_error:0
-
-The shadow value is 3.81207391841274e-116, but 3.812074e-116 was computed.
-0.000000 bits error (0 ulps)
-
-
-getAddr:140736737172136
-setRealTemp fromAddrInt:201
-setRealTemp toAddrInt:140736737172136
-setRealTemp shadow mem copied from:201 to:140736737172136
-getAddr:140736737172136
-computeReal op1Idx:140736737172136
+computeReal op1Idx:210
 computeReal op2Idx:0
-getReal:140736737172136
-getReal:0
-computeReal: real2 is null, using op2 value:1
+computeReal: real2 is null, using op2 value:-0.2
+newRegIdx:212
+funcCount:7
 
 FADD
-res:1.00000000000000e0
-op1:3.81207391841274e-116
-op2:1.00000000000000e0
-computeReal insert shadow mem:202
-updateError: computedVal:1 insIndex:24
+handleOp res:
+1.0000000476837157536991185224906
+handleOp op1:
+1.2000000476837157648013487687421
+handleOp op2:
+-2.0000000000000001110223024625157e-1
+res:1.00000004768372e0
+op1:1.20000004768372e0
+op2:-.200000000000000e-1
+computeReal insert shadow mem::212
+updateError: computedVal:1 insIndex:212
 
-eagg->max_error:0
+eagg->max_error:1
 
-eagg->num_evals:5 eagg->total_error:0
+eagg->num_evals:1 eagg->total_error:1
 
-The shadow value is 1.00000000000000e0, but 1.000000 was computed.
-0.000000 bits error (0 ulps)
-
-
-getReal:202
-handleMathFunc: sqrt:
-handleMathFunc res:1.00000000000000e0
-handleMathFunc op1:1.00000000000000e0
-handleMathFunc insert shadow mem:203
-updateError: computedVal:1 insIndex:25
-
-eagg->max_error:0
-
-eagg->num_evals:5 eagg->total_error:0
-
-The shadow value is 1.00000000000000e0, but 1.000000 was computed.
-0.000000 bits error (0 ulps)
+The shadow value is 1.00000004768372e0, but 1.000000 was computed.
+1.000000 bits error (1 ulps)
 
 
-getAddr:140736737172136
-getReal:140736737172136
-handleMathFunc: sqrt:
-handleMathFunc res:1.95245330761397e-58
-handleMathFunc op1:3.81207391841274e-116
-handleMathFunc insert shadow mem:204
-updateError: computedVal:1.95245e-58 insIndex:27
-
-eagg->max_error:0
-
-eagg->num_evals:5 eagg->total_error:0
-
-The shadow value is 1.95245330761397e-58, but 1.952453e-58 was computed.
-0.000000 bits error (0 ulps)
-
-
-computeReal op1Idx:203
-computeReal op2Idx:204
-getReal:203
-getReal:204
-FSUB
-res:1.00000000000000e0
-op1:1.00000000000000e0
-op2:1.95245330761397e-58
-computeReal insert shadow mem:205
-updateError: computedVal:1 insIndex:28
-
-eagg->max_error:61.8976
-
-eagg->num_evals:5 eagg->total_error:246.842
-
-The shadow value is 1.00000000000000e0, but 1.000000 was computed.
-0.000000 bits error (0 ulps)
-
-
-getAddr:140736737172144
-setRealTemp fromAddrInt:205
-setRealTemp toAddrInt:140736737172144
-setRealTemp shadow mem copied from:205 to:140736737172144
-getAddr:140736737172144
-1.000000e+00
-getAddr:6299832
-getReal:6299832
-handleMathFunc: real1 is NULL
-handleMathFunc: abs:
-handleMathFunc res:2.68453448641701e17
-handleMathFunc op1:2.68453448641701e17
-handleMathFunc insert shadow mem:201
-updateError: computedVal:2.68453e+17 insIndex:21
-
-eagg->max_error:0
-
-eagg->num_evals:6 eagg->total_error:0
-
-The shadow value is 2.68453448641701e17, but 2.684534e17 was computed.
-0.000000 bits error (0 ulps)
-
-
-getAddr:140736737172136
-setRealTemp fromAddrInt:201
-setRealTemp toAddrInt:140736737172136
-setRealTemp shadow mem copied from:201 to:140736737172136
-getAddr:140736737172136
-computeReal op1Idx:140736737172136
+addFunArg: insert:212
+addFunArg: insert:211
+x: 1.000000e+00:
+y: 4.400000e+00:
+computeReal op1Idx:211
 computeReal op2Idx:0
-getReal:140736737172136
-getReal:0
-computeReal: real2 is null, using op2 value:1
+computeReal: real2 is null, using op2 value:0.2
+newRegIdx:213
+funcCount:8
 
 FADD
-res:2.68453448641701e17
-op1:2.68453448641701e17
-op2:1.00000000000000e0
-computeReal insert shadow mem:202
-updateError: computedVal:2.68453e+17 insIndex:24
+handleOp res:
+4.6000000476837158980281117237609
+handleOp op1:
+4.4000000476837158869258814775093
+handleOp op2:
+2.0000000000000001110223024625156e-1
+res:4.60000004768372e0
+op1:4.40000004768372e0
+op2:2.00000000000000e-1
+computeReal insert shadow mem::213
+updateError: computedVal:4.6 insIndex:213
 
-eagg->max_error:0
+eagg->max_error:1
 
-eagg->num_evals:6 eagg->total_error:0
+eagg->num_evals:1 eagg->total_error:1
 
-The shadow value is 2.68453448641701e17, but 2.684534e17 was computed.
-0.000000 bits error (0 ulps)
-
-
-getReal:202
-handleMathFunc: sqrt:
-handleMathFunc res:5.18124935359900e8
-handleMathFunc op1:2.68453448641701e17
-handleMathFunc insert shadow mem:203
-updateError: computedVal:5.18125e+08 insIndex:25
-
-eagg->max_error:0
-
-eagg->num_evals:6 eagg->total_error:0
-
-The shadow value is 5.18124935359900e8, but 5.181249e8 was computed.
-0.000000 bits error (0 ulps)
+The shadow value is 4.60000004768372e0, but 4.600000 was computed.
+1.000000 bits error (1 ulps)
 
 
-getAddr:140736737172136
-getReal:140736737172136
-handleMathFunc: sqrt:
-handleMathFunc res:5.18124935359900e8
-handleMathFunc op1:2.68453448641701e17
-handleMathFunc insert shadow mem:204
-updateError: computedVal:5.18125e+08 insIndex:27
-
-eagg->max_error:0
-
-eagg->num_evals:6 eagg->total_error:0
-
-The shadow value is 5.18124935359900e8, but 5.181249e8 was computed.
-0.000000 bits error (0 ulps)
-
-
-computeReal op1Idx:203
-computeReal op2Idx:204
-getReal:203
-getReal:204
-FSUB
-res:9.65018214482748e-10
-op1:5.18124935359900e8
-op2:5.18124935359900e8
-computeReal insert shadow mem:205
-updateError: computedVal:0 insIndex:28
-
-eagg->max_error:61.9557
-
-eagg->num_evals:6 eagg->total_error:308.798
-
-The shadow value is 9.65018214482748e-10, but 0.000000 was computed.
-61.955702 bits error (4472237372095078440 ulps)
-
-
-getAddr:140736737172144
-setRealTemp fromAddrInt:205
-setRealTemp toAddrInt:140736737172144
-setRealTemp shadow mem copied from:205 to:140736737172144
-getAddr:140736737172144
-0.000000e+00
-getAddr:6299840
-getReal:6299840
-handleMathFunc: real1 is NULL
-handleMathFunc: abs:
-handleMathFunc res:1.06546124232961e243
-handleMathFunc op1:1.06546124232961e243
-handleMathFunc insert shadow mem:201
-updateError: computedVal:1.06546e+243 insIndex:21
-
-eagg->max_error:0
-
-eagg->num_evals:7 eagg->total_error:0
-
-The shadow value is 1.06546124232961e243, but 1.065461e243 was computed.
-0.000000 bits error (0 ulps)
-
-
-getAddr:140736737172136
-setRealTemp fromAddrInt:201
-setRealTemp toAddrInt:140736737172136
-setRealTemp shadow mem copied from:201 to:140736737172136
-getAddr:140736737172136
-computeReal op1Idx:140736737172136
+computeReal op1Idx:212
 computeReal op2Idx:0
-getReal:140736737172136
-getReal:0
-computeReal: real2 is null, using op2 value:1
+computeReal: real2 is null, using op2 value:-0.2
+newRegIdx:214
+funcCount:8
 
 FADD
-res:1.06546124232961e243
-op1:1.06546124232961e243
-op2:1.00000000000000e0
-computeReal insert shadow mem:202
-updateError: computedVal:1.06546e+243 insIndex:24
+handleOp res:
+8.0000004768371574259688827623904e-1
+handleOp op1:
+1.0000000476837157536991185224906
+handleOp op2:
+-2.0000000000000001110223024625157e-1
+res:8.00000047683716e-1
+op1:1.00000004768372e0
+op2:-.200000000000000e-1
+computeReal insert shadow mem::214
+updateError: computedVal:0.8 insIndex:214
 
-eagg->max_error:0
+eagg->max_error:1.58496
 
-eagg->num_evals:7 eagg->total_error:0
+eagg->num_evals:1 eagg->total_error:1.58496
 
-The shadow value is 1.06546124232961e243, but 1.065461e243 was computed.
-0.000000 bits error (0 ulps)
-
-
-getReal:202
-handleMathFunc: sqrt:
-handleMathFunc res:3.26414038045182e121
-handleMathFunc op1:1.06546124232961e243
-handleMathFunc insert shadow mem:203
-updateError: computedVal:3.26414e+121 insIndex:25
-
-eagg->max_error:0
-
-eagg->num_evals:7 eagg->total_error:0
-
-The shadow value is 3.26414038045182e121, but 3.264140e121 was computed.
-0.000000 bits error (0 ulps)
+The shadow value is 8.00000047683716e-1, but 8.000000e-1 was computed.
+1.584963 bits error (2 ulps)
 
 
-getAddr:140736737172136
-getReal:140736737172136
-handleMathFunc: sqrt:
-handleMathFunc res:3.26414038045182e121
-handleMathFunc op1:1.06546124232961e243
-handleMathFunc insert shadow mem:204
-updateError: computedVal:3.26414e+121 insIndex:27
-
-eagg->max_error:0
-
-eagg->num_evals:7 eagg->total_error:0
-
-The shadow value is 3.26414038045182e121, but 3.264140e121 was computed.
-0.000000 bits error (0 ulps)
-
-
-computeReal op1Idx:203
-computeReal op2Idx:204
-getReal:203
-getReal:204
-FSUB
-res:1.53179686448041e-122
-op1:3.26414038045182e121
-op2:3.26414038045182e121
-computeReal insert shadow mem:205
-updateError: computedVal:0 insIndex:28
-
-eagg->max_error:61.9557
-
-eagg->num_evals:7 eagg->total_error:370.07
-
-The shadow value is 1.53179686448041e-122, but 0.000000 was computed.
-61.272083 bits error (2784421420795353877 ulps)
-
-
-getAddr:140736737172144
-setRealTemp fromAddrInt:205
-setRealTemp toAddrInt:140736737172144
-setRealTemp shadow mem copied from:205 to:140736737172144
-getAddr:140736737172144
-0.000000e+00
-getAddr:6299848
-getReal:6299848
-handleMathFunc: real1 is NULL
-handleMathFunc: abs:
-handleMathFunc res:4.94824606498177e-272
-handleMathFunc op1:4.94824606498177e-272
-handleMathFunc insert shadow mem:201
-updateError: computedVal:4.94825e-272 insIndex:21
-
-eagg->max_error:0
-
-eagg->num_evals:8 eagg->total_error:0
-
-The shadow value is 4.94824606498177e-272, but 4.948246e-272 was computed.
-0.000000 bits error (0 ulps)
-
-
-getAddr:140736737172136
-setRealTemp fromAddrInt:201
-setRealTemp toAddrInt:140736737172136
-setRealTemp shadow mem copied from:201 to:140736737172136
-getAddr:140736737172136
-computeReal op1Idx:140736737172136
+addFunArg: insert:214
+addFunArg: insert:213
+x: 8.000000e-01:
+y: 4.600000e+00:
+computeReal op1Idx:213
 computeReal op2Idx:0
-getReal:140736737172136
-getReal:0
-computeReal: real2 is null, using op2 value:1
+computeReal: real2 is null, using op2 value:0.2
+newRegIdx:215
+funcCount:9
 
 FADD
-res:1.00000000000000e0
-op1:4.94824606498177e-272
-op2:1.00000000000000e0
-computeReal insert shadow mem:202
-updateError: computedVal:1 insIndex:24
+handleOp res:
+4.8000000476837159091303419700125
+handleOp op1:
+4.6000000476837158980281117237609
+handleOp op2:
+2.0000000000000001110223024625156e-1
+res:4.80000004768372e0
+op1:4.60000004768372e0
+op2:2.00000000000000e-1
+computeReal insert shadow mem::215
+updateError: computedVal:4.8 insIndex:215
 
-eagg->max_error:0
+eagg->max_error:1.58496
 
-eagg->num_evals:8 eagg->total_error:0
+eagg->num_evals:1 eagg->total_error:1.58496
 
-The shadow value is 1.00000000000000e0, but 1.000000 was computed.
-0.000000 bits error (0 ulps)
-
-
-getReal:202
-handleMathFunc: sqrt:
-handleMathFunc res:1.00000000000000e0
-handleMathFunc op1:1.00000000000000e0
-handleMathFunc insert shadow mem:203
-updateError: computedVal:1 insIndex:25
-
-eagg->max_error:0
-
-eagg->num_evals:8 eagg->total_error:0
-
-The shadow value is 1.00000000000000e0, but 1.000000 was computed.
-0.000000 bits error (0 ulps)
+The shadow value is 4.80000004768372e0, but 4.800000 was computed.
+1.584963 bits error (2 ulps)
 
 
-getAddr:140736737172136
-getReal:140736737172136
-handleMathFunc: sqrt:
-handleMathFunc res:2.22446534362345e-136
-handleMathFunc op1:4.94824606498177e-272
-handleMathFunc insert shadow mem:204
-updateError: computedVal:2.22447e-136 insIndex:27
-
-eagg->max_error:0
-
-eagg->num_evals:8 eagg->total_error:0
-
-The shadow value is 2.22446534362345e-136, but 2.224465e-136 was computed.
-0.000000 bits error (0 ulps)
-
-
-computeReal op1Idx:203
-computeReal op2Idx:204
-getReal:203
-getReal:204
-FSUB
-res:1.00000000000000e0
-op1:1.00000000000000e0
-op2:2.22446534362345e-136
-computeReal insert shadow mem:205
-updateError: computedVal:1 insIndex:28
-
-eagg->max_error:61.9557
-
-eagg->num_evals:8 eagg->total_error:370.07
-
-The shadow value is 1.00000000000000e0, but 1.000000 was computed.
-0.000000 bits error (0 ulps)
-
-
-getAddr:140736737172144
-setRealTemp fromAddrInt:205
-setRealTemp toAddrInt:140736737172144
-setRealTemp shadow mem copied from:205 to:140736737172144
-getAddr:140736737172144
-1.000000e+00
-getAddr:6299856
-getReal:6299856
-handleMathFunc: real1 is NULL
-handleMathFunc: abs:
-handleMathFunc res:3.58815353236457e114
-handleMathFunc op1:-.358815353236457e114
-handleMathFunc insert shadow mem:201
-updateError: computedVal:3.58815e+114 insIndex:21
-
-eagg->max_error:0
-
-eagg->num_evals:9 eagg->total_error:0
-
-The shadow value is 3.58815353236457e114, but 3.588154e114 was computed.
-0.000000 bits error (0 ulps)
-
-
-getAddr:140736737172136
-setRealTemp fromAddrInt:201
-setRealTemp toAddrInt:140736737172136
-setRealTemp shadow mem copied from:201 to:140736737172136
-getAddr:140736737172136
-computeReal op1Idx:140736737172136
+computeReal op1Idx:214
 computeReal op2Idx:0
-getReal:140736737172136
-getReal:0
-computeReal: real2 is null, using op2 value:1
+computeReal: real2 is null, using op2 value:-0.2
+newRegIdx:216
+funcCount:9
 
 FADD
-res:3.58815353236457e114
-op1:3.58815353236457e114
-op2:1.00000000000000e0
-computeReal insert shadow mem:202
-updateError: computedVal:3.58815e+114 insIndex:24
+handleOp res:
+6.0000004768371573149465802998747e-1
+handleOp op1:
+8.0000004768371574259688827623904e-1
+handleOp op2:
+-2.0000000000000001110223024625157e-1
+res:6.00000047683716e-1
+op1:8.00000047683716e-1
+op2:-.200000000000000e-1
+computeReal insert shadow mem::216
+updateError: computedVal:0.6 insIndex:216
 
-eagg->max_error:0
+eagg->max_error:1.58496
 
-eagg->num_evals:9 eagg->total_error:0
+eagg->num_evals:1 eagg->total_error:1.58496
 
-The shadow value is 3.58815353236457e114, but 3.588154e114 was computed.
-0.000000 bits error (0 ulps)
-
-
-getReal:202
-handleMathFunc: sqrt:
-handleMathFunc res:1.89424220530654e57
-handleMathFunc op1:3.58815353236457e114
-handleMathFunc insert shadow mem:203
-updateError: computedVal:1.89424e+57 insIndex:25
-
-eagg->max_error:0
-
-eagg->num_evals:9 eagg->total_error:0
-
-The shadow value is 1.89424220530654e57, but 1.894242e57 was computed.
-0.000000 bits error (0 ulps)
+The shadow value is 6.00000047683716e-1, but 6.000000e-1 was computed.
+1.584963 bits error (2 ulps)
 
 
-getAddr:140736737172136
-getReal:140736737172136
-handleMathFunc: sqrt:
-handleMathFunc res:1.89424220530654e57
-handleMathFunc op1:3.58815353236457e114
-handleMathFunc insert shadow mem:204
-updateError: computedVal:1.89424e+57 insIndex:27
-
-eagg->max_error:0
-
-eagg->num_evals:9 eagg->total_error:0
-
-The shadow value is 1.89424220530654e57, but 1.894242e57 was computed.
-0.000000 bits error (0 ulps)
-
-
-computeReal op1Idx:203
-computeReal op2Idx:204
-getReal:203
-getReal:204
-FSUB
-res:2.63957797265470e-58
-op1:1.89424220530654e57
-op2:1.89424220530654e57
-computeReal insert shadow mem:205
-updateError: computedVal:0 insIndex:28
-
-eagg->max_error:61.9557
-
-eagg->num_evals:9 eagg->total_error:431.77
-
-The shadow value is 2.63957797265470e-58, but 0.000000 was computed.
-61.699845 bits error (3745449659666693500 ulps)
-
-
-getAddr:140736737172144
-setRealTemp fromAddrInt:205
-setRealTemp toAddrInt:140736737172144
-setRealTemp shadow mem copied from:205 to:140736737172144
-getAddr:140736737172144
-0.000000e+00
-getAddr:6299864
-getReal:6299864
-handleMathFunc: real1 is NULL
-handleMathFunc: abs:
-handleMathFunc res:2.70516505420672e122
-handleMathFunc op1:-.270516505420672e122
-handleMathFunc insert shadow mem:201
-updateError: computedVal:2.70517e+122 insIndex:21
-
-eagg->max_error:0
-
-eagg->num_evals:10 eagg->total_error:0
-
-The shadow value is 2.70516505420672e122, but 2.705165e122 was computed.
-0.000000 bits error (0 ulps)
-
-
-getAddr:140736737172136
-setRealTemp fromAddrInt:201
-setRealTemp toAddrInt:140736737172136
-setRealTemp shadow mem copied from:201 to:140736737172136
-getAddr:140736737172136
-computeReal op1Idx:140736737172136
+addFunArg: insert:216
+addFunArg: insert:215
+x: 6.000000e-01:
+y: 4.800000e+00:
+computeReal op1Idx:215
 computeReal op2Idx:0
-getReal:140736737172136
-getReal:0
-computeReal: real2 is null, using op2 value:1
+computeReal: real2 is null, using op2 value:0.2
+newRegIdx:217
+funcCount:10
 
 FADD
-res:2.70516505420672e122
-op1:2.70516505420672e122
-op2:1.00000000000000e0
-computeReal insert shadow mem:202
-updateError: computedVal:2.70517e+122 insIndex:24
+handleOp res:
+5.0000000476837159202325722162640
+handleOp op1:
+4.8000000476837159091303419700125
+handleOp op2:
+2.0000000000000001110223024625156e-1
+res:5.00000004768372e0
+op1:4.80000004768372e0
+op2:2.00000000000000e-1
+computeReal insert shadow mem::217
+updateError: computedVal:5 insIndex:217
 
-eagg->max_error:0
+eagg->max_error:1.58496
 
-eagg->num_evals:10 eagg->total_error:0
+eagg->num_evals:1 eagg->total_error:1.58496
 
-The shadow value is 2.70516505420672e122, but 2.705165e122 was computed.
-0.000000 bits error (0 ulps)
-
-
-getReal:202
-handleMathFunc: sqrt:
-handleMathFunc res:1.64473859753054e61
-handleMathFunc op1:2.70516505420672e122
-handleMathFunc insert shadow mem:203
-updateError: computedVal:1.64474e+61 insIndex:25
-
-eagg->max_error:0
-
-eagg->num_evals:10 eagg->total_error:0
-
-The shadow value is 1.64473859753054e61, but 1.644739e61 was computed.
-0.000000 bits error (0 ulps)
+The shadow value is 5.00000004768372e0, but 5.000000 was computed.
+1.584963 bits error (2 ulps)
 
 
-getAddr:140736737172136
-getReal:140736737172136
-handleMathFunc: sqrt:
-handleMathFunc res:1.64473859753054e61
-handleMathFunc op1:2.70516505420672e122
-handleMathFunc insert shadow mem:204
-updateError: computedVal:1.64474e+61 insIndex:27
+computeReal op1Idx:216
+computeReal op2Idx:0
+computeReal: real2 is null, using op2 value:-0.2
+newRegIdx:218
+funcCount:10
 
-eagg->max_error:0
+FADD
+handleOp res:
+4.0000004768371572039242778373591e-1
+handleOp op1:
+6.0000004768371573149465802998747e-1
+handleOp op2:
+-2.0000000000000001110223024625157e-1
+res:4.00000047683716e-1
+op1:6.00000047683716e-1
+op2:-.200000000000000e-1
+computeReal insert shadow mem::218
+updateError: computedVal:0.4 insIndex:218
 
-eagg->num_evals:10 eagg->total_error:0
+eagg->max_error:2.32193
 
-The shadow value is 1.64473859753054e61, but 1.644739e61 was computed.
-0.000000 bits error (0 ulps)
+eagg->num_evals:1 eagg->total_error:2.32193
+
+The shadow value is 4.00000047683716e-1, but 4.000000e-1 was computed.
+2.321928 bits error (4 ulps)
 
 
+addFunArg: insert:218
+addFunArg: insert:217
+x: 4.000000e-01:
+y: 5.000000e+00:
+computeReal op1Idx:217
+computeReal op2Idx:0
+computeReal: real2 is null, using op2 value:0.2
+newRegIdx:219
+funcCount:11
+
+FADD
+handleOp res:
+5.2000000476837159313348024625156
+handleOp op1:
+5.0000000476837159202325722162640
+handleOp op2:
+2.0000000000000001110223024625156e-1
+res:5.20000004768372e0
+op1:5.00000004768372e0
+op2:2.00000000000000e-1
+computeReal insert shadow mem::219
+updateError: computedVal:5.2 insIndex:219
+
+eagg->max_error:1.58496
+
+eagg->num_evals:1 eagg->total_error:1.58496
+
+The shadow value is 5.20000004768372e0, but 5.200000 was computed.
+1.584963 bits error (2 ulps)
+
+
+computeReal op1Idx:218
+computeReal op2Idx:0
+computeReal: real2 is null, using op2 value:-0.2
+newRegIdx:220
+funcCount:11
+
+FADD
+handleOp res:
+2.0000004768371570929019753748434e-1
+handleOp op1:
+4.0000004768371572039242778373591e-1
+handleOp op2:
+-2.0000000000000001110223024625157e-1
+res:2.00000047683716e-1
+op1:4.00000047683716e-1
+op2:-.200000000000000e-1
+computeReal insert shadow mem::220
+updateError: computedVal:0.2 insIndex:220
+
+eagg->max_error:3.16993
+
+eagg->num_evals:1 eagg->total_error:3.16993
+
+The shadow value is 2.00000047683716e-1, but 2.000000e-1 was computed.
+3.169925 bits error (8 ulps)
+
+
+addFunArg: insert:220
+addFunArg: insert:219
+x: 2.000000e-01:
+y: 5.200000e+00:
+computeReal op1Idx:219
+computeReal op2Idx:0
+computeReal: real2 is null, using op2 value:0.2
+newRegIdx:221
+funcCount:12
+
+FADD
+handleOp res:
+5.4000000476837159424370327087672
+handleOp op1:
+5.2000000476837159313348024625156
+handleOp op2:
+2.0000000000000001110223024625156e-1
+res:5.40000004768372e0
+op1:5.20000004768372e0
+op2:2.00000000000000e-1
+computeReal insert shadow mem::221
+updateError: computedVal:5.4 insIndex:221
+
+eagg->max_error:1.58496
+
+eagg->num_evals:1 eagg->total_error:1.58496
+
+The shadow value is 5.40000004768372e0, but 5.400000 was computed.
+1.584963 bits error (2 ulps)
+
+
+computeReal op1Idx:220
+computeReal op2Idx:0
+computeReal: real2 is null, using op2 value:-0.2
+newRegIdx:222
+funcCount:12
+
+FADD
+handleOp res:
+4.7683715698187967291232780553400e-8
+handleOp op1:
+2.0000004768371570929019753748434e-1
+handleOp op2:
+-2.0000000000000001110223024625157e-1
+res:4.76837156981880e-8
+op1:2.00000047683716e-1
+op2:-.200000000000000e-1
+computeReal insert shadow mem::222
+updateError: computedVal:4.76837e-08 insIndex:222
+
+eagg->max_error:25
+
+eagg->num_evals:1 eagg->total_error:25
+
+The shadow value is 4.76837156981880e-8, but 4.768372e-8 was computed.
+25.000000 bits error (33554432 ulps)
+
+
+addFunArg: insert:222
+addFunArg: insert:221
+x: 4.768372e-08:
+y: 5.400000e+00:
+computeReal op1Idx:221
+computeReal op2Idx:0
+computeReal: real2 is null, using op2 value:0.2
+newRegIdx:223
+funcCount:13
+
+FADD
+handleOp res:
+5.6000000476837159535392629550187
+handleOp op1:
+5.4000000476837159424370327087672
+handleOp op2:
+2.0000000000000001110223024625156e-1
+res:5.60000004768372e0
+op1:5.40000004768372e0
+op2:2.00000000000000e-1
+computeReal insert shadow mem::223
+updateError: computedVal:5.6 insIndex:223
+
+eagg->max_error:1.58496
+
+eagg->num_evals:1 eagg->total_error:1.58496
+
+The shadow value is 5.60000004768372e0, but 5.600000 was computed.
+1.584963 bits error (2 ulps)
+
+
+computeReal op1Idx:222
+computeReal op2Idx:0
+computeReal: real2 is null, using op2 value:-0.2
+newRegIdx:224
+funcCount:13
+
+FADD
+handleOp res:
+-1.9999995231628431291426295501879e-1
+handleOp op1:
+4.7683715698187967291232780553400e-8
+handleOp op2:
+-2.0000000000000001110223024625157e-1
+res:-.199999952316284e-1
+op1:4.76837156981880e-8
+op2:-.200000000000000e-1
+computeReal insert shadow mem::224
+updateError: computedVal:-0.2 insIndex:224
+
+eagg->max_error:3.16993
+
+eagg->num_evals:1 eagg->total_error:3.16993
+
+The shadow value is -.199999952316284e-1, but -2.000000e-1 was computed.
+3.169925 bits error (8 ulps)
+
+
+addFunArg: insert:224
+addFunArg: insert:223
+x: -2.000000e-01:
+y: 5.600000e+00:
+computeReal op1Idx:223
+computeReal op2Idx:0
+computeReal: real2 is null, using op2 value:0.2
+newRegIdx:225
+funcCount:14
+
+FADD
+handleOp res:
+5.8000000476837159646414932012703
+handleOp op1:
+5.6000000476837159535392629550187
+handleOp op2:
+2.0000000000000001110223024625156e-1
+res:5.80000004768372e0
+op1:5.60000004768372e0
+op2:2.00000000000000e-1
+computeReal insert shadow mem::225
+updateError: computedVal:5.8 insIndex:225
+
+eagg->max_error:1.58496
+
+eagg->num_evals:1 eagg->total_error:1.58496
+
+The shadow value is 5.80000004768372e0, but 5.800000 was computed.
+1.584963 bits error (2 ulps)
+
+
+cleanup: 225
+later x: -2.000000e-01:
+later y: 5.600000e+00:
+computeReal op1Idx:223
+computeReal op2Idx:224
+newRegIdx:226
+funcCount:14
+FSUB
+handleOp res:
+5.8000000000000002664535259100375
+handleOp op1:
+5.6000000476837159535392629550187
+handleOp op2:
+-1.9999995231628431291426295501879e-1
+res:5.80000000000000e0
+op1:5.60000004768372e0
+op2:-.199999952316284e-1
+computeReal insert shadow mem::226
+updateError: computedVal:5.8 insIndex:226
+
+eagg->max_error:1.58496
+
+eagg->num_evals:1 eagg->total_error:1.58496
+
+The shadow value is 5.80000000000000e0, but 5.800000 was computed.
+1.584963 bits error (2 ulps)
+
+
+sub: 5.800000e+00:
+cleanup: 226
+cleanup: 224
+cleanup: 223
+trackReturn:226
+later x: 4.768372e-08:
+later y: 5.400000e+00:
+computeReal op1Idx:221
+computeReal op2Idx:222
+newRegIdx:227
+funcCount:14
+FSUB
+handleOp res:
+5.4000000000000002442490654175344
+handleOp op1:
+5.4000000476837159424370327087672
+handleOp op2:
+4.7683715698187967291232780553400e-8
+res:5.40000000000000e0
+op1:5.40000004768372e0
+op2:4.76837156981880e-8
+computeReal insert shadow mem::227
+updateError: computedVal:5.4 insIndex:227
+
+eagg->max_error:1.58496
+
+eagg->num_evals:1 eagg->total_error:1.58496
+
+The shadow value is 5.40000000000000e0, but 5.400000 was computed.
+1.584963 bits error (2 ulps)
+
+
+sub: 5.400000e+00:
+cleanup: 227
+cleanup: 222
+cleanup: 221
+trackReturn:227
+later x: 2.000000e-01:
+later y: 5.200000e+00:
+computeReal op1Idx:219
+computeReal op2Idx:220
+newRegIdx:228
+funcCount:14
+FSUB
+handleOp res:
+5.0000000000000002220446049250313
+handleOp op1:
+5.2000000476837159313348024625156
+handleOp op2:
+2.0000004768371570929019753748434e-1
+res:5.00000000000000e0
+op1:5.20000004768372e0
+op2:2.00000047683716e-1
+computeReal insert shadow mem::228
+updateError: computedVal:5 insIndex:228
+
+eagg->max_error:1.58496
+
+eagg->num_evals:1 eagg->total_error:1.58496
+
+The shadow value is 5.00000000000000e0, but 5.000000 was computed.
+1.584963 bits error (2 ulps)
+
+
+sub: 5.000000e+00:
+cleanup: 228
+cleanup: 220
+cleanup: 219
+trackReturn:228
+later x: 4.000000e-01:
+later y: 5.000000e+00:
+computeReal op1Idx:217
+computeReal op2Idx:218
+newRegIdx:229
+funcCount:14
+FSUB
+handleOp res:
+4.6000000000000001998401444325281
+handleOp op1:
+5.0000000476837159202325722162640
+handleOp op2:
+4.0000004768371572039242778373591e-1
+res:4.60000000000000e0
+op1:5.00000004768372e0
+op2:4.00000047683716e-1
+computeReal insert shadow mem::229
+updateError: computedVal:4.6 insIndex:229
+
+eagg->max_error:1
+
+eagg->num_evals:1 eagg->total_error:1
+
+The shadow value is 4.60000000000000e0, but 4.600000 was computed.
+1.000000 bits error (1 ulps)
+
+
+sub: 4.600000e+00:
+cleanup: 229
+cleanup: 218
+cleanup: 217
+trackReturn:229
+later x: 6.000000e-01:
+later y: 4.800000e+00:
+computeReal op1Idx:215
+computeReal op2Idx:216
+newRegIdx:230
+funcCount:14
+FSUB
+handleOp res:
+4.2000000000000001776356839400250
+handleOp op1:
+4.8000000476837159091303419700125
+handleOp op2:
+6.0000004768371573149465802998747e-1
+res:4.20000000000000e0
+op1:4.80000004768372e0
+op2:6.00000047683716e-1
+computeReal insert shadow mem::230
+updateError: computedVal:4.2 insIndex:230
+
+eagg->max_error:1
+
+eagg->num_evals:1 eagg->total_error:1
+
+The shadow value is 4.20000000000000e0, but 4.200000 was computed.
+1.000000 bits error (1 ulps)
+
+
+sub: 4.200000e+00:
+cleanup: 230
+cleanup: 216
+cleanup: 215
+trackReturn:230
+later x: 8.000000e-01:
+later y: 4.600000e+00:
+computeReal op1Idx:213
+computeReal op2Idx:214
+newRegIdx:231
+funcCount:14
+FSUB
+handleOp res:
+3.8000000000000001554312234475219
+handleOp op1:
+4.6000000476837158980281117237609
+handleOp op2:
+8.0000004768371574259688827623904e-1
+res:3.80000000000000e0
+op1:4.60000004768372e0
+op2:8.00000047683716e-1
+computeReal insert shadow mem::231
+updateError: computedVal:3.8 insIndex:231
+
+eagg->max_error:1.58496
+
+eagg->num_evals:1 eagg->total_error:1.58496
+
+The shadow value is 3.80000000000000e0, but 3.800000 was computed.
+1.584963 bits error (2 ulps)
+
+
+sub: 3.800000e+00:
+cleanup: 231
+cleanup: 214
+cleanup: 213
+trackReturn:231
+later x: 1.000000e+00:
+later y: 4.400000e+00:
+computeReal op1Idx:211
+computeReal op2Idx:212
+newRegIdx:232
+funcCount:14
+FSUB
+handleOp res:
+3.4000000000000001332267629550187
+handleOp op1:
+4.4000000476837158869258814775093
+handleOp op2:
+1.0000000476837157536991185224906
+res:3.40000000000000e0
+op1:4.40000004768372e0
+op2:1.00000004768372e0
+computeReal insert shadow mem::232
+updateError: computedVal:3.4 insIndex:232
+
+eagg->max_error:1.58496
+
+eagg->num_evals:1 eagg->total_error:1.58496
+
+The shadow value is 3.40000000000000e0, but 3.400000 was computed.
+1.584963 bits error (2 ulps)
+
+
+sub: 3.400000e+00:
+cleanup: 232
+cleanup: 212
+cleanup: 211
+trackReturn:232
+later x: 1.200000e+00:
+later y: 4.200000e+00:
+computeReal op1Idx:209
+computeReal op2Idx:210
+newRegIdx:233
+funcCount:14
+FSUB
+handleOp res:
+3.0000000000000001110223024625156
+handleOp op1:
+4.2000000476837158758236512312578
+handleOp op2:
+1.2000000476837157648013487687421
+res:3.00000000000000e0
+op1:4.20000004768372e0
+op2:1.20000004768372e0
+computeReal insert shadow mem::233
+updateError: computedVal:3 insIndex:233
+
+eagg->max_error:1.58496
+
+eagg->num_evals:1 eagg->total_error:1.58496
+
+The shadow value is 3.00000000000000e0, but 3.000000 was computed.
+1.584963 bits error (2 ulps)
+
+
+sub: 3.000000e+00:
+cleanup: 233
+cleanup: 210
+cleanup: 209
+trackReturn:233
+later x: 1.400000e+00:
+later y: 4.000000e+00:
+computeReal op1Idx:207
+computeReal op2Idx:208
+newRegIdx:234
+funcCount:14
+FSUB
+handleOp res:
+2.6000000000000000888178419700125
+handleOp op1:
+4.0000000476837158647214209850062
+handleOp op2:
+1.4000000476837157759035790149937
+res:2.60000000000000e0
+op1:4.00000004768372e0
+op2:1.40000004768372e0
+computeReal insert shadow mem::234
+updateError: computedVal:2.6 insIndex:234
+
+eagg->max_error:1
+
+eagg->num_evals:1 eagg->total_error:1
+
+The shadow value is 2.60000000000000e0, but 2.600000 was computed.
+1.000000 bits error (1 ulps)
+
+
+sub: 2.600000e+00:
+cleanup: 234
+cleanup: 208
+cleanup: 207
+trackReturn:234
+later x: 1.600000e+00:
+later y: 3.800000e+00:
+computeReal op1Idx:205
+computeReal op2Idx:206
+newRegIdx:235
+funcCount:14
+FSUB
+handleOp res:
+2.2000000000000000666133814775093
+handleOp op1:
+3.8000000476837158536191907387546
+handleOp op2:
+1.6000000476837157870058092612453
+res:2.20000000000000e0
+op1:3.80000004768372e0
+op2:1.60000004768372e0
+computeReal insert shadow mem::235
+updateError: computedVal:2.2 insIndex:235
+
+eagg->max_error:1
+
+eagg->num_evals:1 eagg->total_error:1
+
+The shadow value is 2.20000000000000e0, but 2.200000 was computed.
+1.000000 bits error (1 ulps)
+
+
+sub: 2.200000e+00:
+cleanup: 235
+cleanup: 206
+cleanup: 205
+trackReturn:235
+later x: 1.800000e+00:
+later y: 3.600000e+00:
 computeReal op1Idx:203
 computeReal op2Idx:204
-getReal:203
-getReal:204
+newRegIdx:236
+funcCount:14
 FSUB
-res:3.03999675541582e-62
-op1:1.64473859753054e61
-op2:1.64473859753054e61
-computeReal insert shadow mem:205
-updateError: computedVal:0 insIndex:28
+handleOp res:
+1.8000000000000000444089209850062
+handleOp op1:
+3.6000000476837158425169604925031
+handleOp op2:
+1.8000000476837157981080395074968
+res:1.80000000000000e0
+op1:3.60000004768372e0
+op2:1.80000004768372e0
+computeReal insert shadow mem::236
+updateError: computedVal:1.8 insIndex:236
 
-eagg->max_error:61.9557
+eagg->max_error:1.58496
 
-eagg->num_evals:10 eagg->total_error:493.447
+eagg->num_evals:1 eagg->total_error:1.58496
 
-The shadow value is 3.03999675541582e-62, but 0.000000 was computed.
-61.676950 bits error (3686481047073380440 ulps)
+The shadow value is 1.80000000000000e0, but 1.800000 was computed.
+1.584963 bits error (2 ulps)
 
 
-getAddr:140736737172144
-setRealTemp fromAddrInt:205
-setRealTemp toAddrInt:140736737172144
-setRealTemp shadow mem copied from:205 to:140736737172144
-getAddr:140736737172144
-0.000000e+00
-funcExit:4196784
-funcExit top of varTrack:140736737172144
-cleaning up:140736737172144
-funcExit top of varTrack:140736737172136
-cleaning up:140736737172136
-funcExit top of varTrack:4196784
-var == funcAddrInt:4196784
-cleanComputeReal:201
-cleaning up:201
-cleanComputeReal:202
-cleaning up:202
-cleanComputeReal:203
-cleaning up:203
-cleanComputeReal:204
-cleaning up:204
-cleanComputeReal:205
-cleaning up:205
-mpfrInit:72
-mpfrClear:72
+sub: 1.800000e+00:
+cleanup: 236
+cleanup: 204
+cleanup: 203
+trackReturn:236
+later x: 2.000000e+00:
+later y: 3.400000e+00:
+computeReal op1Idx:201
+computeReal op2Idx:202
+newRegIdx:237
+funcCount:14
+FSUB
+handleOp res:
+1.4000000000000000222044604925031
+handleOp op1:
+3.4000000476837158314147302462515
+handleOp op2:
+2.0000000476837158092102697537484
+res:1.40000000000000e0
+op1:3.40000004768372e0
+op2:2.00000004768372e0
+computeReal insert shadow mem::237
+updateError: computedVal:1.4 insIndex:237
+
+eagg->max_error:1.58496
+
+eagg->num_evals:1 eagg->total_error:1.58496
+
+The shadow value is 1.40000000000000e0, but 1.400000 was computed.
+1.584963 bits error (2 ulps)
+
+
+sub: 1.400000e+00:
+cleanup: 237
+cleanup: 202
+cleanup: 201
+trackReturn:237
+z: 1.400000e+00:
+mpfrInit:78
+mpfrClear:78

@@ -26,6 +26,7 @@ size_t mpfrClear = 0;
 size_t mpfrInit = 0;
 int varCount = 0;
 int opCount = 0;
+size_t funcCount = 0;
 double regIndex = 200; //assuming there are 200 constants in the program
 std::map<size_t, struct ErrorAggregate*>errorMap;
 std::map<size_t, struct BrError*>errBrMap;

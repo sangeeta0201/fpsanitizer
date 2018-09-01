@@ -1,0 +1,99 @@
+In file included from /usr/include/stdio.h:936:0,
+                 from calcmu.c:33:
+In function 'fread',
+    inlined from 'read_mu' at calcmu.c:74:7:
+/usr/include/x86_64-linux-gnu/bits/stdio2.h:293:9: warning: call to '__fread_chk_warn' declared with attribute warning: fread called with bigger size * nmemb than length of destination buffer
+  return __fread_chk_warn (__ptr, __bos0 (__ptr), __size, __n, __stream);
+         ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+constr.c: In function 'lincs_warning':
+constr.c:658:18: warning: format not a string literal and no format arguments [-Wformat-security]
+   fprintf(stderr,buf);
+                  ^~~
+constr.c:660:22: warning: format not a string literal and no format arguments [-Wformat-security]
+       fprintf(stdlog,buf);
+                      ^~~
+constr.c:673:22: warning: format not a string literal and no format arguments [-Wformat-security]
+       fprintf(stderr,buf);
+                      ^~~
+constr.c:675:26: warning: format not a string literal and no format arguments [-Wformat-security]
+           fprintf(stdlog,buf);
+                          ^~~
+enxio.c: In function 'empty_file':
+enxio.c:181:3: warning: ignoring return value of 'fread', declared with attribute warn_unused_result [-Wunused-result]
+   fread(&dum,sizeof(dum),1,fp);
+   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+genalg.c: In function 'init_ga':
+genalg.c:124:3: warning: ignoring return value of 'fscanf', declared with attribute warn_unused_result [-Wunused-result]
+   fscanf(fpin_ptr,"%d",&ga->NP);             /*---choice of strategy-----------------*/
+   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+genalg.c:125:3: warning: ignoring return value of 'fscanf', declared with attribute warn_unused_result [-Wunused-result]
+   fscanf(fpin_ptr,"%d",&ga->strategy);       /*---choice of strategy-----------------*/
+   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+genalg.c:126:3: warning: ignoring return value of 'fscanf', declared with attribute warn_unused_result [-Wunused-result]
+   fscanf(fpin_ptr,"%lf",&ff);            /*---weight factor----------------------*/
+   ^~~~~~~~~~~~~~~~~~~~~~~~~~
+genalg.c:127:3: warning: ignoring return value of 'fscanf', declared with attribute warn_unused_result [-Wunused-result]
+   fscanf(fpin_ptr,"%lf",&cr);            /*---crossing over factor---------------*/
+   ^~~~~~~~~~~~~~~~~~~~~~~~~~
+genalg.c:128:3: warning: ignoring return value of 'fscanf', declared with attribute warn_unused_result [-Wunused-result]
+   fscanf(fpin_ptr,"%d",&ga->seed);           /*---random seed------------------------*/
+   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ghat.c: In function 'rd_ghat':
+ghat.c:204:3: warning: ignoring return value of 'fscanf', declared with attribute warn_unused_result [-Wunused-result]
+   fscanf(in,"%d%d%d%lf%lf%lf",&ix,&iy,&iz,&gx,&gy,&gz);
+   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ghat.c:207:3: warning: ignoring return value of 'fscanf', declared with attribute warn_unused_result [-Wunused-result]
+   fscanf(in,"%d%d%d%d%lf%lf%lf",&nalias,porder,&niter,&bSym,&alX,&alY,&alZ);
+   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ghat.c:208:3: warning: ignoring return value of 'fscanf', declared with attribute warn_unused_result [-Wunused-result]
+   fscanf(in,"%lf%lf%lf%lf%lf%lf",&acut,&r11,&pval,&zval,&eref,&qopt);
+   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+ghat.c:241:2: warning: ignoring return value of 'fscanf', declared with attribute warn_unused_result [-Wunused-result]
+  fscanf(in,"%lf",&ddd);
+  ^~~~~~~~~~~~~~~~~~~~~
+index.c:54:13: warning: conflicting types for built-in function 'yn'
+ static bool yn(bool bASK)
+             ^~
+pargs.c: In function 'print_pargs':
+pargs.c:293:2: warning: format not a string literal and no format arguments [-Wformat-security]
+  fprintf(fp,wdesc);
+  ^~~~~~~
+rdgroup.c: In function 'init_index':
+rdgroup.c:106:7: warning: ignoring return value of 'fscanf', declared with attribute warn_unused_result [-Wunused-result]
+       fscanf(in,"%s%d",str,&ng);
+       ^~~~~~~~~~~~~~~~~~~~~~~~~
+rdgroup.c:112:2: warning: ignoring return value of 'fscanf', declared with attribute warn_unused_result [-Wunused-result]
+  fscanf(in,"%d",&a);
+  ^~~~~~~~~~~~~~~~~~
+rdgroup.c: In function 'qgroup':
+rdgroup.c:126:3: warning: ignoring return value of 'scanf', declared with attribute warn_unused_result [-Wunused-result]
+   scanf("%d",a);
+   ^~~~~~~~~~~~~
+strdb.c: In function 'get_strings':
+strdb.c:114:5: warning: ignoring return value of 'fscanf', declared with attribute warn_unused_result [-Wunused-result]
+     fscanf(in,"%s",buf);
+     ^~~~~~~~~~~~~~~~~~~
+strdb.c: In function 'fget_lines':
+strdb.c:145:3: warning: ignoring return value of 'fgets', declared with attribute warn_unused_result [-Wunused-result]
+   fgets(buf,255,in);
+   ^~~~~~~~~~~~~~~~~
+trxio.c: In function 'choose_ff':
+trxio.c:399:5: warning: ignoring return value of 'scanf', declared with attribute warn_unused_result [-Wunused-result]
+     scanf("%d",&i);
+     ^~~~~~~~~~~~~~
+trxio.c:413:5: warning: ignoring return value of 'fscanf', declared with attribute warn_unused_result [-Wunused-result]
+     fscanf(status,"%d%lf%lf%lf%lf",&NATOMS,&BOX[XX],&BOX[YY],&BOX[ZZ],&DT);
+     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+trxio.c:420:5: warning: ignoring return value of 'scanf', declared with attribute warn_unused_result [-Wunused-result]
+     scanf("%d",&NATOMS);
+     ^~~~~~~~~~~~~~~~~~~
+trxio.c:424:5: warning: ignoring return value of 'scanf', declared with attribute warn_unused_result [-Wunused-result]
+     scanf("%lf",&DT);
+     ^~~~~~~~~~~~~~~~
+trxio.c:429:7: warning: ignoring return value of 'scanf', declared with attribute warn_unused_result [-Wunused-result]
+       scanf("%lf%lf%lf",&BOX[XX],&BOX[YY],&BOX[ZZ]);
+       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+viewit.c: In function 'do_view':
+viewit.c:100:2: warning: ignoring return value of 'system', declared with attribute warn_unused_result [-Wunused-result]
+  system(buf);
+  ^~~~~~~~~~~

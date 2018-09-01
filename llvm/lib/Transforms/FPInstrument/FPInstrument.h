@@ -26,6 +26,8 @@ public:
   FPInstrument() : ModulePass(ID) {}
 
   virtual bool runOnModule(Module &module);
+	bool isFPArray(Type *type);
+	void cleanGEP(StructType *ST,Instruction *I, BasicBlock *BB,  GetElementPtrInst *GEP, Function &F, size_t index);
   //it returns true if function is in the list of instrumented functions
   bool instrumentFunctions(StringRef FN);
   //its called for every store and set real in shadow memory
@@ -72,6 +74,7 @@ public:
   static char ID; // Pass identification, replacement for typeid
 private:
   SmallVector<Function*, 8> AllFuncList;
+  SmallVector<ReturnInst*, 8> AllReturn;
   std::map<Instruction*, Instruction*> TrackIToFCast;
   //this is used to track address of a variable loaded from memory 
   std::map<Instruction*, Value*> LoadMap;
@@ -115,6 +118,7 @@ private:
   Value* FuncExit;
   Value* GetAddr;
   Value* HandleExtractValue;
+	Value* GetFunArg;
 	BitCastInst *BCFunc;
 	Instruction *FuncIdx;
 };

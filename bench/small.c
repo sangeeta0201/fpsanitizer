@@ -9,8 +9,8 @@ int main() {
   double x,y;
   x = 1e10;
   calcY(&y, x);
-  printf("****y:%e\n", y);
+  printf("y:%e\n", y);
   calcY(&y, x);
-  printf("****y:%e\n", y);
+  printf("y:%e\n", y);
   return 0;
 }
