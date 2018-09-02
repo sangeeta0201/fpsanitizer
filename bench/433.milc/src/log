@@ -1,7 +1,0 @@
-SU3 with improved KS action
-Microcanonical simulation with refreshing
-MIMD version 6
-Machine = Scalar processor, with 1 nodes
-R algorithm
-type 0 for no prompts  or 1 for prompts
-get_prompt: ERROR IN INPUT: initial prompt

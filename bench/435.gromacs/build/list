@@ -1,2 +1,0 @@
-build_base_gcc43-64bit.0000 dir=/home/sangeeta/install_archives/benchspec/CPU2006/435.gromacs/build/build_base_gcc43-64bit.0000 ext=gcc43-64bit lock=0 tune=base type=build username=sangeeta
-__END__
