@@ -3,11 +3,7 @@
 #include "llvm/IR/ConstantFolder.h"
 
 /* TODO
-1. Handle conversions 
-2. Handle read write from registers Done
-3. Handle taint tracking Not Required
-4. Handle error aggregation Done
-5. Branch conditions Done
+1. Pass instruction as string to run time
 */
 //TODO:1.float are uplifted to double at run time, check if this is an issue in error calculation
 //TODO:2 Write all functions name to functions.txt so that we can avoid it doing manually

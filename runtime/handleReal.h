@@ -5,6 +5,7 @@
 #include <mpfr.h>
 #include <vector>
 #include <stack>
+#include <list>
 
 #define PRECISION 100
 
@@ -22,16 +23,23 @@ struct BrError {
 struct Real{
   mpfr_t mpfr_val;
 };
+struct MyShadow{
+	size_t key;
+	struct Real * real;
+};
+
+bool recurFlag = false;
 size_t mpfrClear = 0;
 size_t mpfrInit = 0;
 int varCount = 0;
 int opCount = 0;
 size_t funcCount = 0;
+size_t currentFunc = 0;
 double regIndex = 200; //assuming there are 200 constants in the program
 std::map<size_t, struct ErrorAggregate*>errorMap;
 std::map<size_t, struct BrError*>errBrMap;
 //this will link ins index to index of result in shadow mem
-std::stack<size_t> varTrack;
+std::list<struct MyShadow*> varTrack;
 std::stack<size_t> retTrack;
 std::map<size_t, size_t>insMap;
 std::map<size_t, size_t>returnMap;
