@@ -7,7 +7,7 @@
 #include <stack>
 #include <list>
 
-#define PRECISION 100
+#define PRECISION 1000
 
 struct ErrorAggregate {
   double max_error;
@@ -48,6 +48,7 @@ std::map<size_t, size_t>funRetMap;
 std::map<std::map<size_t, size_t>, size_t> shadowFunArgMap; // thi will link function argument to shadowMap
 std::map<size_t, struct Real*> shadowMap;
 
+void printReal(mpfr_t mpfr_val);
 double getDouble(Real *real);
 unsigned long ulpd(double x, double y);
 void handleOp(size_t opCode, mpfr_t *res, mpfr_t *op1, mpfr_t *op2);
@@ -56,7 +57,6 @@ void initializeBrError(BrError *err);
 double updateError(Real *realVal, double computedVal, size_t insIndex);
 void updateBranchError(bool realRes, bool computedRes, size_t insIndex);
 void initializeErrorAggregate(ErrorAggregate *eagg);
-void printReal(Real *real);
 /*
 When we compute any floating point operation on real, we save the result in shadow map with its value 
 and return the address of this saved value to LLVM Pass. LLVM pass creates the mapping of real result and 

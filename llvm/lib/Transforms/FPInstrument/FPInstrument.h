@@ -63,7 +63,7 @@ public:
   void handleFuncReturn(Instruction *I, ReturnInst *RI, Function &F);
   //this function looks one instruction ahead and return it
   Instruction* getNextInstruction(Instruction *I, BasicBlock *BB);
-  void handleFuncExit(Instruction *I, BasicBlock *BB, Function &F);  
+  void handleFuncExit(Instruction *I, ReturnInst *RI, BasicBlock *BB, Function &F);  
   void handleFuncInit(Function &F);  
   void handleAlloca(Instruction *I, BasicBlock *BB, AllocaInst *A, Function &F);  void handleCleanup(Instruction *I, ReturnInst *RI, Function &F); 
   void handleSelect(Instruction *I, SelectInst *SI, Function &F);

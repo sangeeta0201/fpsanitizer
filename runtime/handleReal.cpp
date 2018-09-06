@@ -10,7 +10,7 @@
 2. Clean up shadow
 3. How to figure out memcpy of only double?
 */
-#define debug 0
+#define debug 1
 
 FILE *pFile = fopen ("error.out","w");
 
@@ -61,13 +61,18 @@ size_t getRegRes(size_t insIndex){
 }
 
 
-
+void printStack(){
+	std::cout<<"printStack:\n";
+	for (std::list<struct MyShadow*>::reverse_iterator rit=varTrack.rbegin(); rit!=varTrack.rend(); ++rit){
+		std::cout<<(*rit)->key<<"\n";
+	}
+}
 struct MyShadow* existInStack(size_t key){
 	
 	for (std::list<struct MyShadow*>::reverse_iterator rit=varTrack.rbegin(); rit!=varTrack.rend(); ++rit){
-  	if(currentFunc == (*rit)->key){
-			return NULL;
-		}
+  	//if(currentFunc == (*rit)->key){
+	//		return NULL;
+	//	}
 		if(key == (*rit)->key){
 			return *rit;
 		}
@@ -82,20 +87,41 @@ extern "C" void funcInit(size_t funcAddrInt){
   varTrack.push_back(shadow);
 }
 
-extern "C" void funcExit(size_t funcAddrInt){
+extern "C" void funcExit(size_t funcAddrInt, size_t returnIdx){
   size_t var;
-	struct MyShadow *shadow;
-	
+	struct MyShadow *shadow = NULL;
+	struct MyShadow *newShadow = NULL;
+	retTrack.push(returnIdx);
+  funRetMap.insert(std::pair<size_t, size_t>(funcAddrInt, returnIdx));
+	if(debug)
+		std::cout<<"funcExit returnIdx : "<<returnIdx<<"\n";
   while(!varTrack.empty()){
      shadow = varTrack.back();
     if(shadow->key == funcAddrInt){
       varTrack.pop_back();
+			if(newShadow != NULL){
+				varTrack.push_back(newShadow); //push back returned value to stack
+				std::cout<<"funcExit: pushed return value back:"<<newShadow->key<<"\n";
+			}
       break;
     }
-    mpfr_clear(shadow->real->mpfr_val);
-    mpfrClear++;
-		delete shadow;
-    varTrack.pop_back();
+		if(shadow->key == returnIdx){
+
+				struct Real* toReal = new Real;
+				mpfr_init2(toReal->mpfr_val, PRECISION);
+				mpfrInit++;
+				mpfr_set(toReal->mpfr_val, shadow->real->mpfr_val, MPFR_RNDD);
+				newShadow = new MyShadow;
+				newShadow->key = shadow->key;
+				newShadow->real = toReal;  
+		}
+			if(debug)
+				std::cout<<"funcExit: removed:"<<shadow->key<<"\n";
+    	mpfr_clear(shadow->real->mpfr_val);
+    	mpfrClear++;
+			delete shadow->real;
+			delete shadow;
+    	varTrack.pop_back();
   }
 }
 
@@ -113,9 +139,13 @@ extern "C" size_t handleMathFunc(size_t funcCode, double op1, size_t op1Int,
   
   mpfr_init2 (real_res->mpfr_val, PRECISION); 
   mpfrInit++;
+	if(debug)
+		std::cout<<"handleMathFunc: op1Idx:"<<op1Int<<"\n"; 
   bool mpfrFlag1 = false; 
   real1 = getReal(op1Int);
   if(real1 == NULL){
+			if(debug)
+      	std::cout<<"handleMathFunc: real1 is null, using op1 value:"<<op1<<"\n";
       real1 = new Real;
       mpfr_init2(real1->mpfr_val, PRECISION);
       mpfrInit++;
@@ -176,10 +206,10 @@ extern "C" size_t handleMathFunc(size_t funcCode, double op1, size_t op1Int,
   else{
     std::cout<<"handleMathFunc: Error!!!\n";
     std::cout<<"handleMathFunc res:";
-    printReal(real_res);
+    printReal(real_res->mpfr_val);
     std::cout<<"\n";
     std::cout<<"handleMathFunc op1:";
-    printReal(real1);
+    printReal(real1->mpfr_val);
     std::cout<<"\n";
   }
 	
@@ -191,6 +221,9 @@ extern "C" size_t handleMathFunc(size_t funcCode, double op1, size_t op1Int,
   	varTrack.push_back(newShadow);
 	}
 	else{//just update the value in stack
+    	mpfr_clear(shadow->real->mpfr_val);
+    	mpfrClear++;
+			delete shadow->real;
 		shadow->key = newRegIdx;
 		shadow->real = real_res;  
 	}
@@ -268,6 +301,9 @@ extern "C" size_t handleMathFunc3Args(size_t funcCode, double op1, size_t op1Int
   	varTrack.push_back(newShadow);
 	}
 	else{//just update the value in stack
+    	mpfr_clear(shadow->real->mpfr_val);
+    	mpfrClear++;
+			delete shadow->real;
 		shadow->key = newRegIdx;
 		shadow->real = real_res;  
 	}
@@ -321,13 +357,13 @@ void handleOp(size_t opCode, mpfr_t *res, mpfr_t *op1, mpfr_t *op2){
   } 
   if(debug){
     std::cout<<"handleOp res:\n";
-    mpfr_out_str (stdout, 10, 0, *res, MPFR_RNDD);
+    printReal(*res);
     std::cout<<"\n";
     std::cout<<"handleOp op1:\n";
-    mpfr_out_str (stdout, 10, 0, *op1, MPFR_RNDD);
+    printReal(*op1);
     std::cout<<"\n";
     std::cout<<"handleOp op2:\n";
-    mpfr_out_str (stdout, 10, 0, *op2, MPFR_RNDD);
+    printReal(*op2);
     std::cout<<"\n";
   }
 }
@@ -354,11 +390,27 @@ extern "C" size_t setRealConstant(size_t AddrInt, double value){
 	}
   return AddrInt;
 }
-
-extern "C" size_t computeReal(size_t opCode, size_t op1Idx, size_t op2Idx, double op1, double op2, 
-                                    double computedRes, size_t insIndex){
+//TODO: why operands can not be uplifted to double? 
+//Do i need to pass computedRes in float as well?
+extern "C" size_t computeReal(size_t opCode, size_t op1Idx, size_t op2Idx, float op1f, float op2f, 
+																		double op1d, double op2d, double computedRes,
+                                    size_t typeId, size_t insIndex){
 
 #if 1
+	double op1, op2;
+
+	if(typeId == 2){ //float
+		std::cout<<"computeReal: float\n";
+		op1 = op1f;
+		op2 = op2f; 
+	}
+	else if(typeId == 3){ //doublw
+		op1 = op1d; 
+		op2 = op2d;
+	}
+	else
+		std::cout<<"computeReal: double\n";
+	
   size_t regIndex1;
   size_t regIndex2;
   bool mpfrFlag1 = false;
@@ -403,15 +455,6 @@ extern "C" size_t computeReal(size_t opCode, size_t op1Idx, size_t op2Idx, doubl
   mpfrInit++;
 
   handleOp(opCode, &(real_res->mpfr_val), &(real1->mpfr_val), &(real2->mpfr_val));
-  if(debug){
-  std::cout<<"res:";
-  printReal(real_res);
-  std::cout<<"\nop1:";
-  printReal(real1);
-  std::cout<<"\nop2:";
-  printReal(real2);
-  std::cout<<"\n";
-  }
 	MyShadow *shadow = existInStack(newRegIdx);
 	if(shadow == NULL){
 		MyShadow *newShadow = new MyShadow;
@@ -422,6 +465,11 @@ extern "C" size_t computeReal(size_t opCode, size_t op1Idx, size_t op2Idx, doubl
     	std::cout<<"computeReal insert shadow stack::"<<newRegIdx<<"\n";
 	}
 	else{//just update the value in stack
+			
+		mpfr_clear(shadow->real->mpfr_val);
+    delete(shadow->real);
+    mpfrClear++;
+
 		shadow->key = newRegIdx;
 		shadow->real = real_res;  
   	if(debug)
@@ -593,6 +641,8 @@ extern "C" size_t getRealFunArg(size_t index, size_t funAddrInt){
   if(shadowFunArgMap.count(shadowAddrMap) != 0){ 
   	shadowAddr = shadowFunArgMap.at(shadowAddrMap);
 	}
+	
+	std::cout<<"getRealFunArg: "<<shadowAddr<<"\n";
 	return shadowAddr;
 }
 
@@ -628,7 +678,7 @@ extern "C" void setRealFunArg(size_t index, size_t funAddrInt, size_t toAddrInt,
   		varTrack.push_back(newShadow);
 
   		if(debug)
-    		std::cout<<"setRealFunArg insert shadow stack::"<<toAddrInt<<"\n";
+    		std::cout<<"setRealFunArg update from:"<<shadow->key<<" to :"<<toAddrInt<<"\n";
 		}
 	}
 }
@@ -639,12 +689,12 @@ extern "C" size_t getRealReturn(size_t funAddrInt){
 		idx = funRetMap.at(funAddrInt);
 	}
   else//it shoud not happen
-    std::cout<<"Error !!!! return value not found in funRetMap\n";
+    std::cout<<"getRealReturn: Error !!!! return value not found in funRetMap\n";
 	return idx;
 }
 
 extern "C" void setRealReturn(size_t toAddrInt){
-  if(!retTrack.empty()){
+	if(!retTrack.empty()){
     size_t idx = retTrack.top();
     retTrack.pop();
 		MyShadow *shadow = existInStack(toAddrInt);
@@ -653,14 +703,27 @@ extern "C" void setRealReturn(size_t toAddrInt){
       mpfr_init2(toReal->mpfr_val, PRECISION);
       mpfrInit++;
       mpfr_set(toReal->mpfr_val, shadow->real->mpfr_val, MPFR_RNDD);
-			//cleanup(idx);
+			MyShadow *newShadow = new MyShadow;
+			newShadow->key = toAddrInt;
+			newShadow->real = toReal;  
+  		varTrack.push_back(newShadow);
+			mpfr_clear(shadow->real->mpfr_val);
+    	mpfrClear++;
+    	delete shadow->real;
+    	delete shadow;
+	
   		if(debug)
-    		std::cout<<"setRealReturn update shadow stack::"<<toAddrInt<<"\n";
+    		std::cout<<"setRealReturn: insert shadow stack::"<<toAddrInt<<"\n";
+		}
+		else{
+  		if(debug)
+    		std::cout<<"setRealReturn: not found in stack::"<<"\n";
 		}
 	}
   else
-    std::cout<<"Error !!!! return value not found in stack\n";
+    std::cout<<"setRealReturn: Error !!!! return value not found in stack\n";
 }
+
 
 extern "C" void setRealTemp(size_t toAddrInt, size_t fromAddrInt){
 		MyShadow *fromShadow = existInStack(fromAddrInt);
@@ -682,7 +745,7 @@ extern "C" void setRealTemp(size_t toAddrInt, size_t fromAddrInt){
       mpfr_set(toShadow->real->mpfr_val, fromShadow->real->mpfr_val, MPFR_RNDD);
 
   		if(debug)
-    		std::cout<<"setRealConstant update shadow stack::"<<toAddrInt<<"\n";
+    		std::cout<<"setRealTemp update shadow stack::"<<toAddrInt<<"\n";
 		}
 	}
   else{
@@ -714,7 +777,7 @@ extern "C" size_t handleExtractValue(size_t idx, size_t funAddrInt){
 extern "C" void trackReturn(size_t funAddrInt, size_t Idx){
 	if(debug)
 		std::cout<<"trackReturn:"<<Idx<<"\n";
-  retTrack.push(Idx);
+	retTrack.push(Idx);
   funRetMap.insert(std::pair<size_t, size_t>(funAddrInt, Idx));
 }
 
@@ -729,11 +792,11 @@ double getDouble(Real *real){
 long double getLongDouble(Real *real){  
   return mpfr_get_ld(real->mpfr_val, MPFR_RNDN);
 }
-void printReal(Real *real){
+void printReal(mpfr_t mpfr_val){
   char* shadowValStr;
   mpfr_exp_t shadowValExpt;
 
-  shadowValStr = mpfr_get_str(NULL, &shadowValExpt, 10, 15, real->mpfr_val, MPFR_RNDN);
+  shadowValStr = mpfr_get_str(NULL, &shadowValExpt, 10, 15, mpfr_val, MPFR_RNDN);
   printf("%c.%se%ld", shadowValStr[0], shadowValStr+1, shadowValExpt-1);
   mpfr_free_str(shadowValStr);
 //  mpfr_out_str (stdout, 10, 0, real->mpfr_val, MPFR_RNDD);
@@ -829,11 +892,11 @@ double updateError(Real *realVal, double computedVal, size_t insIndex){
   }
   eagg->total_error += bitsError;
   eagg->num_evals += 1;
-   if (debug){
+   if (1){
     std::cout<<"\neagg->max_error:"<<eagg->max_error<<"\n";
     std::cout<<"\neagg->num_evals:"<<eagg->num_evals<<" eagg->total_error:"<<eagg->total_error<<"\n";
     std::cout<<"\nThe shadow value is ";
-    printReal(realVal);
+    printReal(realVal->mpfr_val);
     if (computedVal != computedVal){
       std::cout<<", but NaN was computed.\n";
     } else {
@@ -887,10 +950,19 @@ extern "C" void finish(){
   int n;
   char name [100];
   bool flag = false;
-  //  mpfr_clear(it->second->mpfr_val);
-   // delete(it->second);
-  //  shadowMap.erase(it);
-  //  mpfrClear++;
+
+	for (std::list<struct MyShadow*>::iterator it=varTrack.begin(); it!=varTrack.end(); ++it){
+		if((*it)->real != NULL){
+			mpfr_clear((*it)->real->mpfr_val);
+    	mpfrClear++;
+	    delete (*it)->real;
+		}
+	  delete (*it);
+	}
+	for (std::list<struct MyShadow*>::iterator it=varTrack.begin(); it!=varTrack.end(); ++it){
+		it = varTrack.erase(it);
+	}
+	std::cout<<"list:";
   std::cout<<"mpfrInit:"<<mpfrInit<<"\n";
   std::cout<<"mpfrClear:"<<mpfrClear<<"\n";
   for (std::map<size_t, struct ErrorAggregate*>::iterator it=errorMap.begin(); it!=errorMap.end(); ++it){
