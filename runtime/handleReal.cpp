@@ -68,11 +68,12 @@ void printStack(){
 	}
 }
 struct MyShadow* existInStack(size_t key){
-	
 	for (std::list<struct MyShadow*>::reverse_iterator rit=varTrack.rbegin(); rit!=varTrack.rend(); ++rit){
   	//if(currentFunc == (*rit)->key){
 	//		return NULL;
 	//	}
+		if(*rit == NULL)
+			return NULL;
 		if(key == (*rit)->key){
 			return *rit;
 		}
@@ -126,10 +127,14 @@ extern "C" void funcExit(size_t funcAddrInt, size_t returnIdx){
 }
 
 extern "C" void handleAlloca(size_t varAddrInt){
-	MyShadow *shadow;
+/*
+	MyShadow *shadow = new MyShadow;
+  struct Real* real_res = new Real;
 	shadow->key = varAddrInt;  
+	shadow->real = real_res;
 	std::cout<<"handleAlloca: added alloca addr:"<<varAddrInt<<"\n";
   varTrack.push_back(shadow);
+*/
 }
 
 extern "C" size_t handleMathFunc(size_t funcCode, double op1, size_t op1Int, 
@@ -164,39 +169,39 @@ extern "C" size_t handleMathFunc(size_t funcCode, double op1, size_t op1Int,
   if(real1 != NULL){
     switch(funcCode){
       case 1: //sqrt
-        //std::cout<<"handleMathFunc: sqrt:\n";
+        std::cout<<"handleMathFunc: sqrt:\n";
         mpfr_sqrt(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
         break;
       case 2: //floor
-        //std::cout<<"handleMathFunc: floor:\n";
+        std::cout<<"handleMathFunc: floor:\n";
         mpfr_floor(real_res->mpfr_val, real1->mpfr_val);
         break;
       case 3: //tan
-        //std::cout<<"handleMathFunc: tan:\n";
+        std::cout<<"handleMathFunc: tan:\n";
         mpfr_tan(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
         break;
       case 4: //sin
-        //std::cout<<"handleMathFunc: sin:\n";
+        std::cout<<"handleMathFunc: sin:\n";
         mpfr_sin(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
         break;
       case 5: //cos
-        //std::cout<<"handleMathFunc: cos:\n";
+        std::cout<<"handleMathFunc: cos:\n";
         mpfr_cos(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
         break;
       case 6: //atan
-        //std::cout<<"handleMathFunc: atan:\n";
+        std::cout<<"handleMathFunc: atan:\n";
         mpfr_atan(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
         break;
       case 8: //atan
-        //std::cout<<"handleMathFunc: abs:\n";
+        std::cout<<"handleMathFunc: abs:\n";
         mpfr_abs(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
         break;
       case 9: //atan
-        //std::cout<<"handleMathFunc: abs:\n";
+        std::cout<<"handleMathFunc: log:\n";
         mpfr_log(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
         break;
       case 10: //asin
-        //std::cout<<"handleMathFunc: abs:\n";
+        std::cout<<"handleMathFunc: asin:\n";
         mpfr_asin(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
         break;
       default:
@@ -380,13 +385,15 @@ extern "C" size_t setRealConstant(size_t AddrInt, double value){
 		newShadow->real = real;  
   	varTrack.push_back(newShadow);
   	if(debug)
-    	std::cout<<"setRealConstant insert shadow stack::"<<AddrInt<<"\n";
+    	std::cout<<"setRealConstant insert shadow stack::"<<AddrInt<<" value:"<<value<<"\n";
 	}
 	else{//just update the value in stack
 		shadow->key = AddrInt;
+    mpfr_init2(shadow->real->mpfr_val, PRECISION);
+    mpfrInit++;
     mpfr_set_d (shadow->real->mpfr_val, value, MPFR_RNDD);
   	if(debug)
-    	std::cout<<"setRealConstant update shadow stack::"<<AddrInt<<"\n";
+    	std::cout<<"setRealConstant update shadow stack::"<<AddrInt<<" value:"<<value<<"\n";
 	}
   return AddrInt;
 }
@@ -404,12 +411,13 @@ extern "C" size_t computeReal(size_t opCode, size_t op1Idx, size_t op2Idx, float
 		op1 = op1f;
 		op2 = op2f; 
 	}
-	else if(typeId == 3){ //doublw
+	else if(typeId == 3){ //double
+		std::cout<<"computeReal: double\n";
 		op1 = op1d; 
 		op2 = op2d;
 	}
 	else
-		std::cout<<"computeReal: double\n";
+		std::cout<<"computeReal: Error!!! Unknown type:"<<typeId<<"\n";
 	
   size_t regIndex1;
   size_t regIndex2;
@@ -422,8 +430,8 @@ extern "C" size_t computeReal(size_t opCode, size_t op1Idx, size_t op2Idx, float
   mpfr_t op2_mpfr;
   struct Real* real_res = new Real;
   if(debug){
-		std::cout<<"computeReal op1Idx:"<<op1Idx<<"\n";	
-		std::cout<<"computeReal op2Idx:"<<op2Idx<<"\n";
+		std::cout<<"computeReal op1Idx:"<<op1Idx<<" op1:"<<op1<<"\n";	
+		std::cout<<"computeReal op2Idx:"<<op2Idx<<" op2:"<<op2<<"\n";
   }
 	real1 = getReal(op1Idx);
 	if(real1 == NULL){
@@ -508,23 +516,34 @@ extern "C" void checkBranch(double op1, size_t op1Int, double op2, size_t op2Int
   bool mpfrFlag1 = false;
   bool mpfrFlag2 = false;
 
-    real1 = getReal(op1Int);
-    if(real1 == NULL){
+	std::cout<<"checkBranch fcmpFlag:"<<fcmpFlag<<"\n";	
+	std::cout<<"checkBranch op1Idx:"<<op1Int<<" op1:"<<op1<<"\n";	
+	std::cout<<"checkBranch op2Idx:"<<op2Int<<" op2:"<<op2<<"\n";
+  real1 = getReal(op1Int);
+  if(real1 == NULL){
       //data might be set without store
-      real1 = new Real;
-      mpfr_init2(real1->mpfr_val, PRECISION);
-      mpfrInit++;
-      mpfr_set_d(real1->mpfr_val, op1, MPFR_RNDN);
-      mpfrFlag1 = true; 
-    }
-    real2 = getReal(op2Int);
-    if(real2 == NULL){
-      real2 = new Real;
-      mpfr_init2(real2->mpfr_val, PRECISION);
-      mpfrInit++;
-      mpfr_set_d(real2->mpfr_val, op2, MPFR_RNDN);
-      mpfrFlag2 = true; 
-    }
+    std::cout<<"checkBranch: real1 is null, using op1 value:"<<op1<<"\n";
+		real1 = new Real;
+    mpfr_init2(real1->mpfr_val, PRECISION);
+    mpfrInit++;
+    mpfr_set_d(real1->mpfr_val, op1, MPFR_RNDN);
+    mpfrFlag1 = true; 
+  }
+	std::cout<<"checkBranch real1:";
+	printReal(real1->mpfr_val);
+	std::cout<<"\n";
+  real2 = getReal(op2Int);
+  if(real2 == NULL){
+    std::cout<<"checkBranch: real2 is null, using op2 value:"<<op2<<"\n";
+  	real2 = new Real;
+    mpfr_init2(real2->mpfr_val, PRECISION);
+    mpfrInit++;
+    mpfr_set_d(real2->mpfr_val, op2, MPFR_RNDN);
+    mpfrFlag2 = true; 
+  }
+	std::cout<<"checkBranch real2:";
+	printReal(real2->mpfr_val);
+	std::cout<<"\n";
   bool realRes = false;
   switch(fcmpFlag){
     case 1: 
@@ -612,6 +631,7 @@ extern "C" void checkBranch(double op1, size_t op1Int, double op2, size_t op2Int
     delete real2;
     real2 = NULL;
   }
+	std::cout<<"checkBranch: realRes:"<<realRes<<" computedRes:"<<computedRes<<"\n";
   updateBranchError(realRes, computedRes, insIndex);
 }
 
@@ -681,6 +701,10 @@ extern "C" void setRealFunArg(size_t index, size_t funAddrInt, size_t toAddrInt,
     		std::cout<<"setRealFunArg update from:"<<shadow->key<<" to :"<<toAddrInt<<"\n";
 		}
 	}
+	else{
+  		if(debug)
+    		std::cout<<"setRealFunArg Error !!! Argument not found\n";
+	}
 }
 
 extern "C" size_t getRealReturn(size_t funAddrInt){
@@ -697,7 +721,7 @@ extern "C" void setRealReturn(size_t toAddrInt){
 	if(!retTrack.empty()){
     size_t idx = retTrack.top();
     retTrack.pop();
-		MyShadow *shadow = existInStack(toAddrInt);
+		MyShadow *shadow = existInStack(idx);
 		if(shadow != NULL){//just update the value in stack
 			struct Real* toReal = new Real;
       mpfr_init2(toReal->mpfr_val, PRECISION);
@@ -707,10 +731,10 @@ extern "C" void setRealReturn(size_t toAddrInt){
 			newShadow->key = toAddrInt;
 			newShadow->real = toReal;  
   		varTrack.push_back(newShadow);
-			mpfr_clear(shadow->real->mpfr_val);
-    	mpfrClear++;
-    	delete shadow->real;
-    	delete shadow;
+//			mpfr_clear(shadow->real->mpfr_val);
+//    	mpfrClear++;
+ //   	delete shadow->real;
+ //   	delete shadow;
 	
   		if(debug)
     		std::cout<<"setRealReturn: insert shadow stack::"<<toAddrInt<<"\n";
@@ -725,7 +749,7 @@ extern "C" void setRealReturn(size_t toAddrInt){
 }
 
 
-extern "C" void setRealTemp(size_t toAddrInt, size_t fromAddrInt){
+extern "C" void setRealTemp(size_t toAddrInt, size_t fromAddrInt, double Op){
 		MyShadow *fromShadow = existInStack(fromAddrInt);
 		MyShadow *toShadow = existInStack(toAddrInt);
 		if(fromShadow != NULL){
@@ -745,19 +769,29 @@ extern "C" void setRealTemp(size_t toAddrInt, size_t fromAddrInt){
       mpfr_set(toShadow->real->mpfr_val, fromShadow->real->mpfr_val, MPFR_RNDD);
 
   		if(debug)
-    		std::cout<<"setRealTemp update shadow stack::"<<toAddrInt<<"\n";
+    		std::cout<<"setRealTemp update shadow stack::"<<toAddrInt<<" to:";
+    		printReal(toShadow->real->mpfr_val);
+				std::cout<<"\n";
 		}
 	}
   else{
-  	if(debug)
-   		std::cout<<"setRealTemp Error !!!fromAddr not found:: from "<<fromAddrInt<<" to "<< toAddrInt<<"\n";
+    	struct Real* toReal = new Real;
+    	mpfr_init2(toReal->mpfr_val, PRECISION);
+    	mpfrInit++;
+    	mpfr_set_d(toReal->mpfr_val, Op, MPFR_RNDN);
+			MyShadow *newShadow = new MyShadow;
+			newShadow->key = toAddrInt;
+			newShadow->real = toReal;  
+  		varTrack.push_back(newShadow);
+  		if(debug)
+    		std::cout<<"setRealTemp insert shadow stack from val:"<<Op<<" to: "<<toAddrInt<<"\n";
   }  
 }
 
 extern "C" void handleLLVMMemcpy(size_t toAddrInt, size_t fromAddrInt, size_t size){
 	size_t tmp = 0;
 	while(size != tmp){ //handling only double
-		setRealTemp(toAddrInt+tmp, fromAddrInt+tmp);
+		setRealTemp(toAddrInt+tmp, fromAddrInt+tmp, 0);
 		tmp += 8;
 	}
 }

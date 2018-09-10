@@ -73,19 +73,22 @@ bool FPInstrument::runOnModule(Module &M) {
 			}
     }
   }
-  //All function arguments are given unique index and stored in ArgMap
-#if 1
   for (Function *F : AllFuncList) {
     Function::iterator Fit = F->begin();
     BasicBlock &BB = *Fit; 
     BasicBlock::iterator BBit = BB.begin();
     Instruction* I = &*BBit;
+		count = 0;
     for (Function::arg_iterator ait = F->arg_begin(), aend = F->arg_end();
                 ait != aend; ++ait) {
       Argument *A = &*ait;
       ArgMap.insert(std::pair<Argument*, size_t>(A, count));
       count++;
     } 
+	}
+  //All function arguments are given unique index and stored in ArgMap
+#if 1
+  for (Function *F : AllFuncList) {
     for (auto &BB : *F) {
       for (auto &I : BB) {
         if(PHINode *PN = dyn_cast<PHINode>(&I)){
@@ -115,8 +118,11 @@ bool FPInstrument::runOnModule(Module &M) {
           	TrackIToFCast.insert(std::pair<Instruction*, Instruction*>(&I, &I)); 
        }
        else if (StoreInst *Store = dyn_cast<StoreInst>(&I)){
-          Value *Addr = Store->getPointerOperand();
-          setReal(&I, Addr, Store->getOperand(0), *F); //For every store we set real value in shadowmap
+          Type *StoreType = Store->getType();
+          if(StoreType->getTypeID() == Type::DoubleTyID || StoreType->getTypeID() == Type::FloatTyID){
+          	Value *Addr = Store->getPointerOperand();
+          	setReal(&I, Addr, Store->getOperand(0), *F); //For every store we set real value in shadowmap
+					}
        }
        else if (SIToFPInst *Sitofp = dyn_cast<SIToFPInst>(&I)){ // it means we have new fp
           Instruction *OpIns = dyn_cast<Instruction>(I.getOperand(0));
@@ -405,12 +411,12 @@ void FPInstrument::setReal(Instruction *I, Value *ToAddr, Value *OP, Function &F
   GetAddr = M->getOrInsertFunction("getAddr", Int64Ty, PtrVoidTy);
   Instruction *ToAddrIdx = IRB.CreateCall(GetAddr, {BCToAddr});
   if(OpTy->getTypeID() == Type::PointerTyID){
-    SetRealTemp = M->getOrInsertFunction("setRealTemp", VoidTy, Int64Ty, Int64Ty);
+    SetRealTemp = M->getOrInsertFunction("setRealTemp", VoidTy, Int64Ty, Int64Ty, OpTy);
     //if its not a constant, not a temp, then it could be a pointer, 
     //since we already have address of variable inside pointer, we will pass it to runtime 
     BitCastInst* BCOp = new BitCastInst(OP, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
     Instruction *OPIdx = IRB.CreateCall(GetAddr, {BCOp});
-    IRB.CreateCall(SetRealTemp, {ToAddrIdx, OPIdx});
+    IRB.CreateCall(SetRealTemp, {ToAddrIdx, OPIdx, OP});
   }else if(isa<Argument>(OP) && (ArgMap.count(dyn_cast<Argument>(OP)) != 0)){
     size_t index =  ArgMap.at(dyn_cast<Argument>(OP));
     SetRealFunArg = M->getOrInsertFunction("setRealFunArg", VoidTy, Int32Ty, Int64Ty, Int64Ty, OpTy);
@@ -421,17 +427,17 @@ void FPInstrument::setReal(Instruction *I, Value *ToAddr, Value *OP, Function &F
   }
   else if (isa<ConstantFP>(OP)) {
     //if its constant we don't need to look for its address, we need to create new shadow space for this constant
-    //SetRealConstant = M->getOrInsertFunction("setRealConstant", VoidTy, Int64Ty, OpTy);
-    //IRB.CreateCall(SetRealConstant, {ToAddrIdx, OP});
+    SetRealConstant = M->getOrInsertFunction("setRealConstant", VoidTy, Int64Ty, OpTy);
+    IRB.CreateCall(SetRealConstant, {ToAddrIdx, OP});
   }
   else{
     //if its not a constant, then it could be temp, temp mapping is stored in LoadMap
     Instruction *OpIns = dyn_cast<Instruction>(I->getOperand(0));
-    SetRealTemp = M->getOrInsertFunction("setRealTemp", VoidTy, Int64Ty, Int64Ty);
+    SetRealTemp = M->getOrInsertFunction("setRealTemp", VoidTy, Int64Ty, Int64Ty, OpTy);
     if(RegIdMap.count(OpIns) != 0){ //handling registers
       Instruction *Index = RegIdMap.at(OpIns);
       //errs()<<"setRealTemp: found in regmap:"<<*index<<"\n";
-      IRB.CreateCall(SetRealTemp, {ToAddrIdx, Index});
+      IRB.CreateCall(SetRealTemp, {ToAddrIdx, Index, OP});
     }
     else{
       if (CallInst *CI = dyn_cast<CallInst>(OP)){
