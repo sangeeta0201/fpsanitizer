@@ -10,7 +10,7 @@
 2. Clean up shadow
 3. How to figure out memcpy of only double?
 */
-#define debug 1
+#define debug 0
 
 FILE *pFile = fopen ("error.out","w");
 
@@ -42,8 +42,6 @@ extern "C" void addFunArg(size_t argNo, size_t funAddrInt, size_t argAddrInt){
   if (it != shadowFunArgMap.end()){
     shadowFunArgMap.erase(it);
   }
-	if(debug)
-	std::cout<<"addFunArg: insert:"<<argAddrInt<<"\n";
   shadowFunArgMap.insert(std::pair<std::map<size_t, size_t>, size_t>(data, argAddrInt));
 }
 
@@ -62,7 +60,6 @@ size_t getRegRes(size_t insIndex){
 
 
 void printStack(){
-	std::cout<<"printStack:\n";
 	for (std::list<struct MyShadow*>::reverse_iterator rit=varTrack.rbegin(); rit!=varTrack.rend(); ++rit){
 		std::cout<<(*rit)->key<<"\n";
 	}
@@ -94,15 +91,12 @@ extern "C" void funcExit(size_t funcAddrInt, size_t returnIdx){
 	struct MyShadow *newShadow = NULL;
 	retTrack.push(returnIdx);
   funRetMap.insert(std::pair<size_t, size_t>(funcAddrInt, returnIdx));
-	if(debug)
-		std::cout<<"funcExit returnIdx : "<<returnIdx<<"\n";
   while(!varTrack.empty()){
      shadow = varTrack.back();
     if(shadow->key == funcAddrInt){
       varTrack.pop_back();
 			if(newShadow != NULL){
 				varTrack.push_back(newShadow); //push back returned value to stack
-				std::cout<<"funcExit: pushed return value back:"<<newShadow->key<<"\n";
 			}
       break;
     }
@@ -116,8 +110,6 @@ extern "C" void funcExit(size_t funcAddrInt, size_t returnIdx){
 				newShadow->key = shadow->key;
 				newShadow->real = toReal;  
 		}
-			if(debug)
-				std::cout<<"funcExit: removed:"<<shadow->key<<"\n";
     	mpfr_clear(shadow->real->mpfr_val);
     	mpfrClear++;
 			delete shadow->real;
@@ -144,8 +136,6 @@ extern "C" size_t handleMathFunc(size_t funcCode, double op1, size_t op1Int,
   
   mpfr_init2 (real_res->mpfr_val, PRECISION); 
   mpfrInit++;
-	if(debug)
-		std::cout<<"handleMathFunc: op1Idx:"<<op1Int<<"\n"; 
   bool mpfrFlag1 = false; 
   real1 = getReal(op1Int);
   if(real1 == NULL){
@@ -169,38 +159,47 @@ extern "C" size_t handleMathFunc(size_t funcCode, double op1, size_t op1Int,
   if(real1 != NULL){
     switch(funcCode){
       case 1: //sqrt
+	if(debug)
         std::cout<<"handleMathFunc: sqrt:\n";
         mpfr_sqrt(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
         break;
       case 2: //floor
+	if(debug)
         std::cout<<"handleMathFunc: floor:\n";
         mpfr_floor(real_res->mpfr_val, real1->mpfr_val);
         break;
       case 3: //tan
+	if(debug)
         std::cout<<"handleMathFunc: tan:\n";
         mpfr_tan(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
         break;
       case 4: //sin
+	if(debug)
         std::cout<<"handleMathFunc: sin:\n";
         mpfr_sin(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
         break;
       case 5: //cos
+	if(debug)
         std::cout<<"handleMathFunc: cos:\n";
         mpfr_cos(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
         break;
       case 6: //atan
+	if(debug)
         std::cout<<"handleMathFunc: atan:\n";
         mpfr_atan(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
         break;
       case 8: //atan
+	if(debug)
         std::cout<<"handleMathFunc: abs:\n";
         mpfr_abs(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
         break;
       case 9: //atan
+	if(debug)
         std::cout<<"handleMathFunc: log:\n";
         mpfr_log(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
         break;
       case 10: //asin
+	if(debug)
         std::cout<<"handleMathFunc: asin:\n";
         mpfr_asin(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
         break;
@@ -210,12 +209,6 @@ extern "C" size_t handleMathFunc(size_t funcCode, double op1, size_t op1Int,
   }
   else{
     std::cout<<"handleMathFunc: Error!!!\n";
-    std::cout<<"handleMathFunc res:";
-    printReal(real_res->mpfr_val);
-    std::cout<<"\n";
-    std::cout<<"handleMathFunc op1:";
-    printReal(real1->mpfr_val);
-    std::cout<<"\n";
   }
 	
 	MyShadow *shadow = existInStack(newRegIdx);
@@ -334,6 +327,10 @@ extern "C" size_t handleMathFunc3Args(size_t funcCode, double op1, size_t op1Int
   return newRegIdx;
 }
 
+int handleCmp(mpfr_t *op1, mpfr_t *op2){
+	return mpfr_cmp(*op1, *op2); 
+}
+
 void handleOp(size_t opCode, mpfr_t *res, mpfr_t *op1, mpfr_t *op2){
   switch(opCode) {                                                                                            
     case 12: //FADD
@@ -360,17 +357,6 @@ void handleOp(size_t opCode, mpfr_t *res, mpfr_t *op1, mpfr_t *op2){
       // do nothing
       break;
   } 
-  if(debug){
-    std::cout<<"handleOp res:\n";
-    printReal(*res);
-    std::cout<<"\n";
-    std::cout<<"handleOp op1:\n";
-    printReal(*op1);
-    std::cout<<"\n";
-    std::cout<<"handleOp op2:\n";
-    printReal(*op2);
-    std::cout<<"\n";
-  }
 }
 
 extern "C" size_t setRealConstant(size_t AddrInt, double value){
@@ -407,12 +393,10 @@ extern "C" size_t computeReal(size_t opCode, size_t op1Idx, size_t op2Idx, float
 	double op1, op2;
 
 	if(typeId == 2){ //float
-		std::cout<<"computeReal: float\n";
 		op1 = op1f;
 		op2 = op2f; 
 	}
 	else if(typeId == 3){ //double
-		std::cout<<"computeReal: double\n";
 		op1 = op1d; 
 		op2 = op2d;
 	}
@@ -503,7 +487,7 @@ int isNaN(Real *real){
 }
 
 extern "C" void checkBranch(double op1, size_t op1Int, double op2, size_t op2Int, 
-                            int fcmpFlag, bool computedRes, size_t insIndex){
+                            int fcmpFlag, bool computedRes, size_t insIndex, size_t lineNo){
   size_t regIndex1;
   size_t regIndex2;
 
@@ -515,13 +499,15 @@ extern "C" void checkBranch(double op1, size_t op1Int, double op2, size_t op2Int
   struct Real* real_res = new Real;
   bool mpfrFlag1 = false;
   bool mpfrFlag2 = false;
-
-	std::cout<<"checkBranch fcmpFlag:"<<fcmpFlag<<"\n";	
-	std::cout<<"checkBranch op1Idx:"<<op1Int<<" op1:"<<op1<<"\n";	
-	std::cout<<"checkBranch op2Idx:"<<op2Int<<" op2:"<<op2<<"\n";
+	if(debug){
+		std::cout<<"checkBranch fcmpFlag:"<<fcmpFlag<<"\n";	
+		std::cout<<"checkBranch op1Idx:"<<op1Int<<" op1:"<<op1<<"\n";	
+		std::cout<<"checkBranch op2Idx:"<<op2Int<<" op2:"<<op2<<"\n";
+	}
   real1 = getReal(op1Int);
   if(real1 == NULL){
       //data might be set without store
+	if(debug)
     std::cout<<"checkBranch: real1 is null, using op1 value:"<<op1<<"\n";
 		real1 = new Real;
     mpfr_init2(real1->mpfr_val, PRECISION);
@@ -529,11 +515,9 @@ extern "C" void checkBranch(double op1, size_t op1Int, double op2, size_t op2Int
     mpfr_set_d(real1->mpfr_val, op1, MPFR_RNDN);
     mpfrFlag1 = true; 
   }
-	std::cout<<"checkBranch real1:";
-	printReal(real1->mpfr_val);
-	std::cout<<"\n";
   real2 = getReal(op2Int);
   if(real2 == NULL){
+	if(debug)
     std::cout<<"checkBranch: real2 is null, using op2 value:"<<op2<<"\n";
   	real2 = new Real;
     mpfr_init2(real2->mpfr_val, PRECISION);
@@ -541,49 +525,64 @@ extern "C" void checkBranch(double op1, size_t op1Int, double op2, size_t op2Int
     mpfr_set_d(real2->mpfr_val, op2, MPFR_RNDN);
     mpfrFlag2 = true; 
   }
-	std::cout<<"checkBranch real2:";
-	printReal(real2->mpfr_val);
-	std::cout<<"\n";
   bool realRes = false;
+	int ret = handleCmp(&(real1->mpfr_val), &(real2->mpfr_val));
   switch(fcmpFlag){
     case 1: 
-            realRes = false;
+//            realRes = false;
+ //           break;
+            if(!isNaN(real1) && !isNaN(real2)){
+              if(ret == 0)
+                realRes = true;
+            }
             break;
     case 2: 
-            if(!isNaN(real1) && !isNaN(real2)){
+/*            if(!isNaN(real1) && !isNaN(real2)){
               if(real1->mpfr_val == real2->mpfr_val)
                 realRes = true;
             }
             break;
+*/
+            if(!isNaN(real1) && !isNaN(real2)){
+              if(ret > 0){
+                realRes = true;
+							}
+            }
+            break;
     case 3: 
             if(!isNaN(real1) && !isNaN(real2)){
-              if(real1->mpfr_val > real2->mpfr_val)
+              if(ret > 0){
                 realRes = true;
-            }
+            	}
+						}
             break;
     case 4: 
             if(!isNaN(real1) && !isNaN(real2)){
-              if(real1->mpfr_val >= real2->mpfr_val)
+              if(ret==0 || ret > 0){
                 realRes = true;
-            }
+            	}
+						}
             break;
     case 5: 
             if(!isNaN(real1) && !isNaN(real2)){
-              if(real1->mpfr_val < real2->mpfr_val)
+              if(ret < 0){
                 realRes = true;
-            }
+            	}
+						}
             break;
     case 6: 
             if(!isNaN(real1) && !isNaN(real2)){
-              if(real1->mpfr_val <= real2->mpfr_val)
+              if(ret < 0 || !ret){
                 realRes = true;
-            }
+            	}
+						}
             break;
     case 7: 
             if(!isNaN(real1) && !isNaN(real2)){
-              if(real1->mpfr_val != real2->mpfr_val)
+              if(ret != 0){
                 realRes = true;
-            }
+            	}
+						}
             break;
     case 8: 
             if(!isNaN(real1) && !isNaN(real2)){
@@ -591,27 +590,30 @@ extern "C" void checkBranch(double op1, size_t op1Int, double op2, size_t op2Int
             }
             break;
     case 9: 
-            if(real1->mpfr_val == real2->mpfr_val)
+            if(ret == 0)
               realRes = true;
             break;
     case 10: 
-            if(real1->mpfr_val > real2->mpfr_val)
+            if(ret > 0)
               realRes = true;
             break;
     case 11: 
-            if(real1->mpfr_val >= real2->mpfr_val)
+            if(ret > 0 || ret == 0)
               realRes = true;
             break;
     case 12: 
-            if(real1->mpfr_val < real2->mpfr_val)
+            if(ret < 0)
               realRes = true;
             break;
     case 14: 
-            if(real1->mpfr_val <= real2->mpfr_val)
-              realRes = true;
+            if(isNaN(real1) || isNaN(real2) || ret != 0){
+            	if(ret != 0){
+              	realRes = true;
+							}
+						}
             break;
     case 15: 
-            if(real1->mpfr_val != real2->mpfr_val)
+             if(ret != 0)
               realRes = true;
             break;
     case 16: 
@@ -631,8 +633,9 @@ extern "C" void checkBranch(double op1, size_t op1Int, double op2, size_t op2Int
     delete real2;
     real2 = NULL;
   }
+	if(debug)
 	std::cout<<"checkBranch: realRes:"<<realRes<<" computedRes:"<<computedRes<<"\n";
-  updateBranchError(realRes, computedRes, insIndex);
+  updateBranchError(realRes, computedRes, insIndex, lineNo);
 }
 
 extern "C" size_t setRealReg(size_t index, double value){
@@ -713,6 +716,7 @@ extern "C" size_t getRealReturn(size_t funAddrInt){
 		idx = funRetMap.at(funAddrInt);
 	}
   else//it shoud not happen
+	if(debug)
     std::cout<<"getRealReturn: Error !!!! return value not found in funRetMap\n";
 	return idx;
 }
@@ -767,25 +771,8 @@ extern "C" void setRealTemp(size_t toAddrInt, size_t fromAddrInt, double Op){
 		}
 		else{//just update the value in stack
       mpfr_set(toShadow->real->mpfr_val, fromShadow->real->mpfr_val, MPFR_RNDD);
-
-  		if(debug)
-    		std::cout<<"setRealTemp update shadow stack::"<<toAddrInt<<" to:";
-    		printReal(toShadow->real->mpfr_val);
-				std::cout<<"\n";
 		}
 	}
-  else{
-    	struct Real* toReal = new Real;
-    	mpfr_init2(toReal->mpfr_val, PRECISION);
-    	mpfrInit++;
-    	mpfr_set_d(toReal->mpfr_val, Op, MPFR_RNDN);
-			MyShadow *newShadow = new MyShadow;
-			newShadow->key = toAddrInt;
-			newShadow->real = toReal;  
-  		varTrack.push_back(newShadow);
-  		if(debug)
-    		std::cout<<"setRealTemp insert shadow stack from val:"<<Op<<" to: "<<toAddrInt<<"\n";
-  }  
 }
 
 extern "C" void handleLLVMMemcpy(size_t toAddrInt, size_t fromAddrInt, size_t size){
@@ -880,7 +867,7 @@ long long floatToInt(double f)
     return r;
 }
 
-void updateBranchError(bool realRes, bool computedRes, size_t insIndex){
+void updateBranchError(bool realRes, bool computedRes, size_t insIndex, size_t lineNo){
   struct BrError* brErr;
   if(errBrMap.count(insIndex) != 0){ 
     brErr = errBrMap.at(insIndex);
@@ -897,6 +884,7 @@ void updateBranchError(bool realRes, bool computedRes, size_t insIndex){
     brErr->corrRes += 1; 
   }
   brErr->num_evals += 1;
+  brErr->lineNo = lineNo;
 
   std::map<size_t, struct BrError*>::iterator it = errBrMap.find(insIndex); 
   if (it != errBrMap.end()){
@@ -926,7 +914,7 @@ double updateError(Real *realVal, double computedVal, size_t insIndex){
   }
   eagg->total_error += bitsError;
   eagg->num_evals += 1;
-   if (1){
+   if (debug){
     std::cout<<"\neagg->max_error:"<<eagg->max_error<<"\n";
     std::cout<<"\neagg->num_evals:"<<eagg->num_evals<<" eagg->total_error:"<<eagg->total_error<<"\n";
     std::cout<<"\nThe shadow value is ";
@@ -1008,7 +996,8 @@ extern "C" void finish(){
     fprintf (pFile, "compare\n");
     fprintf (pFile, "branch flipped %lld",  it->second->incorrRes);
     fprintf (pFile, " times out of %lld",  it->second->num_evals);
-    fprintf (pFile, " compare\n\n");
+    fprintf (pFile, " compare @ %lld", it->second->lineNo);
+    fprintf (pFile, "\n\n\n");
   }
   fclose (pFile);
 }

@@ -18,6 +18,7 @@ struct ErrorAggregate {
 struct BrError {
   bool corrRes;
   bool incorrRes;
+	size_t lineNo;
   long long int num_evals;
 };
 struct Real{
@@ -55,7 +56,7 @@ void handleOp(size_t opCode, mpfr_t *res, mpfr_t *op1, mpfr_t *op2);
 int isNaN(Real *real);
 void initializeBrError(BrError *err);
 double updateError(Real *realVal, double computedVal, size_t insIndex);
-void updateBranchError(bool realRes, bool computedRes, size_t insIndex);
+void updateBranchError(bool realRes, bool computedRes, size_t insIndex, size_t lineNo);
 void initializeErrorAggregate(ErrorAggregate *eagg);
 /*
 When we compute any floating point operation on real, we save the result in shadow map with its value 
