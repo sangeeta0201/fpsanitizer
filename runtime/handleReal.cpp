@@ -22,6 +22,8 @@ extern "C" size_t getNewRegIndex(){
 Real* getReal(size_t AddrInt){
 	for (std::list<struct MyShadow*>::reverse_iterator rit=varTrack.rbegin(); rit!=varTrack.rend(); ++rit){
   	if(AddrInt == (*rit)->key){
+			if(AddrInt == 0)
+				std::cout<<"getReal:"<<(*rit)->key<<"\n";
 			return (*rit)->real;	
 		}
 	}
@@ -82,6 +84,8 @@ extern "C" void funcInit(size_t funcAddrInt){
 	MyShadow *shadow = new MyShadow;
 	shadow->key = funcAddrInt;  
 	currentFunc = funcAddrInt;
+	if(funcAddrInt == 0)
+		std::cout<<"insert 0 1\n";
   varTrack.push_back(shadow);
 }
 
@@ -89,32 +93,38 @@ extern "C" void funcExit(size_t funcAddrInt, size_t returnIdx){
   size_t var;
 	struct MyShadow *shadow = NULL;
 	struct MyShadow *newShadow = NULL;
+	if(debug)
+		std::cout<<"funcExit:"<<returnIdx<<"\n";
 	retTrack.push(returnIdx);
   funRetMap.insert(std::pair<size_t, size_t>(funcAddrInt, returnIdx));
   while(!varTrack.empty()){
-     shadow = varTrack.back();
+		shadow = varTrack.back();
     if(shadow->key == funcAddrInt){
       varTrack.pop_back();
 			if(newShadow != NULL){
 				varTrack.push_back(newShadow); //push back returned value to stack
+				if(shadow->key == 0)
+					std::cout<<"insert 0 2\n";
+				std::cout<<"Pushed back:"<<newShadow->key<<"\n";
 			}
       break;
     }
 		if(shadow->key == returnIdx){
-
-				struct Real* toReal = new Real;
-				mpfr_init2(toReal->mpfr_val, PRECISION);
-				mpfrInit++;
-				mpfr_set(toReal->mpfr_val, shadow->real->mpfr_val, MPFR_RNDD);
-				newShadow = new MyShadow;
-				newShadow->key = shadow->key;
-				newShadow->real = toReal;  
+			struct Real* toReal = new Real;
+			mpfr_init2(toReal->mpfr_val, PRECISION);
+			mpfrInit++;
+			mpfr_set(toReal->mpfr_val, shadow->real->mpfr_val, MPFR_RNDD);
+			newShadow = new MyShadow;
+			newShadow->key = shadow->key;
+			newShadow->real = toReal;  
 		}
-    	mpfr_clear(shadow->real->mpfr_val);
-    	mpfrClear++;
-			delete shadow->real;
-			delete shadow;
-    	varTrack.pop_back();
+		if(debug)
+			std::cout<<"Cleaned:"<<shadow->key<<"\n";
+    mpfr_clear(shadow->real->mpfr_val);
+    mpfrClear++;
+		delete shadow->real;
+		delete shadow;
+    varTrack.pop_back();
   }
 }
 
@@ -216,6 +226,8 @@ extern "C" size_t handleMathFunc(size_t funcCode, double op1, size_t op1Int,
 		MyShadow *newShadow = new MyShadow;
 		newShadow->key = newRegIdx;
 		newShadow->real = real_res;  
+				if(newShadow->key == 0)
+					std::cout<<"insert 0 3\n";
   	varTrack.push_back(newShadow);
 	}
 	else{//just update the value in stack
@@ -296,6 +308,8 @@ extern "C" size_t handleMathFunc3Args(size_t funcCode, double op1, size_t op1Int
 		MyShadow *newShadow = new MyShadow;
 		newShadow->key = newRegIdx;
 		newShadow->real = real_res;  
+				if(newShadow->key == 0)
+					std::cout<<"insert 0 4\n";
   	varTrack.push_back(newShadow);
 	}
 	else{//just update the value in stack
@@ -452,6 +466,8 @@ extern "C" size_t computeReal(size_t opCode, size_t op1Idx, size_t op2Idx, float
 		MyShadow *newShadow = new MyShadow;
 		newShadow->key = newRegIdx;
 		newShadow->real = real_res;  
+				if(newShadow->key == 0)
+					std::cout<<"insert 0 5\n";
   	varTrack.push_back(newShadow);
   	if(debug)
     	std::cout<<"computeReal insert shadow stack::"<<newRegIdx<<"\n";
@@ -528,21 +544,16 @@ extern "C" void checkBranch(double op1, size_t op1Int, double op2, size_t op2Int
   bool realRes = false;
 	int ret = handleCmp(&(real1->mpfr_val), &(real2->mpfr_val));
   switch(fcmpFlag){
+    case 0: 
+            realRes = false;
+            break;
     case 1: 
-//            realRes = false;
- //           break;
             if(!isNaN(real1) && !isNaN(real2)){
               if(ret == 0)
                 realRes = true;
             }
             break;
     case 2: 
-/*            if(!isNaN(real1) && !isNaN(real2)){
-              if(real1->mpfr_val == real2->mpfr_val)
-                realRes = true;
-            }
-            break;
-*/
             if(!isNaN(real1) && !isNaN(real2)){
               if(ret > 0){
                 realRes = true;
@@ -551,74 +562,69 @@ extern "C" void checkBranch(double op1, size_t op1Int, double op2, size_t op2Int
             break;
     case 3: 
             if(!isNaN(real1) && !isNaN(real2)){
-              if(ret > 0){
+              if(ret > 0 || ret == 0){
                 realRes = true;
             	}
 						}
             break;
     case 4: 
             if(!isNaN(real1) && !isNaN(real2)){
-              if(ret==0 || ret > 0){
+              if(ret < 0){
                 realRes = true;
             	}
 						}
             break;
     case 5: 
             if(!isNaN(real1) && !isNaN(real2)){
-              if(ret < 0){
+              if(ret < 0 || ret == 0){
                 realRes = true;
             	}
 						}
             break;
     case 6: 
             if(!isNaN(real1) && !isNaN(real2)){
-              if(ret < 0 || !ret){
+              if(ret != 0){
                 realRes = true;
             	}
 						}
             break;
     case 7: 
             if(!isNaN(real1) && !isNaN(real2)){
-              if(ret != 0){
-                realRes = true;
-            	}
+            	realRes = true;
 						}
             break;
     case 8: 
-            if(!isNaN(real1) && !isNaN(real2)){
+            if(isNaN(real1) && isNaN(real2)){
               realRes = true;
             }
             break;
     case 9: 
-            if(ret == 0)
+            if(isNaN(real1) || isNaN(real2) || ret == 0)
               realRes = true;
             break;
     case 10: 
-            if(ret > 0)
+            if(isNaN(real1) || isNaN(real2) || ret > 0)
               realRes = true;
             break;
     case 11: 
-            if(ret > 0 || ret == 0)
+            if(isNaN(real1) || isNaN(real2) || ret > 0 || ret == 0)
               realRes = true;
             break;
     case 12: 
-            if(ret < 0)
+            if(isNaN(real1) || isNaN(real2) || ret < 0)
+              realRes = true;
+            break;
+    case 13: 
+            if(isNaN(real1) || isNaN(real2) || ret < 0 || ret == 0)
               realRes = true;
             break;
     case 14: 
             if(isNaN(real1) || isNaN(real2) || ret != 0){
-            	if(ret != 0){
-              	realRes = true;
-							}
+            	realRes = true;
 						}
             break;
     case 15: 
-             if(ret != 0)
-              realRes = true;
-            break;
-    case 16: 
-            if(isNaN(real1) || isNaN(real2))
-              realRes = true;
+           	realRes = true;
             break;
   }
   if(mpfrFlag1){
@@ -649,6 +655,8 @@ extern "C" size_t setRealReg(size_t index, double value){
 		MyShadow *newShadow = new MyShadow;
 		newShadow->key = index;
 		newShadow->real = real;  
+				if(newShadow->key == 0)
+					std::cout<<"insert 0 6\n";
   	varTrack.push_back(newShadow);
   	if(debug)
     	std::cout<<"setRealReg insert shadow stack::"<<index<<"\n";
@@ -686,6 +694,8 @@ extern "C" void setRealFunArg(size_t index, size_t funAddrInt, size_t toAddrInt,
 			MyShadow *newShadow = new MyShadow;
 			newShadow->key = toAddrInt;
 			newShadow->real = real;  
+				if(newShadow->key == 0)
+					std::cout<<"insert 0 7\n";
   		varTrack.push_back(newShadow);
   		if(debug)
     		std::cout<<"setRealFunArg insert shadow stack::"<<toAddrInt<<"\n";
@@ -698,6 +708,8 @@ extern "C" void setRealFunArg(size_t index, size_t funAddrInt, size_t toAddrInt,
 			MyShadow *newShadow = new MyShadow;
 			newShadow->key = toAddrInt;
 			newShadow->real = toReal;  
+				if(newShadow->key == 0)
+					std::cout<<"insert 0 8\n";
   		varTrack.push_back(newShadow);
 
   		if(debug)
@@ -734,6 +746,8 @@ extern "C" void setRealReturn(size_t toAddrInt){
 			MyShadow *newShadow = new MyShadow;
 			newShadow->key = toAddrInt;
 			newShadow->real = toReal;  
+				if(newShadow->key == 0)
+					std::cout<<"insert 0 9\n";
   		varTrack.push_back(newShadow);
 //			mpfr_clear(shadow->real->mpfr_val);
 //    	mpfrClear++;
@@ -753,25 +767,43 @@ extern "C" void setRealReturn(size_t toAddrInt){
 }
 
 
-extern "C" void setRealTemp(size_t toAddrInt, size_t fromAddrInt, double Op){
+extern "C" void setRealTemp(size_t toAddrInt, size_t fromAddrInt, double op){
 		MyShadow *fromShadow = existInStack(fromAddrInt);
 		MyShadow *toShadow = existInStack(toAddrInt);
 		if(fromShadow != NULL){
 			if(toShadow == NULL){
-    	struct Real* toReal = new Real;
-    	mpfr_init2(toReal->mpfr_val, PRECISION);
-    	mpfrInit++;
-    	mpfr_set(toReal->mpfr_val, fromShadow->real->mpfr_val, MPFR_RNDN);
-			MyShadow *newShadow = new MyShadow;
-			newShadow->key = toAddrInt;
-			newShadow->real = toReal;  
-  		varTrack.push_back(newShadow);
-  		if(debug)
-    		std::cout<<"setRealTemp insert shadow stack::"<<toAddrInt<<"\n";
+    		struct Real* toReal = new Real;
+    		mpfr_init2(toReal->mpfr_val, PRECISION);
+    		mpfrInit++;
+    		mpfr_set(toReal->mpfr_val, fromShadow->real->mpfr_val, MPFR_RNDN);
+				MyShadow *newShadow = new MyShadow;
+				newShadow->key = toAddrInt;
+				newShadow->real = toReal;  
+				if(newShadow->key == 0)
+					std::cout<<"insert 0 10\n";
+  			varTrack.push_back(newShadow);
+  			if(debug)
+    			std::cout<<"setRealTemp insert shadow stack from:"<<fromShadow->key<<" to:"<<toAddrInt<<"\n";
 		}
 		else{//just update the value in stack
+			if(debug)
+    		std::cout<<"setRealTemp update shadow stack:"<<toAddrInt<<"\n";
       mpfr_set(toShadow->real->mpfr_val, fromShadow->real->mpfr_val, MPFR_RNDD);
 		}
+	}
+	else if(op != 0){
+    struct Real* toReal = new Real;
+    mpfr_init2(toReal->mpfr_val, PRECISION);
+    mpfrInit++;
+    mpfr_set_d(toReal->mpfr_val, op, MPFR_RNDN);
+		MyShadow *newShadow = new MyShadow;
+		newShadow->key = toAddrInt;
+		newShadow->real = toReal;  
+				if(newShadow->key == 0)
+					std::cout<<"insert 0 11\n";
+  	varTrack.push_back(newShadow);
+  	if(debug)
+    	std::cout<<"setRealTemp insert:"<<op<<" shadow stack to:"<<toAddrInt<<"\n";
 	}
 }
 
@@ -820,6 +852,7 @@ void printReal(mpfr_t mpfr_val){
   shadowValStr = mpfr_get_str(NULL, &shadowValExpt, 10, 15, mpfr_val, MPFR_RNDN);
   printf("%c.%se%ld", shadowValStr[0], shadowValStr+1, shadowValExpt-1);
   mpfr_free_str(shadowValStr);
+	std::cout<<"\n";
 //  mpfr_out_str (stdout, 10, 0, real->mpfr_val, MPFR_RNDD);
 } 
 

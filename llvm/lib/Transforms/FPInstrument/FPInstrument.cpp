@@ -102,7 +102,7 @@ bool FPInstrument::runOnModule(Module &M) {
     for (auto &BB : *F) {
       for (auto &I : BB) {
         if (LoadInst *Load = dyn_cast<LoadInst>(&I)){
-          handleLoad(&I, Load, *F);
+          handleLoad(&I, &BB, Load, *F);
         }
         if (dyn_cast<FPTruncInst>(&I)){ // it means we have new fp
           //we don't have to stop real computation if fptruc cast from double to float
@@ -119,12 +119,10 @@ bool FPInstrument::runOnModule(Module &M) {
        }
        else if (StoreInst *Store = dyn_cast<StoreInst>(&I)){
           Type *OpType = Store->getOperand(0)->getType();
-					errs()<<"Store:"<<F->getName()<<"***********"<<*Store<<"\n";
-					OpType->dump();
-          if(OpType->getTypeID() == Type::DoubleTyID || OpType->getTypeID() == Type::FloatTyID){
+          //if(OpType->getTypeID() == Type::DoubleTyID || OpType->getTypeID() == Type::FloatTyID){
           	Value *Addr = Store->getPointerOperand();
           	setReal(&I, Addr, Store->getOperand(0), *F); //For every store we set real value in shadowmap
-					}
+			//		}
        }
        else if (SIToFPInst *Sitofp = dyn_cast<SIToFPInst>(&I)){ // it means we have new fp
           Instruction *OpIns = dyn_cast<Instruction>(I.getOperand(0));
@@ -303,7 +301,6 @@ void FPInstrument::cleanGEP(StructType *ST,Instruction *I, BasicBlock *BB,  GetE
  	size_t count = -1; 
 	for(StructType::element_iterator it = ST->element_begin(); it != ST->element_end(); it++) {
 		count++;
-		(*it)->dump();
 		if(count == index){
 			if((*it)->getTypeID() == Type::DoubleTyID || (*it)->getTypeID() == Type::FloatTyID){
 				BitCastInst* BCToAddr = new BitCastInst(GEP, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", Next);
@@ -388,7 +385,6 @@ If value is function argument then index for shadow memory is the function addre
 other cases index is the address where value is stored.
 **/
 void FPInstrument::setReal(Instruction *I, Value *ToAddr, Value *OP, Function &F){
-	errs()<<"setReal:"<<*I<<"\n";
   Module *M = F.getParent();
   IRBuilder<> IRB(I);
   Type *OpTy = OP->getType();
@@ -431,7 +427,7 @@ void FPInstrument::setReal(Instruction *I, Value *ToAddr, Value *OP, Function &F
     SetRealTemp = M->getOrInsertFunction("setRealTemp", VoidTy, Int64Ty, Int64Ty, OpTy);
     if(RegIdMap.count(OpIns) != 0){ //handling registers
       Instruction *Index = RegIdMap.at(OpIns);
-      //errs()<<"setRealTemp: found in regmap:"<<*index<<"\n";
+      errs()<<"setRealTemp: found in regmap:"<<*Index<<"\n";
       IRB.CreateCall(SetRealTemp, {ToAddrIdx, Index, OP});
     }
     else{
@@ -616,7 +612,7 @@ void FPInstrument::handleFuncExit(Instruction *I, ReturnInst *RI, BasicBlock *BB
   Type* VoidTy = Type::getVoidTy(M->getContext());
   Type* PtrVoidTy = PointerType::getUnqual(Type::getInt8Ty(M->getContext()));
   Type* Int64Ty = Type::getInt64Ty(M->getContext());
- 
+	errs()<<"handleFuncExit\n"; 
   if (RI->getNumOperands() != 0){
   	Value *OP = RI->getOperand(0);
   	Instruction *OpIns = dyn_cast<Instruction>(OP);
@@ -626,7 +622,7 @@ void FPInstrument::handleFuncExit(Instruction *I, ReturnInst *RI, BasicBlock *BB
   		BitCastInst* BCFunc = new BitCastInst(&F, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
   		GetAddr = M->getOrInsertFunction("getAddr", Int64Ty, PtrVoidTy);
   		Instruction *FuncIdx = IRB.CreateCall(GetAddr, {BCFunc});
-
+			errs()<<"funcExit:"<<*Index<<"\n";
   		FuncExit = M->getOrInsertFunction("funcExit", VoidTy, Int64Ty, Int64Ty);
 
   		IRB.CreateCall(FuncExit, {FuncIdx, Index});
@@ -647,19 +643,27 @@ void FPInstrument::handleFuncExit(Instruction *I, ReturnInst *RI, BasicBlock *BB
 		}
 }
 
-void FPInstrument::handleLoad(Instruction *I, LoadInst *LI, Function &F){
+void FPInstrument::handleLoad(Instruction *I,  BasicBlock *BB, LoadInst *LI, Function &F){
   Module *M = F.getParent();
-  IRBuilder<> IRB(I);
+  Instruction *Next = getNextInstruction(I, BB);
+  IRBuilder<> IRB(Next);
   Type* VoidTy = Type::getVoidTy(M->getContext());
   Type* PtrVoidTy = PointerType::getUnqual(Type::getInt8Ty(M->getContext()));
   Type* Int64Ty = Type::getInt64Ty(M->getContext());
 
-  Value *Addr = LI->getPointerOperand();
-  BitCastInst* BCToAddr = new BitCastInst(Addr, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
-
-  GetAddr = M->getOrInsertFunction("getAddr", Int64Ty, PtrVoidTy);
-  Instruction *NewIns = IRB.CreateCall(GetAddr, {BCToAddr});
-  RegIdMap.insert(std::pair<Instruction*, Instruction*>(I, NewIns)); 
+	if(LI->getType()->getTypeID() == Type::PointerTyID){
+  	BitCastInst* BCToAddr = new BitCastInst(LI, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", Next);
+  	GetAddr = M->getOrInsertFunction("getAddr", Int64Ty, PtrVoidTy);
+  	Instruction *NewIns = IRB.CreateCall(GetAddr, {BCToAddr});
+  	RegIdMap.insert(std::pair<Instruction*, Instruction*>(I, NewIns)); 
+	}
+	else{
+  	Value *Addr = LI->getPointerOperand();
+  	BitCastInst* BCToAddr = new BitCastInst(Addr, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", Next);
+  	GetAddr = M->getOrInsertFunction("getAddr", Int64Ty, PtrVoidTy);
+  	Instruction *NewIns = IRB.CreateCall(GetAddr, {BCToAddr});
+  	RegIdMap.insert(std::pair<Instruction*, Instruction*>(I, NewIns)); 
+	}
 }
 
 void FPInstrument::handleAlloca(Instruction *I, BasicBlock *BB, AllocaInst *A, Function &F){
@@ -880,7 +884,7 @@ void FPInstrument::handleNewPhi(Function &F){
         	iPHI->addIncoming(I, IBB);
    			}
   		} 
-      else if (isa<ConstantFP>(IncValue) || TrackIToFCast.count(IValue)) {  
+      else if (isa<ConstantFP>(IncValue) || TrackIToFCast.count(IValue) || isa<BitCastInst>(IncValue)) {  
         size_t Index;
         if(ConsMap.count(IncValue) != 0){
           Index = ConsMap.at(IncValue); // it should never fail
@@ -900,7 +904,7 @@ void FPInstrument::handleNewPhi(Function &F){
         iPHI->addIncoming(cons, IBB);
 			}
       else{
-        errs()<<"handleNewPhi: Error !!! IncValue not found:"<<*IncValue<<"\n";
+        errs()<<"handleNewPhi: Error !!! IncValue not found:"<<*OldPhi<<"\n";
       }
     }
   }
@@ -1144,8 +1148,6 @@ void FPInstrument::handleFcmp(Instruction *I, BasicBlock *BB, FCmpInst *FCI, Fun
 		LineNo = Loc.getLine();
   Constant* Line = ConstantInt::get(Type::getInt64Ty(M->getContext()), LineNo);
  
- 	errs()<<"line no:"<<Loc.getLine()<<"\n";
-	errs()<<"handleFcmp:"<<*I<<"\n";
 	errs()<<"handleFcmp getPredicate:"<<FCI->getPredicate()<<"\n";
   if(IsConstantOp1 && IsConstantOp2){
     HandleOp = M->getOrInsertFunction("checkBranch", VoidTy, FCIOp1Type, Int64Ty, FCIOp1Type, 

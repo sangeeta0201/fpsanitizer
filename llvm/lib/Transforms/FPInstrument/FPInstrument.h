@@ -67,7 +67,7 @@ public:
   void handleFuncInit(Function &F);  
   void handleAlloca(Instruction *I, BasicBlock *BB, AllocaInst *A, Function &F);  void handleCleanup(Instruction *I, ReturnInst *RI, Function &F); 
   void handleSelect(Instruction *I, SelectInst *SI, Function &F);
-  void handleLoad(Instruction *I, LoadInst *LI, Function &F);
+  void handleLoad(Instruction *I,  BasicBlock *BB, LoadInst *LI, Function &F);
 	void instrumentAllFunctions(std::string FN);
 	void handleExtractValue(Instruction *I, ExtractValueInst *EVI, Function &F);
 	void handleLLVMMemcpy(Instruction *I, CallInst *CI, Function &F);
@@ -95,7 +95,7 @@ private:
   //runtime for its address or index. 
   std::map<Argument*, size_t> ArgMap;
   //this is index for constants 
-  size_t ConsCount = 0;
+  size_t ConsCount = 1;
   //this is index for instructions
   size_t InsCount = 0;
   //these are handlers for run time functions

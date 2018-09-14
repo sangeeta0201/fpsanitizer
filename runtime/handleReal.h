@@ -36,7 +36,7 @@ int varCount = 0;
 int opCount = 0;
 size_t funcCount = 0;
 size_t currentFunc = 0;
-double regIndex = 200; //assuming there are 200 constants in the program
+double regIndex = 100; //Assuming there are 100 constants, as we are giving index for constants for phi and select from llvm pass 
 std::map<size_t, struct ErrorAggregate*>errorMap;
 std::map<size_t, struct BrError*>errBrMap;
 //this will link ins index to index of result in shadow mem
