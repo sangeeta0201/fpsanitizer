@@ -855,19 +855,28 @@ void FPInstrument::handleNewPhi(Function &F){
     Instruction* NewPhi = it->second;
     PHINode *PN = dyn_cast<PHINode>(OldPhi);
     PHINode* iPHI = dyn_cast<PHINode>(NewPhi);
+		errs()<<"handleNewPhi oldphi:"<<*OldPhi<<"\n";
 
     for (unsigned PI = 0, PE = PN->getNumIncomingValues(); PI != PE; ++PI) {
       BasicBlock *IBB = PN->getIncomingBlock(PI);
       Value *IncValue = PN->getIncomingValue(PI);  
-        for (BasicBlock::iterator BBit = IBB->begin(), BBend = IBB->end(); 
-              BBit != BBend; ++BBit) {
-          Next = &*BBit;
-        }
-        IRBuilder<> IRB(Next);
+     	for (BasicBlock::iterator BBit = IBB->begin(), BBend = IBB->end(); 
+             	BBit != BBend; ++BBit) {
+      	Next = &*BBit;
+      }
+      IRBuilder<> IRB(Next);
       if (IncValue == PN) continue; //TODO
       Instruction* IValue = dyn_cast<Instruction>(IncValue);  
   		if(isa<Argument>(IncValue) && (ArgMap.count(dyn_cast<Argument>(IncValue)) != 0)){
-				//TODO
+				errs()<<"TODO: NewPhiMap Arg\n";
+    		GetFunArg = M->getOrInsertFunction("getRealFunArg", Int64Ty, Int32Ty, Int64Ty);
+  			BitCastInst* BCFunc = new BitCastInst(&F, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", Next);
+    		GetAddr = M->getOrInsertFunction("getAddr", Int64Ty, PtrVoidTy);
+    		Instruction *FuncIdx = IRB.CreateCall(GetAddr, {BCFunc});
+    		size_t index =  ArgMap.at(dyn_cast<Argument>(IncValue));
+    		Constant* argNo = ConstantInt::get(Type::getInt32Ty(M->getContext()), index); //TODO: Remove this
+  			Instruction *Index = IRB.CreateCall( GetFunArg, {argNo, FuncIdx});
+        iPHI->addIncoming(Index, IBB);
 			}
       else if(RegIdMap.count(IValue) != 0){ //handling registers
         Instruction* I = RegIdMap.at(IValue);
@@ -907,6 +916,7 @@ void FPInstrument::handleNewPhi(Function &F){
         errs()<<"handleNewPhi: Error !!! IncValue not found:"<<*OldPhi<<"\n";
       }
     }
+		errs()<<"handleNewPhi newphi:"<<*iPHI<<"\n";
   }
 }
 
@@ -1018,6 +1028,7 @@ void FPInstrument::handleExtractValue(Instruction *I, ExtractValueInst *EVI, Fun
 }
 
 void FPInstrument::handleSelect(Instruction *I, SelectInst *SI, Function &F){
+	
   IRBuilder<> IRB(I);
   Module *M = F.getParent();
   Type* DoubleTy = Type::getDoubleTy(M->getContext());
@@ -1035,6 +1046,7 @@ void FPInstrument::handleSelect(Instruction *I, SelectInst *SI, Function &F){
   Instruction *Op3Ins = dyn_cast<Instruction>(OP3);
   Value *NewOp2, *NewOp3;
 	size_t Index;
+	errs()<<"handleSelect:"<<*I<<"\n";
   if (isa<ConstantFP>(OP2) || TrackIToFCast.count(Op2Ins)) {
 		if(ConsMap.count(OP2) != 0){
 			Index = ConsMap.at(OP2); // it should never fail
@@ -1052,7 +1064,7 @@ void FPInstrument::handleSelect(Instruction *I, SelectInst *SI, Function &F){
 		Instruction *Index = RegIdMap.at(Op2Ins);
 		NewOp2 = dyn_cast<Value>(Index);
 	}
-  if (FCmpInst *FCI = dyn_cast<FCmpInst>(OP2)){
+  else if (FCmpInst *FCI = dyn_cast<FCmpInst>(OP2)){
 		NewOp2 = OP2;
 	}
   else if (CallInst *CI = dyn_cast<CallInst>(OP2)){
@@ -1065,7 +1077,10 @@ void FPInstrument::handleSelect(Instruction *I, SelectInst *SI, Function &F){
   		Instruction *Index = IRB.CreateCall(SetRealTemp, {CalleeIdx});
 			NewOp2 = dyn_cast<Value>(Index);
    	}
-  } 
+  }
+	else{
+		errs()<<"handleSelect: Error !!! op2 not found:"<<*OP2<<"\n";
+	} 
   if (isa<ConstantFP>(OP3) || TrackIToFCast.count(Op3Ins)) {
 		if(ConsMap.count(OP3) != 0){
 			Index = ConsMap.at(OP3); // it should never fail
@@ -1083,7 +1098,7 @@ void FPInstrument::handleSelect(Instruction *I, SelectInst *SI, Function &F){
 		Instruction *Index = RegIdMap.at(Op3Ins);
 		NewOp3 = dyn_cast<Value>(Index);
 	}
-  if (FCmpInst *FCI = dyn_cast<FCmpInst>(OP3)){
+  else if (FCmpInst *FCI = dyn_cast<FCmpInst>(OP3)){
 		NewOp3 = OP3;
 	}
   else if (CallInst *CI = dyn_cast<CallInst>(OP3)){
@@ -1098,8 +1113,11 @@ void FPInstrument::handleSelect(Instruction *I, SelectInst *SI, Function &F){
    	}
   } 
   else{
-		errs()<<"handleSelect: Error !!!\n";
+		errs()<<"handleSelect: Error !!! op3 not found:"<<*OP3<<"\n";
   }
+	errs()<<"handleSelect OP1:"<<*OP1<<"\n";
+	errs()<<"handleSelect NewOp2:"<<*NewOp2<<"\n";
+	errs()<<"handleSelect NewOp3:"<<*NewOp3<<"\n";
   Value *Select = IRB.CreateSelect(OP1, NewOp2, NewOp3); 
   Instruction *NewIns = dyn_cast<Instruction>(Select);
   RegIdMap.insert(std::pair<Instruction*, Instruction*>(SI, NewIns)); 

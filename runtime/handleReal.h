@@ -7,7 +7,7 @@
 #include <stack>
 #include <list>
 
-#define PRECISION 1000
+#define PRECISION 100
 
 struct ErrorAggregate {
   double max_error;
@@ -28,7 +28,8 @@ struct MyShadow{
 	size_t key;
 	struct Real * real;
 };
-
+size_t setReal = 0;
+size_t compute = 0;
 bool recurFlag = false;
 size_t mpfrClear = 0;
 size_t mpfrInit = 0;

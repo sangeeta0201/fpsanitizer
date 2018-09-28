@@ -71,7 +71,7 @@ struct MyShadow* existInStack(size_t key){
   	//if(currentFunc == (*rit)->key){
 	//		return NULL;
 	//	}
-		if(*rit == NULL)
+		if (rit == varTrack.rend())
 			return NULL;
 		if(key == (*rit)->key){
 			return *rit;
@@ -403,6 +403,7 @@ extern "C" size_t computeReal(size_t opCode, size_t op1Idx, size_t op2Idx, float
 																		double op1d, double op2d, double computedRes,
                                     size_t typeId, size_t insIndex){
 
+	compute++;
 #if 1
 	double op1, op2;
 
@@ -494,8 +495,8 @@ extern "C" size_t computeReal(size_t opCode, size_t op1Idx, size_t op2Idx, float
     delete  real2; 
     mpfrClear++;
   }
-#endif
   return newRegIdx;
+#endif
 }
 
 int isNaN(Real *real){
@@ -673,7 +674,6 @@ extern "C" size_t getRealFunArg(size_t index, size_t funAddrInt){
   	shadowAddr = shadowFunArgMap.at(shadowAddrMap);
 	}
 	
-	std::cout<<"getRealFunArg: "<<shadowAddr<<"\n";
 	return shadowAddr;
 }
 
@@ -768,6 +768,8 @@ extern "C" void setRealReturn(size_t toAddrInt){
 
 
 extern "C" void setRealTemp(size_t toAddrInt, size_t fromAddrInt, double op){
+	setReal++;
+#if 1 
 		MyShadow *fromShadow = existInStack(fromAddrInt);
 		MyShadow *toShadow = existInStack(toAddrInt);
 		if(fromShadow != NULL){
@@ -805,11 +807,13 @@ extern "C" void setRealTemp(size_t toAddrInt, size_t fromAddrInt, double op){
   	if(debug)
     	std::cout<<"setRealTemp insert:"<<op<<" shadow stack to:"<<toAddrInt<<"\n";
 	}
+#endif
 }
 
 extern "C" void handleLLVMMemcpy(size_t toAddrInt, size_t fromAddrInt, size_t size){
 	size_t tmp = 0;
 	while(size != tmp){ //handling only double
+		std::cout<<"handleLLVMMemcpy\n";
 		setRealTemp(toAddrInt+tmp, fromAddrInt+tmp, 0);
 		tmp += 8;
 	}
@@ -1003,9 +1007,8 @@ void initializeErrorAggregate(ErrorAggregate *eagg){
 
 extern "C" void finish(){
   int n;
-  char name [100];
-  bool flag = false;
-
+	std::cout<<"compute:"<<compute<<"\n";
+	std::cout<<"setReal:"<<setReal<<"\n";
 	for (std::list<struct MyShadow*>::iterator it=varTrack.begin(); it!=varTrack.end(); ++it){
 		if((*it)->real != NULL){
 			mpfr_clear((*it)->real->mpfr_val);
