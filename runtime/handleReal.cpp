@@ -4,6 +4,7 @@
 #include <queue>
 #include <iostream>
 #include <stdlib.h>
+#include <pthread.h>
 
 /*TODO : 
 1. Handle const in llvm - gsl-modpi.c
@@ -11,6 +12,10 @@
 3. How to figure out memcpy of only double?
 */
 #define debug 0
+
+pthread_mutex_t the_mutex;
+pthread_cond_t condc, condp;
+pthread_t con;
 
 FILE *pFile = fopen ("error.out","w");
 
@@ -126,17 +131,6 @@ extern "C" void funcExit(size_t funcAddrInt, size_t returnIdx){
 		delete shadow;
     varTrack.pop_back();
   }
-}
-
-extern "C" void handleAlloca(size_t varAddrInt){
-/*
-	MyShadow *shadow = new MyShadow;
-  struct Real* real_res = new Real;
-	shadow->key = varAddrInt;  
-	shadow->real = real_res;
-	std::cout<<"handleAlloca: added alloca addr:"<<varAddrInt<<"\n";
-  varTrack.push_back(shadow);
-*/
 }
 
 extern "C" size_t handleMathFunc(size_t funcCode, double op1, size_t op1Int, 
@@ -399,104 +393,150 @@ extern "C" size_t setRealConstant(size_t AddrInt, double value){
 }
 //TODO: why operands can not be uplifted to double? 
 //Do i need to pass computedRes in float as well?
+void* consumer(void *ptr) {
+  int i;
+	ComputeR *op; 
+	size_t opCode;
+	size_t op1Idx; 
+	size_t op2Idx; 
+	float op1f;
+	float op2f; 
+	double op1d; 
+	double op2d; 
+	double computedRes;
+	size_t typeId;
+	size_t insIndex;
+	size_t newRegIdx;
+
+	while(!buffer.empty()){
+		op = buffer.front();
+		buffer.pop();
+		double op1, op2;
+		opCode = op->opCode;
+		op1Idx = op->op1Idx;
+		op2Idx = op->op2Idx;
+		op1f = op->op1f;
+		op2f = op->op2f;
+		op1d = op->op1d;
+		op2d = op->op2d;
+		computedRes = op->computedRes;
+		typeId = op->typeId;
+		insIndex = op->insIndex;
+		newRegIdx = op->newRegIdx;
+
+		if(typeId == 2){ //float
+			op1 = op1f;
+			op2 = op2f; 
+		}
+		else if(typeId == 3){ //double
+			op1 = op1d; 
+			op2 = op2d;
+		}
+		else
+			std::cout<<"computeReal: Error!!! Unknown type:"<<typeId<<"\n";
+	
+  	size_t regIndex1;
+  	size_t regIndex2;
+  	bool mpfrFlag1 = false;
+  	bool mpfrFlag2 = false;
+  	Real *real1;
+  	Real *real2;
+
+  	mpfr_t op1_mpfr;
+  	mpfr_t op2_mpfr;
+  	struct Real* real_res = new Real;
+  	if(debug){
+			std::cout<<"computeReal op1Idx:"<<op1Idx<<" op1:"<<op1<<"\n";	
+			std::cout<<"computeReal op2Idx:"<<op2Idx<<" op2:"<<op2<<"\n";
+  	}
+		real1 = getReal(op1Idx);
+		if(real1 == NULL){
+			if(debug)
+      	std::cout<<"computeReal: real1 is null, using op1 value:"<<op1<<"\n";
+      //data might be set without store
+    	real1 = new Real;
+    	mpfr_init2(real1->mpfr_val, PRECISION);
+    	mpfrInit++;
+    	mpfr_set_d(real1->mpfr_val, op1, MPFR_RNDN);
+    	mpfrFlag1 = true; 
+  	}
+		real2 = getReal(op2Idx);
+  	if(real2 == NULL){
+    	if(debug)
+      	std::cout<<"computeReal: real2 is null, using op2 value:"<<op2<<"\n";
+    	real2 = new Real;
+    	mpfr_init2(real2->mpfr_val, PRECISION);
+    	mpfrInit++;
+    	mpfr_set_d(real2->mpfr_val, op2, MPFR_RNDN);
+    	mpfrFlag2 = true; 
+  	}
+  	mpfr_init2 (real_res->mpfr_val, PRECISION); 
+  	mpfrInit++;
+
+  	handleOp(opCode, &(real_res->mpfr_val), &(real1->mpfr_val), &(real2->mpfr_val));
+		MyShadow *shadow = existInStack(newRegIdx);
+		if(shadow == NULL){
+			MyShadow *newShadow = new MyShadow;
+			newShadow->key = newRegIdx;
+			newShadow->real = real_res;  
+  		varTrack.push_back(newShadow);
+  		if(debug)
+    		std::cout<<"computeReal insert shadow stack::"<<newRegIdx<<"\n";
+		}
+		else{//just update the value in stack
+			
+			mpfr_clear(shadow->real->mpfr_val);
+    	delete(shadow->real);
+    	mpfrClear++;
+
+			shadow->key = newRegIdx;
+			shadow->real = real_res;  
+  		if(debug)
+    		std::cout<<"computeReal update shadow stack::"<<newRegIdx<<"\n";
+		}
+  	updateError(real_res, computedRes, insIndex);
+  	if(mpfrFlag1){
+    	mpfr_clear(real1->mpfr_val);
+    	delete  real1; 
+    	mpfrClear++;
+  	}
+  	if(mpfrFlag2){
+    	mpfr_clear(real2->mpfr_val);
+    	delete  real2; 
+    	mpfrClear++;
+  	}
+	
+	}	
+ 	//pthread_mutex_lock(&the_mutex);	/* protect buffer */
+ // pthread_mutex_unlock(&the_mutex);	/* release the buffer */
+}
+
 extern "C" size_t computeReal(size_t opCode, size_t op1Idx, size_t op2Idx, float op1f, float op2f, 
 																		double op1d, double op2d, double computedRes,
                                     size_t typeId, size_t insIndex){
+	
 
 	compute++;
-#if 1
-	double op1, op2;
+	ComputeR *op = new ComputeR;
+	op->opCode = opCode;
+	op->op1Idx = op1Idx;
+	op->op2Idx = op2Idx;
+	op->op1f = op1f;
+	op->op2f = op2f;
+	op->op1d = op1d;
+	op->op2d = op2d;
+	op->computedRes = computedRes;
+	op->typeId = typeId;
+	op->insIndex = insIndex;
 
-	if(typeId == 2){ //float
-		op1 = op1f;
-		op2 = op2f; 
-	}
-	else if(typeId == 3){ //double
-		op1 = op1d; 
-		op2 = op2d;
-	}
-	else
-		std::cout<<"computeReal: Error!!! Unknown type:"<<typeId<<"\n";
-	
-  size_t regIndex1;
-  size_t regIndex2;
-  bool mpfrFlag1 = false;
-  bool mpfrFlag2 = false;
-  Real *real1;
-  Real *real2;
-
-  mpfr_t op1_mpfr;
-  mpfr_t op2_mpfr;
-  struct Real* real_res = new Real;
-  if(debug){
-		std::cout<<"computeReal op1Idx:"<<op1Idx<<" op1:"<<op1<<"\n";	
-		std::cout<<"computeReal op2Idx:"<<op2Idx<<" op2:"<<op2<<"\n";
-  }
-	real1 = getReal(op1Idx);
-	if(real1 == NULL){
-		if(debug)
-      std::cout<<"computeReal: real1 is null, using op1 value:"<<op1<<"\n";
-      //data might be set without store
-    real1 = new Real;
-    mpfr_init2(real1->mpfr_val, PRECISION);
-    mpfrInit++;
-    mpfr_set_d(real1->mpfr_val, op1, MPFR_RNDN);
-    mpfrFlag1 = true; 
-  }
-	real2 = getReal(op2Idx);
-  if(real2 == NULL){
-    if(debug)
-      std::cout<<"computeReal: real2 is null, using op2 value:"<<op2<<"\n";
-    real2 = new Real;
-    mpfr_init2(real2->mpfr_val, PRECISION);
-    mpfrInit++;
-    mpfr_set_d(real2->mpfr_val, op2, MPFR_RNDN);
-    mpfrFlag2 = true; 
-  }
+	buffer.push(op);	
   size_t newRegIdx = getRegRes(insIndex);
   if(!newRegIdx){
     newRegIdx = getNewRegIndex();
     addRegRes(insIndex, newRegIdx);
   }
-  mpfr_init2 (real_res->mpfr_val, PRECISION); 
-  mpfrInit++;
-
-  handleOp(opCode, &(real_res->mpfr_val), &(real1->mpfr_val), &(real2->mpfr_val));
-	MyShadow *shadow = existInStack(newRegIdx);
-	if(shadow == NULL){
-		MyShadow *newShadow = new MyShadow;
-		newShadow->key = newRegIdx;
-		newShadow->real = real_res;  
-				if(newShadow->key == 0)
-					std::cout<<"insert 0 5\n";
-  	varTrack.push_back(newShadow);
-  	if(debug)
-    	std::cout<<"computeReal insert shadow stack::"<<newRegIdx<<"\n";
-	}
-	else{//just update the value in stack
-			
-		mpfr_clear(shadow->real->mpfr_val);
-    delete(shadow->real);
-    mpfrClear++;
-
-		shadow->key = newRegIdx;
-		shadow->real = real_res;  
-  	if(debug)
-    	std::cout<<"computeReal update shadow stack::"<<newRegIdx<<"\n";
-	}
-  updateError(real_res, computedRes, insIndex);
-  if(mpfrFlag1){
-    mpfr_clear(real1->mpfr_val);
-    delete  real1; 
-    mpfrClear++;
-  }
-  if(mpfrFlag2){
-    mpfr_clear(real2->mpfr_val);
-    delete  real2; 
-    mpfrClear++;
-  }
+	op->newRegIdx = newRegIdx;
   return newRegIdx;
-#endif
 }
 
 int isNaN(Real *real){
@@ -1003,6 +1043,20 @@ void initializeErrorAggregate(ErrorAggregate *eagg){
   eagg->max_error = -1;
   eagg->total_error = 0;
   eagg->num_evals = 0;
+}
+
+extern "C" void init(){
+	//create consumer
+
+  // Initialize the mutex and condition variables
+  /* What's the NULL for ??? */
+
+  pthread_mutex_init(&the_mutex, NULL);	
+  pthread_cond_init(&condc, NULL);	
+
+	pthread_create(&con, NULL, consumer, NULL);
+	pthread_join(con, NULL);
+
 }
 
 extern "C" void finish(){

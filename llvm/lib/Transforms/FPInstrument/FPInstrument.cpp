@@ -199,6 +199,9 @@ bool FPInstrument::runOnModule(Module &M) {
             std::string name = Callee->getName();
             //TODO: find some better way to do it
             int FuncCode = 0;
+          	if(F->getName() == "main"){
+            	handleMainInit(&I, *F);
+						}
             if(name == "sqrt" || name == "llvm.sqrt.f64"){ 
               FuncCode = 1;
               handleMathFunc(&I, &BB, CI, *F, FuncCode);  //we handle math functions for fp
@@ -357,6 +360,15 @@ bool FPInstrument::instrumentFunctions(StringRef FN) {
     }
   }
   return false;
+}
+
+void FPInstrument::handleMainInit(Instruction *I, Function &F){
+  Module *M = F.getParent();
+  IRBuilder<> IRB(I);
+  Type* VoidTy = Type::getVoidTy(M->getContext());
+  const DebugLoc &Loc = I->getDebugLoc();
+  Finish = M->getOrInsertFunction("init", VoidTy);
+  IRB.CreateCall(Finish, {});
 }
 
 //creates a finish call to run time

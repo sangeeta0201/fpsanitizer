@@ -5,6 +5,7 @@
 #include <mpfr.h>
 #include <vector>
 #include <stack>
+#include <queue>
 #include <list>
 
 #define PRECISION 100
@@ -28,6 +29,21 @@ struct MyShadow{
 	size_t key;
 	struct Real * real;
 };
+
+struct ComputeR{
+	size_t opCode;
+	size_t op1Idx; 
+	size_t op2Idx;
+	float op1f;
+	float op2f;
+	double op1d;
+	double op2d;
+	double computedRes;
+	size_t typeId;
+	size_t insIndex;
+	size_t newRegIdx;
+};
+
 size_t setReal = 0;
 size_t compute = 0;
 bool recurFlag = false;
@@ -41,6 +57,7 @@ double regIndex = 100; //Assuming there are 100 constants, as we are giving inde
 std::map<size_t, struct ErrorAggregate*>errorMap;
 std::map<size_t, struct BrError*>errBrMap;
 //this will link ins index to index of result in shadow mem
+std::queue<struct ComputeR*>buffer;
 std::list<struct MyShadow*> varTrack;
 std::stack<size_t> retTrack;
 std::map<size_t, size_t>insMap;

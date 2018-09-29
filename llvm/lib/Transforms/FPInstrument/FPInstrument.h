@@ -58,6 +58,7 @@ public:
   //it creates a call to runtime to print register real value
   void createPrintFunc(Instruction *I, CallInst *CI, Function &F); 
   //it creates call to runtime for clean up and printing
+  void handleMainInit(Instruction *I, Function &F);
   void handleMainRet(Instruction *I, Function &F);
   //this function matches return value of callee to the caller
   void handleFuncReturn(Instruction *I, ReturnInst *RI, Function &F);
