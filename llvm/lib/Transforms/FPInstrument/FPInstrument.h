@@ -66,6 +66,7 @@ public:
   Instruction* getNextInstruction(Instruction *I, BasicBlock *BB);
   void handleFuncExit(Instruction *I, ReturnInst *RI, BasicBlock *BB, Function &F);  
   void handleFuncInit(Function &F);  
+  void handleFuncMainInit(Function &F);  
   void handleAlloca(Instruction *I, BasicBlock *BB, AllocaInst *A, Function &F);  void handleCleanup(Instruction *I, ReturnInst *RI, Function &F); 
   void handleSelect(Instruction *I, SelectInst *SI, Function &F);
   void handleLoad(Instruction *I,  BasicBlock *BB, LoadInst *LI, Function &F);

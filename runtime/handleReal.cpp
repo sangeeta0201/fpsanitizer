@@ -394,6 +394,7 @@ extern "C" size_t setRealConstant(size_t AddrInt, double value){
 //TODO: why operands can not be uplifted to double? 
 //Do i need to pass computedRes in float as well?
 void* consumer(void *ptr) {
+	std::cout<<"thread enter\n";
   int i;
 	ComputeR *op; 
 	size_t opCode;
@@ -407,9 +408,10 @@ void* consumer(void *ptr) {
 	size_t typeId;
 	size_t insIndex;
 	size_t newRegIdx;
-
+	std::cout<<"buffer size:"<<buffer.size()<<"\n";
 	while(!buffer.empty()){
 		op = buffer.front();
+		std::cout<<"handline element:"<<op->insIndex<<"\n";
 		buffer.pop();
 		double op1, op2;
 		opCode = op->opCode;
@@ -529,13 +531,14 @@ extern "C" size_t computeReal(size_t opCode, size_t op1Idx, size_t op2Idx, float
 	op->typeId = typeId;
 	op->insIndex = insIndex;
 
-	buffer.push(op);	
   size_t newRegIdx = getRegRes(insIndex);
   if(!newRegIdx){
     newRegIdx = getNewRegIndex();
     addRegRes(insIndex, newRegIdx);
   }
 	op->newRegIdx = newRegIdx;
+	buffer.push(op);	
+	std::cout<<"pushed in buffer:"<<buffer.size()<<"\n";
   return newRegIdx;
 }
 
@@ -1055,12 +1058,12 @@ extern "C" void init(){
   pthread_cond_init(&condc, NULL);	
 
 	pthread_create(&con, NULL, consumer, NULL);
-	pthread_join(con, NULL);
-
+	std::cout<<"thread created\n";
 }
 
 extern "C" void finish(){
   int n;
+	pthread_join(con, NULL);
 	std::cout<<"compute:"<<compute<<"\n";
 	std::cout<<"setReal:"<<setReal<<"\n";
 	for (std::list<struct MyShadow*>::iterator it=varTrack.begin(); it!=varTrack.end(); ++it){

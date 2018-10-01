@@ -199,9 +199,6 @@ bool FPInstrument::runOnModule(Module &M) {
             std::string name = Callee->getName();
             //TODO: find some better way to do it
             int FuncCode = 0;
-          	if(F->getName() == "main"){
-            	handleMainInit(&I, *F);
-						}
             if(name == "sqrt" || name == "llvm.sqrt.f64"){ 
               FuncCode = 1;
               handleMathFunc(&I, &BB, CI, *F, FuncCode);  //we handle math functions for fp
@@ -277,6 +274,8 @@ bool FPInstrument::runOnModule(Module &M) {
     Function &F = *Mit;
     if (F.isDeclaration()) continue;
       handleFuncInit(F);
+		if(F.getName() == "main")
+    	handleFuncMainInit(F);
     //insert call to init
     for (auto &BB : F) {
       for (auto &I : BB) {
@@ -362,11 +361,15 @@ bool FPInstrument::instrumentFunctions(StringRef FN) {
   return false;
 }
 
-void FPInstrument::handleMainInit(Instruction *I, Function &F){
+void FPInstrument::handleFuncMainInit(Function &F){
+  Function::iterator Fit = F.begin();
+  BasicBlock &BB = *Fit; 
+  BasicBlock::iterator BBit = BB.begin();
+  Instruction *First = &*BBit;
+
   Module *M = F.getParent();
-  IRBuilder<> IRB(I);
+  IRBuilder<> IRB(First);
   Type* VoidTy = Type::getVoidTy(M->getContext());
-  const DebugLoc &Loc = I->getDebugLoc();
   Finish = M->getOrInsertFunction("init", VoidTy);
   IRB.CreateCall(Finish, {});
 }

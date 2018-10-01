@@ -8,7 +8,7 @@
 #include <queue>
 #include <list>
 
-#define PRECISION 100
+#define PRECISION 1000
 
 struct ErrorAggregate {
   double max_error;
