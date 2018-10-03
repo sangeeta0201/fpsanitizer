@@ -77,6 +77,7 @@ public:
 private:
   SmallVector<Function*, 8> AllFuncList;
   SmallVector<ReturnInst*, 8> AllReturn;
+	std::map<std::map<size_t, size_t>, size_t> shadowFunArgMap;
   std::map<Instruction*, Instruction*> TrackIToFCast;
   //this is used to track address of a variable loaded from memory 
   std::map<Instruction*, Value*> LoadMap;

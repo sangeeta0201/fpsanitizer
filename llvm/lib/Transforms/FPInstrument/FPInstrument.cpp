@@ -18,6 +18,9 @@ Test this with microbenchmark
   %div148 = fdiv double %conv, 4.950000e+01
   %242 = bitcast i8* null to i8*
 */
+//Value *V = ConstantPointerNull::get(PointerType::get(Type::getInt8Ty(M->getContext()), 0));
+//        BitCastInst* BCCallee = new BitCastInst(V, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
+
 bool FPInstrument::runOnModule(Module &M) {
  
   size_t count = 0;
@@ -424,17 +427,17 @@ void FPInstrument::setReal(Instruction *I, Value *ToAddr, Value *OP, Function &F
     Instruction *OPIdx = IRB.CreateCall(GetAddr, {BCOp});
     IRB.CreateCall(SetRealTemp, {ToAddrIdx, OPIdx, OP});
   }else if(isa<Argument>(OP) && (ArgMap.count(dyn_cast<Argument>(OP)) != 0)){
-    size_t index =  ArgMap.at(dyn_cast<Argument>(OP));
-    SetRealFunArg = M->getOrInsertFunction("setRealFunArg", VoidTy, Int32Ty, Int64Ty, Int64Ty, OpTy);
+		
+    GetFunArg = M->getOrInsertFunction("getRealFunArg", Int64Ty, Int32Ty, Int64Ty);
   	BitCastInst* BCFunc = new BitCastInst(&F, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
+    GetAddr = M->getOrInsertFunction("getAddr", Int64Ty, PtrVoidTy);
     Instruction *FuncIdx = IRB.CreateCall(GetAddr, {BCFunc});
+    size_t index =  ArgMap.at(dyn_cast<Argument>(OP));
     Constant* argNo = ConstantInt::get(Type::getInt32Ty(M->getContext()), index); //TODO: Remove this
-    IRB.CreateCall(SetRealFunArg, {argNo, FuncIdx, ToAddrIdx, OP});
-  }
-  else if (isa<ConstantFP>(OP)) {
-    //if its constant we don't need to look for its address, we need to create new shadow space for this constant
-//    SetRealConstant = M->getOrInsertFunction("setRealConstant", VoidTy, Int64Ty, OpTy);
- //   IRB.CreateCall(SetRealConstant, {ToAddrIdx, OP});
+  	Instruction *Index = IRB.CreateCall( GetFunArg, {argNo, FuncIdx});
+
+    SetRealFunArg = M->getOrInsertFunction("setRealFunArg", VoidTy, Int32Ty, Int64Ty, Int64Ty, OpTy);
+    IRB.CreateCall(SetRealFunArg, {Index, ToAddrIdx, OP});
   }
   else{
     //if its not a constant, then it could be temp, temp mapping is stored in LoadMap
@@ -989,7 +992,7 @@ void FPInstrument::handleOperand(Instruction *I, Instruction **Index, Value* OP,
     GetAddr = M->getOrInsertFunction("getAddr", Int64Ty, PtrVoidTy);
     Instruction *FuncIdx = IRB.CreateCall(GetAddr, {BCFunc});
     size_t index =  ArgMap.at(dyn_cast<Argument>(OP));
-    Constant* argNo = ConstantInt::get(Type::getInt32Ty(M->getContext()), index); //TODO: Remove this
+    Constant* argNo = ConstantInt::get(Type::getInt32Ty(M->getContext()), index);
   	*Index = IRB.CreateCall( GetFunArg, {argNo, FuncIdx});
    	*IsReg = true;  
   }
