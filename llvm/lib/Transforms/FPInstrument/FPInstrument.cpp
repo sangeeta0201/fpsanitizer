@@ -436,7 +436,7 @@ void FPInstrument::setReal(Instruction *I, Value *ToAddr, Value *OP, Function &F
     Constant* argNo = ConstantInt::get(Type::getInt32Ty(M->getContext()), index); //TODO: Remove this
   	Instruction *Index = IRB.CreateCall( GetFunArg, {argNo, FuncIdx});
 
-    SetRealFunArg = M->getOrInsertFunction("setRealFunArg", VoidTy, Int32Ty, Int64Ty, Int64Ty, OpTy);
+    SetRealFunArg = M->getOrInsertFunction("setRealFunArg", VoidTy, Int64Ty, Int64Ty, OpTy);
     IRB.CreateCall(SetRealFunArg, {Index, ToAddrIdx, OP});
   }
   else{

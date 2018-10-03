@@ -53,8 +53,10 @@ struct ComputeR{
 	size_t toAddrInt;
 	size_t fromAddrInt;
 	size_t size;
+	size_t shadowAddr;
 };
 
+size_t totalCompute = 0;
 bool recurFlag = false;
 size_t mpfrClear = 0;
 size_t mpfrInit = 0;
@@ -75,7 +77,8 @@ std::map<size_t, size_t>insMap;
 std::map<size_t, size_t>returnMap;
 
 std::map<size_t, struct Real*> shadowMap;
-
+std::map<std::map<size_t, size_t>, size_t> shadowFunArgMap;
+std::map<size_t, size_t>funRetMap;
 void fInit(size_t funcAddrInt);
 void fExit(size_t funcAddrInt, size_t returnIdx);
 void handleMath(size_t funcCode, double op1, size_t op1Int, double computedRes, size_t insIndex, size_t newRegIdx);
@@ -91,6 +94,7 @@ void compareBranch(double op1, size_t op1Int, double op2, size_t op2Int,
 size_t getRegRes(size_t insIndex);
 size_t getNewRegIndex();
 void fini();
+void initMain();
 void setReal(size_t index, double value);
 void setFunArg(size_t shadowAddr, size_t toAddrInt, double op);
 void setReturn(size_t toAddrInt);
