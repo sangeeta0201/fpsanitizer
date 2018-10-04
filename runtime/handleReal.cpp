@@ -11,7 +11,7 @@
 2. Clean up shadow
 3. How to figure out memcpy of only double?
 */
-//#define MULTITHREADED 1
+#define MULTITHREADED 
 #define debug 0
 
 FILE *pFile = fopen ("error.out","w");  
