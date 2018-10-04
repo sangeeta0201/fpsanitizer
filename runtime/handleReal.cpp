@@ -325,13 +325,13 @@ extern "C" void init(){
 }
 
 extern "C" void finish(){
-	consumerFlag = true;
 #ifdef MULTITHREADED
+	consumerFlag = true;
 	std::cout<<"finish join\n";
 	pthread_cond_signal(&condc);
 	pthread_join(con, NULL);	
 #endif
-
+/*
 	for (std::list<struct MyShadow*>::iterator it=varTrack.begin(); it!=varTrack.end(); ++it){
     if((*it)->real != NULL){
       mpfr_clear((*it)->real->mpfr_val);
@@ -340,7 +340,7 @@ extern "C" void finish(){
     }
     delete (*it);
   }
-
+*/
   for (std::list<struct MyShadow*>::iterator it=varTrack.begin(); it!=varTrack.end(); ++it){
     it = varTrack.erase(it);
   }
@@ -1051,7 +1051,6 @@ void setTemp(size_t toAddrInt, size_t fromAddrInt, double op){
 void handleMemcpy(size_t toAddrInt, size_t fromAddrInt, size_t size){
   size_t tmp = 0;                                                                                                               
   while(size != tmp){ //handling only double
-    std::cout<<"handleLLVMMemcpy\n";
     setTemp(toAddrInt+tmp, fromAddrInt+tmp, 0);
     tmp += 8;
   }
