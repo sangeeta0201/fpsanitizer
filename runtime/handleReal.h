@@ -9,6 +9,7 @@
 #include <list>
 
 #define PRECISION 1000
+#define BUFLEN 1000000
 
 struct ErrorAggregate {
   double max_error;
