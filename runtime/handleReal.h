@@ -10,6 +10,7 @@
 
 #define PRECISION 1000
 #define BUFLEN 1000000
+#define MAXSTACK 100000000
 
 struct ErrorAggregate {
   double max_error;
@@ -56,6 +57,7 @@ struct ComputeR{
 	size_t size;
 	size_t shadowAddr;
 };
+size_t stackIdx = 0;
 size_t freed = 0;
 size_t alocced = 0;
 size_t totalCompute = 0;
@@ -73,8 +75,8 @@ std::map<size_t, struct ErrorAggregate*>errorMap;
 std::map<size_t, struct BrError*>errBrMap;
 //this will link ins index to index of result in shadow mem
 std::queue<struct ComputeR*>buffer;
-std::list<struct MyShadow*> varTrack;
-std::list<struct MyShadow*> varTrack1;
+//std::list<struct MyShadow*> varTrack;
+struct MyShadow* varTrack[MAXSTACK];
 std::stack<size_t> retTrack;
 std::map<size_t, size_t>insMap;
 std::map<size_t, size_t>returnMap;
