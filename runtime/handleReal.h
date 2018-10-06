@@ -56,7 +56,8 @@ struct ComputeR{
 	size_t size;
 	size_t shadowAddr;
 };
-
+size_t freed = 0;
+size_t alocced = 0;
 size_t totalCompute = 0;
 bool recurFlag = false;
 size_t mpfrClear = 0;
@@ -73,6 +74,7 @@ std::map<size_t, struct BrError*>errBrMap;
 //this will link ins index to index of result in shadow mem
 std::queue<struct ComputeR*>buffer;
 std::list<struct MyShadow*> varTrack;
+std::list<struct MyShadow*> varTrack1;
 std::stack<size_t> retTrack;
 std::map<size_t, size_t>insMap;
 std::map<size_t, size_t>returnMap;

@@ -13,6 +13,7 @@
 */
 #define MULTITHREADED 
 #define debug 0
+#define debugTh 0
 
 FILE *pFile = fopen ("error.out","w");  
 
@@ -40,17 +41,18 @@ extern "C" void funcInit(size_t funcAddrInt){
 	
 #ifdef MULTITHREADED
 	ComputeR *op = new ComputeR;
+	alocced++;
 	op->funcAddrInt = funcAddrInt;
 	op->cmd = 1; //fInit 1
 	pthread_mutex_lock(&the_mutex);
-		if(debug)
+			if(debugTh)
 	std::cout<<"funcInit: producer buf size:"<<buffer.size()<<"\n";
 	if(buffer.size() == BUFLEN){
-		if(debug)
+			if(debugTh)
 		std::cout<<"funcInit: buffer is full, waiting\n";
 		pthread_cond_wait(&condp, &the_mutex);
 	}
-		if(debug)
+			if(debugTh)
 	std::cout<<"funcInit: pushing to buffer:\n";
 	buffer.push(op);	
 	pthread_cond_signal(&condc);
@@ -64,18 +66,19 @@ extern "C" void funcExit(size_t funcAddrInt, size_t returnIdx){
 	funRetMap.insert(std::pair<size_t, size_t>(funcAddrInt, returnIdx));
 #ifdef MULTITHREADED
 	ComputeR *op = new ComputeR;
+	alocced++;
 	op->funcAddrInt = funcAddrInt;
 	op->returnIdx = returnIdx;
 	op->cmd = 2;
 	pthread_mutex_lock(&the_mutex);
-		if(debug)
+			if(debugTh)
 	std::cout<<"funcExit: producer buf size:"<<buffer.size()<<"\n";
 	if(buffer.size() == BUFLEN){
-		if(debug)
+			if(debugTh)
 		std::cout<<"funcExit: buffer is full, waiting\n";
 		pthread_cond_wait(&condp, &the_mutex);
 	}
-		if(debug)
+			if(debugTh)
 	std::cout<<"funcExit: pushing to buffer:\n";
 	buffer.push(op);	
 	pthread_cond_signal(&condc);
@@ -94,6 +97,7 @@ extern "C" size_t handleMathFunc(size_t funcCode, double op1, size_t op1Idx,
   }
 #ifdef MULTITHREADED
 	ComputeR *op = new ComputeR;
+	alocced++;
 	op->funcCode = funcCode;
 	op->op1Idx = op1Idx;
 	//op->op1f = op1f; TODO add support for float math functions
@@ -104,14 +108,14 @@ extern "C" size_t handleMathFunc(size_t funcCode, double op1, size_t op1Idx,
 	op->cmd = 3;
 	op->newRegIdx = newRegIdx;
 	pthread_mutex_lock(&the_mutex);
-		if(debug)
+			if(debugTh)
 	std::cout<<"handleMathFunc: producer buf size:"<<buffer.size()<<"\n";
 	if(buffer.size() == BUFLEN){
-		if(debug)
+			if(debugTh)
 		std::cout<<"handleMathFunc: buffer is full, waiting\n";
 		pthread_cond_wait(&condp, &the_mutex);
 	}
-		if(debug)
+			if(debugTh)
 	std::cout<<"handleMathFunc: pushing to buffer:\n";
 	buffer.push(op);	
 	pthread_cond_signal(&condc);
@@ -133,6 +137,7 @@ extern "C" size_t handleMathFunc3Args(size_t funcCode, double op1, size_t op1Int
   }
 #ifdef MULTITHREADED
 	ComputeR *op = new ComputeR;
+	alocced++;
 	op->funcCode = funcCode;
 	op->op1Idx = op1Int;
 	//op->op1f = op1f; TODO add support for float math functions
@@ -147,14 +152,14 @@ extern "C" size_t handleMathFunc3Args(size_t funcCode, double op1, size_t op1Int
 	op->cmd = 4;
 	op->newRegIdx = newRegIdx;
 	pthread_mutex_lock(&the_mutex);
-		if(debug)
+			if(debugTh)
 	std::cout<<"handleMathFunc3Args: producer buf size:"<<buffer.size()<<"\n";
 	if(buffer.size() == BUFLEN){
-		if(debug)
+			if(debugTh)
 		std::cout<<"handleMathFunc3Args: buffer is full, waiting\n";
 		pthread_cond_wait(&condp, &the_mutex);
 	}
-		if(debug)
+			if(debugTh)
 	std::cout<<"handleMathFunc3Args: pushing to buffer:\n";
 	buffer.push(op);	
 	pthread_cond_signal(&condc);
@@ -179,6 +184,7 @@ extern "C" size_t computeReal(size_t opCode, size_t op1Idx, size_t op2Idx, float
   }
 #ifdef MULTITHREADED
 	ComputeR *op = new ComputeR;
+	alocced++;
 	op->opCode = opCode;
 	op->op1Idx = op1Idx;
 	op->op2Idx = op2Idx;
@@ -193,14 +199,14 @@ extern "C" size_t computeReal(size_t opCode, size_t op1Idx, size_t op2Idx, float
 
 	op->newRegIdx = newRegIdx;
 	pthread_mutex_lock(&the_mutex);
-		if(debug)
+			if(debugTh)
 	std::cout<<"computeReal: producer buf size:"<<buffer.size()<<"\n";
 	if(buffer.size() == BUFLEN){
-		if(debug)
+			if(debugTh)
 		std::cout<<"computeReal: buffer is full, waiting\n";
 		pthread_cond_wait(&condp, &the_mutex);
 	}
-		if(debug)
+			if(debugTh)
 	std::cout<<"computeReal: pushing to buffer:\n";
 	buffer.push(op);	
 	pthread_cond_signal(&condc);
@@ -216,6 +222,7 @@ extern "C" void checkBranch(double op1, size_t op1Int, double op2, size_t op2Int
                             int fcmpFlag, bool computedRes, size_t insIndex, size_t lineNo){
 #ifdef MULTITHREADED
 	ComputeR *op = new ComputeR;
+	alocced++;
   op->op1Idx = op1Int;
   op->op2Idx = op2Int;
   //op->op1f = op1f; //TODO
@@ -228,14 +235,14 @@ extern "C" void checkBranch(double op1, size_t op1Int, double op2, size_t op2Int
 	op->cmd = 6;
 
 	pthread_mutex_lock(&the_mutex);
-		if(debug)
+			if(debugTh)
 	std::cout<<"checkBranch: producer buf size:"<<buffer.size()<<"\n";
 	if(buffer.size() == BUFLEN){
-		if(debug)
+			if(debugTh)
 		std::cout<<"checkBranch: buffer is full, waiting\n";
 		pthread_cond_wait(&condp, &the_mutex);
 	}
-		if(debug)
+			if(debugTh)
 	std::cout<<"checkBranch: pushing to buffer:\n";
 	buffer.push(op);	
 	pthread_cond_signal(&condc);
@@ -250,19 +257,20 @@ extern "C" size_t setRealReg(size_t index, double value){
  
 #ifdef MULTITHREADED
 	ComputeR *op = new ComputeR;
+	alocced++;
 	op->op1Idx = index;
 	op->op1d = value;
 	op->cmd = 7;
 
 	pthread_mutex_lock(&the_mutex);
-		if(debug)
+			if(debugTh)
 	std::cout<<"setRealReg: producer buf size:"<<buffer.size()<<"\n";
 	if(buffer.size() == BUFLEN){
-		if(debug)
+			if(debugTh)
 		std::cout<<"setRealReg: buffer is full, waiting\n";
 		pthread_cond_wait(&condp, &the_mutex);
 	}
-		if(debug)
+			if(debugTh)
 	std::cout<<"setRealReg: pushing to buffer:\n";
 	buffer.push(op);	
 	pthread_cond_signal(&condc);
@@ -289,20 +297,22 @@ extern "C" size_t getRealFunArg(size_t index, size_t funAddrInt){
 extern "C" void setRealFunArg(size_t shadowAddr, size_t toAddrInt, double value){
 #ifdef MULTITHREADED
 	ComputeR *op = new ComputeR;
+	alocced++;
 	op->shadowAddr = shadowAddr;
 	op->toAddrInt = toAddrInt;
 	op->op1d = value;
+	op->cmd = 11;
 
 	pthread_mutex_lock(&the_mutex);
-		if(debug)
-	std::cout<<"setRealFunArg: producer buf size:"<<buffer.size()<<"\n";
+			if(debugTh)
+		std::cout<<"setRealFunArg: producer buf size:"<<buffer.size()<<"\n";
 	if(buffer.size() == BUFLEN){
-		if(debug)
-		std::cout<<"setRealFunArg: buffer is full, waiting\n";
+			if(debugTh)
+			std::cout<<"setRealFunArg: buffer is full, waiting\n";
 		pthread_cond_wait(&condp, &the_mutex);
 	}
-		if(debug)
-	std::cout<<"setRealFunArg: pushing to buffer:\n";
+			if(debugTh)
+		std::cout<<"setRealFunArg: pushing to buffer:\n";
 	buffer.push(op);	
 	pthread_cond_signal(&condc);
 	pthread_mutex_unlock(&the_mutex);
@@ -325,8 +335,22 @@ extern "C" size_t getRealReturn(size_t funAddrInt){
 extern "C" void setRealReturn(size_t toAddrInt){
 #ifdef MULTITHREADED
 	ComputeR *op = new ComputeR;
+	alocced++;
 	op->toAddrInt = toAddrInt;
 	op->cmd = 8;
+	pthread_mutex_lock(&the_mutex);
+			if(debugTh)
+		std::cout<<"setRealReturn: producer buf size:"<<buffer.size()<<"\n";
+	if(buffer.size() == BUFLEN){
+			if(debugTh)
+			std::cout<<"setRealReturn: buffer is full, waiting\n";
+		pthread_cond_wait(&condp, &the_mutex);
+	}
+			if(debugTh)
+		std::cout<<"setRealReturn: pushing to buffer:\n";
+	buffer.push(op);	
+	pthread_cond_signal(&condc);
+	pthread_mutex_unlock(&the_mutex);
 #else
 	setReturn(toAddrInt);
 #endif
@@ -336,10 +360,26 @@ extern "C" void setRealReturn(size_t toAddrInt){
 extern "C" void setRealTemp(size_t toAddrInt, size_t fromAddrInt, double val){
 #ifdef MULTITHREADED
 	ComputeR *op = new ComputeR;
+	alocced++;
 	op->toAddrInt = toAddrInt;
 	op->fromAddrInt = fromAddrInt;
 	op->op1d = val;
 	op->cmd = 9;
+
+	pthread_mutex_lock(&the_mutex);
+			if(debugTh)
+		std::cout<<"setRealTemp: producer buf size:"<<buffer.size()<<"\n";
+	if(buffer.size() == BUFLEN){
+			if(debugTh)
+			std::cout<<"setRealTemp: buffer is full, waiting\n";
+		pthread_cond_wait(&condp, &the_mutex);
+	}
+			if(debugTh)
+		std::cout<<"setRealTemp: pushing to buffer:\n";
+	buffer.push(op);	
+	pthread_cond_signal(&condc);
+	pthread_mutex_unlock(&the_mutex);
+
 #else
 	setTemp(toAddrInt, fromAddrInt, val);
 #endif
@@ -348,10 +388,24 @@ extern "C" void setRealTemp(size_t toAddrInt, size_t fromAddrInt, double val){
 extern "C" void handleLLVMMemcpy(size_t toAddrInt, size_t fromAddrInt, size_t size){
 #ifdef MULTITHREADED
 	ComputeR *op = new ComputeR;
+	alocced++;
 	op->toAddrInt = toAddrInt;
 	op->fromAddrInt = fromAddrInt;
 	op->size = size;
 	op->cmd = 10;
+	pthread_mutex_lock(&the_mutex);
+			if(debugTh)
+		std::cout<<"handleLLVMMemcpy: producer buf size:"<<buffer.size()<<"\n";
+	if(buffer.size() == BUFLEN){
+			if(debugTh)
+			std::cout<<"handleLLVMMemcpy: buffer is full, waiting\n";
+		pthread_cond_wait(&condp, &the_mutex);
+	}
+			if(debugTh)
+		std::cout<<"handleLLVMMemcpy: pushing to buffer:\n";
+	buffer.push(op);	
+	pthread_cond_signal(&condc);
+	pthread_mutex_unlock(&the_mutex);
 #else
 	handleMemcpy(toAddrInt, fromAddrInt, size);
 #endif
@@ -381,6 +435,8 @@ extern "C" void finish(){
 	pthread_cond_signal(&condc);
 	//pthread_join(con, NULL);	
 #endif
+	std::cout<<"alloced:"<<alocced<<"\n";
+	std::cout<<"freed:"<<freed<<"\n";
 /*
 	for (std::list<struct MyShadow*>::iterator it=varTrack.begin(); it!=varTrack.end(); ++it){
     if((*it)->real != NULL){
@@ -1057,9 +1113,9 @@ void setReturn(size_t toAddrInt){
 }
 
 void setTemp(size_t toAddrInt, size_t fromAddrInt, double op){
-#if 1 
     MyShadow *fromShadow = existInStack(fromAddrInt);
     MyShadow *toShadow = existInStack(toAddrInt);
+
     if(fromShadow != NULL){
       if(toShadow == NULL){
         struct Real* toReal = new Real;
@@ -1069,8 +1125,6 @@ void setTemp(size_t toAddrInt, size_t fromAddrInt, double op){
         MyShadow *newShadow = new MyShadow;
         newShadow->key = toAddrInt;
         newShadow->real = toReal;  
-        if(newShadow->key == 0)
-          std::cout<<"insert 0 10\n";
         varTrack.push_back(newShadow);
         if(debug)
           std::cout<<"setRealTemp insert shadow stack from:"<<fromShadow->key<<" to:"<<toAddrInt<<"\n";
@@ -1095,7 +1149,6 @@ void setTemp(size_t toAddrInt, size_t fromAddrInt, double op){
     if(debug)
       std::cout<<"setRealTemp insert:"<<op<<" shadow stack to:"<<toAddrInt<<"\n";
   }
-#endif
 }
 
 void handleMemcpy(size_t toAddrInt, size_t fromAddrInt, size_t size){
@@ -1150,21 +1203,20 @@ void* consumer(void *ptr) {
 	size_t toAddrInt;
 	size_t fromAddrInt;
 	size_t size;
+	size_t shadowAddr;
 
 	while(!consumerFlag){
 		pthread_mutex_lock(&the_mutex);
 		while(buffer.empty()){
-		if(debug)
+			if(debugTh)
 			std::cout<<"consumer: buffer is empty, waiting\n";
 			if(consumerFlag)	
 				pthread_exit(0);
 			pthread_cond_wait(&condc, &the_mutex);
 		}
 		op = buffer.front();
-		if(debug)
-			std::cout<<"consumer processing element:"<<op->newRegIdx<<"\n";
 		buffer.pop();
-		if(debug)
+			if(debugTh)
 		std::cout<<"consumer: process one object, signaling producer\n";
 		pthread_cond_signal(&condp);
 		cmd = op->cmd;
@@ -1246,10 +1298,17 @@ void* consumer(void *ptr) {
 						size = op->size;
 						handleMemcpy(toAddrInt, fromAddrInt, size);
 						break;
+			case 11: 
+						shadowAddr = op->shadowAddr;
+						toAddrInt = op->toAddrInt;
+						op1d = op->op1d;
+						setFunArg(shadowAddr, toAddrInt, op1d);
+						break;
 			default: 
 						std::cout<<"Error !!! unknown operation\n";
 		}
 		delete op;
+		freed++;
 		op = NULL;
 		pthread_mutex_unlock(&the_mutex);
 	}	
