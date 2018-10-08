@@ -7,10 +7,12 @@
 #include <stack>
 #include <queue>
 #include <list>
+#include "simplethread.h"
+#include "./readerwriterqueue/readerwriterqueue.h"
 
 #define PRECISION 1000
 #define BUFLEN 1000000
-#define MAXSTACK 100000000
+using namespace moodycamel;
 
 struct ErrorAggregate {
   double max_error;
@@ -75,12 +77,10 @@ std::map<size_t, struct ErrorAggregate*>errorMap;
 std::map<size_t, struct BrError*>errBrMap;
 //this will link ins index to index of result in shadow mem
 std::queue<struct ComputeR*>buffer;
-//std::list<struct MyShadow*> varTrack;
-struct MyShadow* varTrack[MAXSTACK];
+std::list<struct MyShadow*> varTrack;
 std::stack<size_t> retTrack;
 std::map<size_t, size_t>insMap;
 std::map<size_t, size_t>returnMap;
-
 std::map<size_t, struct Real*> shadowMap;
 std::map<std::map<size_t, size_t>, size_t> shadowFunArgMap;
 std::map<size_t, size_t>funRetMap;

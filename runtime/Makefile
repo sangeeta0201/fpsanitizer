@@ -6,7 +6,7 @@ LINKER=g++
 LDFLAGS+= -shared
 OPT=-O3
 
-CXXFLAGS+=-fPIC -g -Wall -lmpfr -pthread
+CXXFLAGS+=-fPIC -g -Wall -lmpfr -pthread 
 
 INCPATH=-I.
 ARFLAGS=-rcs

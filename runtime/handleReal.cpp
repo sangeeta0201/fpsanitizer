@@ -11,7 +11,7 @@
 2. Clean up shadow
 3. How to figure out memcpy of only double?
 */
-#define MULTITHREADED 
+//#define MULTITHREADED 
 #define debug 0
 #define debugTh 0
 
@@ -359,6 +359,8 @@ extern "C" void setRealReturn(size_t toAddrInt){
 
 extern "C" void setRealTemp(size_t toAddrInt, size_t fromAddrInt, double val){
 #ifdef MULTITHREADED
+	std::cout<<"setRealTemp:"<<"\n";
+
 	ComputeR *op = new ComputeR;
 	alocced++;
 	op->toAddrInt = toAddrInt;
@@ -447,9 +449,9 @@ extern "C" void finish(){
     delete (*it);
   }
 */
-//  for (std::list<struct MyShadow*>::iterator it=varTrack.begin(); it!=varTrack.end(); ++it){
- //   it = varTrack.erase(it);
- // }
+  for (std::list<struct MyShadow*>::iterator it=varTrack.begin(); it!=varTrack.end(); ++it){
+    it = varTrack.erase(it);
+  }
   std::cout<<"list:";
   std::cout<<"mpfrInit:"<<mpfrInit<<"\n";
   std::cout<<"mpfrClear:"<<mpfrClear<<"\n";
@@ -476,11 +478,6 @@ int isNaN(Real *real){
 }
 
 Real* getReal(size_t AddrInt){
-	for(int i = stackIdx-1; i >= 0; i--){
-		if (AddrInt == varTrack[i]->key)
-			return varTrack[i]->real;
-	}
-	/*
 	for (std::list<struct MyShadow*>::reverse_iterator rit=varTrack.rbegin(); rit!=varTrack.rend(); ++rit){
 		if (rit == varTrack.rend())
 			return NULL;
@@ -488,7 +485,6 @@ Real* getReal(size_t AddrInt){
 			return (*rit)->real;	
 		}
 	}
-*/
   return NULL;
 }
 
@@ -511,17 +507,12 @@ size_t getNewRegIndex(){
 }
 
 void printStack(){
-//	for (std::list<struct MyShadow*>::reverse_iterator rit=varTrack.rbegin(); rit!=varTrack.rend(); ++rit){
-//		std::cout<<(*rit)->key<<"\n";
-//	}
+	for (std::list<struct MyShadow*>::reverse_iterator rit=varTrack.rbegin(); rit!=varTrack.rend(); ++rit){
+		std::cout<<(*rit)->key<<"\n";
+	}
 }
 
 struct MyShadow* existInStack(size_t key){
-	for(int i = stackIdx-1; i >= 0; i--){
-		if (key == varTrack[i]->key)
-			return varTrack[i];
-	}
-/*
 	for (std::list<struct MyShadow*>::reverse_iterator rit=varTrack.rbegin(); rit!=varTrack.rend(); ++rit){
   	//if(currentFunc == (*rit)->key){
 	//		return NULL;
@@ -532,7 +523,6 @@ struct MyShadow* existInStack(size_t key){
 			return *rit;
 		}
 	}
-*/
 	return NULL;
 }
 
@@ -618,9 +608,7 @@ void handleMath(size_t funcCode, double op1, size_t op1Int,
 		newShadow->real = real_res;  
 				if(newShadow->key == 0)
 					std::cout<<"insert 0 3\n";
-		varTrack[stackIdx] = newShadow;
-		stackIdx++;
- // 	varTrack.push_back(newShadow);
+  	varTrack.push_back(newShadow);
 	}
 	else{//just update the value in stack
     	mpfr_clear(shadow->real->mpfr_val);
@@ -699,9 +687,7 @@ void handleMath3Args(size_t funcCode, double op1, size_t op1Int,
 		newShadow->real = real_res;  
 				if(newShadow->key == 0)
 					std::cout<<"insert 0 4\n";
-		varTrack[stackIdx] = newShadow;
-		stackIdx++;
-  	//varTrack.push_back(newShadow);
+  	varTrack.push_back(newShadow);
 	}
 	else{//just update the value in stack
     	mpfr_clear(shadow->real->mpfr_val);
@@ -822,9 +808,7 @@ void computeR(size_t opCode, size_t op1Idx, size_t op2Idx, float op1f, float op2
 		newShadow->real = real_res;  
 				if(newShadow->key == 0)
 					std::cout<<"insert 0 5\n";
-  	//varTrack.push_back(newShadow);
-		varTrack[stackIdx] = newShadow;
-		stackIdx++;
+  	varTrack.push_back(newShadow);
   	if(debug)
     	std::cout<<"computeReal insert shadow stack::"<<newRegIdx<<"\n";
 	}
@@ -865,49 +849,12 @@ void funArgMap(size_t argNo, size_t funAddrInt, size_t argAddrInt){
 */
 void fInit(size_t funcAddrInt){                                                                                   
   
-  MyShadow *newShadow = new MyShadow;
-  newShadow->key = funcAddrInt;  
+  MyShadow *shadow = new MyShadow;
+  shadow->key = funcAddrInt;  
   currentFunc = funcAddrInt;
-  //varTrack.push_back(shadow);
-		varTrack[stackIdx] = newShadow;
-	stackIdx++;
+  varTrack.push_back(shadow);
 }
 
-void fExit(size_t funcAddrInt, size_t returnIdx){
-  struct MyShadow *shadow = NULL;
-  struct MyShadow *newShadow = NULL;
-  if(debug)
-    std::cout<<"funcExit:"<<returnIdx<<"\n";
-  retTrack.push(returnIdx);
-  while(stackIdx != 0){
-    shadow = varTrack[stackIdx-1];
-    if(shadow->key == funcAddrInt){
-      stackIdx--;
-      if(newShadow != NULL){
-        varTrack[stackIdx] = newShadow; //push back returned value to stack
-        std::cout<<"Pushed back:"<<newShadow->key<<"\n";
-      }
-      break;
-    }
-    if(shadow->key == returnIdx){
-      struct Real* toReal = new Real;
-      mpfr_init2(toReal->mpfr_val, PRECISION);                                                                                  
-      mpfrInit++;
-      mpfr_set(toReal->mpfr_val, shadow->real->mpfr_val, MPFR_RNDD);
-      newShadow = new MyShadow;
-      newShadow->key = shadow->key;
-      newShadow->real = toReal;  
-    }
-		if(debug)
-      std::cout<<"Cleaned:"<<shadow->key<<"\n";
-    mpfr_clear(shadow->real->mpfr_val);
-    mpfrClear++;
-    delete shadow->real;
-    delete shadow;
-    stackIdx--;
-  }
-}
-/*
 void fExit(size_t funcAddrInt, size_t returnIdx){
   struct MyShadow *shadow = NULL;
   struct MyShadow *newShadow = NULL;
@@ -944,7 +891,7 @@ void fExit(size_t funcAddrInt, size_t returnIdx){
     varTrack.pop_back();
   }
 }
-*/
+
 
 void compareBranch(double op1, size_t op1Int, double op2, size_t op2Int, 
                             int fcmpFlag, bool computedRes, size_t insIndex, size_t lineNo){
@@ -1096,9 +1043,7 @@ void setReal(size_t index, double value){
     newShadow->real = real;
         if(newShadow->key == 0)
           std::cout<<"insert 0 6\n";
-//    varTrack.push_back(newShadow);
-		varTrack[stackIdx] = newShadow;
-		stackIdx++;
+    varTrack.push_back(newShadow);
     if(debug)
       std::cout<<"setRealReg insert shadow stack::"<<index<<"\n";
   }
@@ -1117,9 +1062,7 @@ void setFunArg(size_t shadowAddr, size_t toAddrInt, double op){
       newShadow->real = real;  
         if(newShadow->key == 0)
           std::cout<<"insert 0 7\n";
-      //varTrack.push_back(newShadow);
-			varTrack[stackIdx] = newShadow;
-			stackIdx++;
+      varTrack.push_back(newShadow);
       if(debug)
         std::cout<<"setRealFunArg insert shadow stack::"<<toAddrInt<<"\n";
     }
@@ -1133,9 +1076,7 @@ void setFunArg(size_t shadowAddr, size_t toAddrInt, double op){
       newShadow->real = toReal;  
         if(newShadow->key == 0)
           std::cout<<"insert 0 8\n";
-      //varTrack.push_back(newShadow);
-			varTrack[stackIdx] = newShadow;
-			stackIdx++;
+      varTrack.push_back(newShadow);
 
       if(debug)
         std::cout<<"setRealFunArg update from:"<<shadow->key<<" to :"<<toAddrInt<<"\n";
@@ -1160,9 +1101,7 @@ void setReturn(size_t toAddrInt){
       MyShadow *newShadow = new MyShadow;
       newShadow->key = toAddrInt;
       newShadow->real = toReal;  
-      //varTrack.push_back(newShadow);
-			varTrack[stackIdx] = newShadow;
-			stackIdx++;
+      varTrack.push_back(newShadow);
       if(debug)
         std::cout<<"setRealReturn: insert shadow stack::"<<toAddrInt<<"\n";
     }
@@ -1188,9 +1127,7 @@ void setTemp(size_t toAddrInt, size_t fromAddrInt, double op){
         MyShadow *newShadow = new MyShadow;
         newShadow->key = toAddrInt;
         newShadow->real = toReal;  
-      //  varTrack.push_back(newShadow);
-			varTrack[stackIdx] = newShadow;
-			stackIdx++;
+        varTrack.push_back(newShadow);
         if(debug)
           std::cout<<"setRealTemp insert shadow stack from:"<<fromShadow->key<<" to:"<<toAddrInt<<"\n";
     }
@@ -1210,9 +1147,7 @@ void setTemp(size_t toAddrInt, size_t fromAddrInt, double op){
     newShadow->real = toReal;  
         if(newShadow->key == 0)
           std::cout<<"insert 0 11\n";
-    //varTrack.push_back(newShadow);
-			varTrack[stackIdx] = newShadow;
-			stackIdx++;
+    varTrack.push_back(newShadow);
     if(debug)
       std::cout<<"setRealTemp insert:"<<op<<" shadow stack to:"<<toAddrInt<<"\n";
   }
@@ -1494,7 +1429,7 @@ double updateError(Real *realVal, double computedVal, size_t insIndex){
   }
   eagg->total_error += bitsError;
   eagg->num_evals += 1;
-   if (debug){
+   if (1){
     std::cout<<"\neagg->max_error:"<<eagg->max_error<<"\n";
     std::cout<<"\neagg->num_evals:"<<eagg->num_evals<<" eagg->total_error:"<<eagg->total_error<<"\n";
     std::cout<<"\nThe shadow value is ";
