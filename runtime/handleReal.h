@@ -7,12 +7,15 @@
 #include <stack>
 #include <queue>
 #include <list>
-#include "simplethread.h"
-#include "./readerwriterqueue/readerwriterqueue.h"
-
+#include <assert.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <sys/mman.h>
+#include <fcntl.h>
 #define PRECISION 1000
 #define BUFLEN 1000000
-using namespace moodycamel;
+#define MMAP_FLAGS (MAP_PRIVATE| MAP_ANONYMOUS| MAP_NORESERVE)
+#define MAX_STACK_SIZE 1000000
 
 struct ErrorAggregate {
   double max_error;
@@ -29,6 +32,7 @@ struct BrError {
 struct Real{
   mpfr_t mpfr_val;
 };
+
 struct MyShadow{
 	size_t key;
 	struct Real * real;
@@ -59,7 +63,6 @@ struct ComputeR{
 	size_t size;
 	size_t shadowAddr;
 };
-size_t stackIdx = 0;
 size_t freed = 0;
 size_t alocced = 0;
 size_t totalCompute = 0;
@@ -73,11 +76,13 @@ size_t currentFunc = 0;
 bool consumerFlag = false;
 size_t compute = 0;  
 double regIndex = 100; //Assuming there are 100 constants, as we are giving index for constants for phi and select from llvm pass 
+size_t stackIdx = 0;
 std::map<size_t, struct ErrorAggregate*>errorMap;
 std::map<size_t, struct BrError*>errBrMap;
 //this will link ins index to index of result in shadow mem
 std::queue<struct ComputeR*>buffer;
-std::list<struct MyShadow*> varTrack;
+//std::list<struct MyShadow*> varTrack;
+struct MyShadow *shdStack;
 std::stack<size_t> retTrack;
 std::map<size_t, size_t>insMap;
 std::map<size_t, size_t>returnMap;

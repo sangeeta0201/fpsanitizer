@@ -27,33 +27,32 @@ extern "C" size_t getAddr(void *Addr){
 }
 
 extern "C" void addFunArg(size_t argNo, size_t funAddrInt, size_t argAddrInt){
-	std::map<size_t, size_t> data;
-  data.insert(std::pair<size_t, size_t>(funAddrInt, argNo));
-  std::map<std::map<size_t, size_t>, size_t>::iterator it = shadowFunArgMap.find(data); 
+    std::map<size_t, size_t> data;
+    data.insert(std::pair<size_t, size_t>(funAddrInt, argNo));
+    std::map<std::map<size_t, size_t>, size_t>::iterator it = shadowFunArgMap.find(data); 
 
-  if (it != shadowFunArgMap.end()){
-    shadowFunArgMap.erase(it);
-  }
-  shadowFunArgMap.insert(std::pair<std::map<size_t, size_t>, size_t>(data, argAddrInt));
+    if (it != shadowFunArgMap.end()){
+        shadowFunArgMap.erase(it);
+    }
+    shadowFunArgMap.insert(std::pair<std::map<size_t, size_t>, size_t>(data, argAddrInt));
 }
 
 extern "C" void funcInit(size_t funcAddrInt){
-	
 #ifdef MULTITHREADED
 	ComputeR *op = new ComputeR;
 	alocced++;
 	op->funcAddrInt = funcAddrInt;
 	op->cmd = 1; //fInit 1
 	pthread_mutex_lock(&the_mutex);
-			if(debugTh)
-	std::cout<<"funcInit: producer buf size:"<<buffer.size()<<"\n";
+	if(debugTh)
+	    std::cout<<"funcInit: producer buf size:"<<buffer.size()<<"\n";
 	if(buffer.size() == BUFLEN){
-			if(debugTh)
-		std::cout<<"funcInit: buffer is full, waiting\n";
+		if(debugTh)
+	        std::cout<<"funcInit: buffer is full, waiting\n";
 		pthread_cond_wait(&condp, &the_mutex);
 	}
-			if(debugTh)
-	std::cout<<"funcInit: pushing to buffer:\n";
+	if(debugTh)
+	    std::cout<<"funcInit: pushing to buffer:\n";
 	buffer.push(op);	
 	pthread_cond_signal(&condc);
 	pthread_mutex_unlock(&the_mutex);
@@ -90,11 +89,11 @@ extern "C" void funcExit(size_t funcAddrInt, size_t returnIdx){
 
 extern "C" size_t handleMathFunc(size_t funcCode, double op1, size_t op1Idx, 
                                                 double computedRes, size_t insIndex){ 
-  size_t newRegIdx = getRegRes(insIndex);
-  if(!newRegIdx){
-    newRegIdx = getNewRegIndex();
-    addRegRes(insIndex, newRegIdx);
-  }
+    size_t newRegIdx = getRegRes(insIndex);
+    if(!newRegIdx){
+        newRegIdx = getNewRegIndex();
+        addRegRes(insIndex, newRegIdx);
+    }
 #ifdef MULTITHREADED
 	ComputeR *op = new ComputeR;
 	alocced++;
@@ -108,33 +107,33 @@ extern "C" size_t handleMathFunc(size_t funcCode, double op1, size_t op1Idx,
 	op->cmd = 3;
 	op->newRegIdx = newRegIdx;
 	pthread_mutex_lock(&the_mutex);
-			if(debugTh)
-	std::cout<<"handleMathFunc: producer buf size:"<<buffer.size()<<"\n";
+	if(debugTh)
+	    std::cout<<"handleMathFunc: producer buf size:"<<buffer.size()<<"\n";
 	if(buffer.size() == BUFLEN){
-			if(debugTh)
-		std::cout<<"handleMathFunc: buffer is full, waiting\n";
+		if(debugTh)
+		    std::cout<<"handleMathFunc: buffer is full, waiting\n";
 		pthread_cond_wait(&condp, &the_mutex);
 	}
-			if(debugTh)
-	std::cout<<"handleMathFunc: pushing to buffer:\n";
+	if(debugTh)
+	    std::cout<<"handleMathFunc: pushing to buffer:\n";
 	buffer.push(op);	
 	pthread_cond_signal(&condc);
 	pthread_mutex_unlock(&the_mutex);
 #else
 	handleMath(funcCode, op1, op1Idx, computedRes, insIndex, newRegIdx);
 #endif
-  return newRegIdx;
+    return newRegIdx;
 }
 
 extern "C" size_t handleMathFunc3Args(size_t funcCode, double op1, size_t op1Int,
                                                 double op2, size_t op2Int,
                                                 double op3, size_t op3Int,
                                                 double computedRes, size_t insIndex){ 
-  size_t newRegIdx = getRegRes(insIndex);
-  if(!newRegIdx){
-    newRegIdx = getNewRegIndex();
-    addRegRes(insIndex, newRegIdx);
-  }
+    size_t newRegIdx = getRegRes(insIndex);
+    if(!newRegIdx){
+        newRegIdx = getNewRegIndex();
+        addRegRes(insIndex, newRegIdx);
+    }
 #ifdef MULTITHREADED
 	ComputeR *op = new ComputeR;
 	alocced++;
@@ -152,36 +151,33 @@ extern "C" size_t handleMathFunc3Args(size_t funcCode, double op1, size_t op1Int
 	op->cmd = 4;
 	op->newRegIdx = newRegIdx;
 	pthread_mutex_lock(&the_mutex);
-			if(debugTh)
-	std::cout<<"handleMathFunc3Args: producer buf size:"<<buffer.size()<<"\n";
+	if(debugTh)
+	    std::cout<<"handleMathFunc3Args: producer buf size:"<<buffer.size()<<"\n";
 	if(buffer.size() == BUFLEN){
-			if(debugTh)
-		std::cout<<"handleMathFunc3Args: buffer is full, waiting\n";
+	    if(debugTh)
+		    std::cout<<"handleMathFunc3Args: buffer is full, waiting\n";
 		pthread_cond_wait(&condp, &the_mutex);
 	}
-			if(debugTh)
-	std::cout<<"handleMathFunc3Args: pushing to buffer:\n";
+	if(debugTh)
+	    std::cout<<"handleMathFunc3Args: pushing to buffer:\n";
 	buffer.push(op);	
 	pthread_cond_signal(&condc);
 	pthread_mutex_unlock(&the_mutex);
 #else
 	handleMath3Args(funcCode, op1, op1Int, op2, op2Int, op3, op3Int, computedRes, insIndex, newRegIdx);
 #endif
-  return newRegIdx;
+    return newRegIdx;
 }
 
-
-
-
 extern "C" size_t computeReal(size_t opCode, size_t op1Idx, size_t op2Idx, float op1f, float op2f, 
-																		double op1d, double op2d, double computedRes,
+								double op1d, double op2d, double computedRes,
                                     size_t typeId, size_t insIndex){
 	
-  size_t newRegIdx = getRegRes(insIndex);
-  if(!newRegIdx){
-    newRegIdx = getNewRegIndex();
-    addRegRes(insIndex, newRegIdx);
-  }
+    size_t newRegIdx = getRegRes(insIndex);
+    if(!newRegIdx){
+        newRegIdx = getNewRegIndex();
+        addRegRes(insIndex, newRegIdx);
+    }
 #ifdef MULTITHREADED
 	ComputeR *op = new ComputeR;
 	alocced++;
@@ -199,58 +195,56 @@ extern "C" size_t computeReal(size_t opCode, size_t op1Idx, size_t op2Idx, float
 
 	op->newRegIdx = newRegIdx;
 	pthread_mutex_lock(&the_mutex);
-			if(debugTh)
-	std::cout<<"computeReal: producer buf size:"<<buffer.size()<<"\n";
+	if(debugTh)
+	    std::cout<<"computeReal: producer buf size:"<<buffer.size()<<"\n";
 	if(buffer.size() == BUFLEN){
-			if(debugTh)
-		std::cout<<"computeReal: buffer is full, waiting\n";
+	    if(debugTh)
+		    std::cout<<"computeReal: buffer is full, waiting\n";
 		pthread_cond_wait(&condp, &the_mutex);
 	}
-			if(debugTh)
-	std::cout<<"computeReal: pushing to buffer:\n";
+	if(debugTh)
+	    std::cout<<"computeReal: pushing to buffer:\n";
 	buffer.push(op);	
 	pthread_cond_signal(&condc);
 	pthread_mutex_unlock(&the_mutex);
 #else 
 	computeR(opCode, op1Idx, op2Idx, op1f, op2f, op1d, op2d, computedRes, typeId, insIndex, newRegIdx);
 #endif
-  return newRegIdx;
+    return newRegIdx;
 }
 
 
 extern "C" void checkBranch(double op1, size_t op1Int, double op2, size_t op2Int, 
                             int fcmpFlag, bool computedRes, size_t insIndex, size_t lineNo){
 #ifdef MULTITHREADED
-	ComputeR *op = new ComputeR;
+    ComputeR *op = new ComputeR;
 	alocced++;
-  op->op1Idx = op1Int;
-  op->op2Idx = op2Int;
-  //op->op1f = op1f; //TODO
-  op->op1d = op1;
-  op->op2d = op2;
-  op->fcmpFlag = fcmpFlag;
-  op->computedRes = computedRes;
-  op->insIndex = insIndex;
-  op->lineNo = lineNo;
+    op->op1Idx = op1Int;
+    op->op2Idx = op2Int;
+    //op->op1f = op1f; //TODO
+    op->op1d = op1;
+    op->op2d = op2;
+    op->fcmpFlag = fcmpFlag;
+    op->computedRes = computedRes;
+    op->insIndex = insIndex;
+    op->lineNo = lineNo;
 	op->cmd = 6;
-
 	pthread_mutex_lock(&the_mutex);
-			if(debugTh)
-	std::cout<<"checkBranch: producer buf size:"<<buffer.size()<<"\n";
+	if(debugTh)
+	    std::cout<<"checkBranch: producer buf size:"<<buffer.size()<<"\n";
 	if(buffer.size() == BUFLEN){
-			if(debugTh)
-		std::cout<<"checkBranch: buffer is full, waiting\n";
+		if(debugTh)
+		    std::cout<<"checkBranch: buffer is full, waiting\n";
 		pthread_cond_wait(&condp, &the_mutex);
 	}
-			if(debugTh)
-	std::cout<<"checkBranch: pushing to buffer:\n";
+	if(debugTh)
+	    std::cout<<"checkBranch: pushing to buffer:\n";
 	buffer.push(op);	
 	pthread_cond_signal(&condc);
 	pthread_mutex_unlock(&the_mutex);
 #else
-  compareBranch(op1, op1Int, op2, op2Int, fcmpFlag, computedRes, insIndex, lineNo);
+    compareBranch(op1, op1Int, op2, op2Int, fcmpFlag, computedRes, insIndex, lineNo);
 #endif
-
 }
 
 extern "C" size_t setRealReg(size_t index, double value){
@@ -263,34 +257,33 @@ extern "C" size_t setRealReg(size_t index, double value){
 	op->cmd = 7;
 
 	pthread_mutex_lock(&the_mutex);
-			if(debugTh)
-	std::cout<<"setRealReg: producer buf size:"<<buffer.size()<<"\n";
+	if(debugTh)
+	    std::cout<<"setRealReg: producer buf size:"<<buffer.size()<<"\n";
 	if(buffer.size() == BUFLEN){
-			if(debugTh)
-		std::cout<<"setRealReg: buffer is full, waiting\n";
+	    if(debugTh)
+		    std::cout<<"setRealReg: buffer is full, waiting\n";
 		pthread_cond_wait(&condp, &the_mutex);
 	}
-			if(debugTh)
-	std::cout<<"setRealReg: pushing to buffer:\n";
+	if(debugTh)
+	    std::cout<<"setRealReg: pushing to buffer:\n";
 	buffer.push(op);	
 	pthread_cond_signal(&condc);
 	pthread_mutex_unlock(&the_mutex);
 #else 
 	setReal(index, value);
 #endif
-  return index;
+    return index;
 }
 
 extern "C" size_t getRealFunArg(size_t index, size_t funAddrInt){
-  std::vector<size_t>::iterator it; 
-  std::map<size_t, size_t> shadowAddrMap;
-	size_t shadowAddr = 0;
-  shadowAddrMap.insert(std::pair<size_t, size_t>(funAddrInt, index));
-  if(shadowFunArgMap.count(shadowAddrMap) != 0){ 
-  	shadowAddr = shadowFunArgMap.at(shadowAddrMap);
-	}
-	
-	return shadowAddr;
+    std::vector<size_t>::iterator it; 
+    std::map<size_t, size_t> shadowAddrMap;
+    size_t shadowAddr = 0;
+    shadowAddrMap.insert(std::pair<size_t, size_t>(funAddrInt, index));
+    if(shadowFunArgMap.count(shadowAddrMap) != 0){ 
+        shadowAddr = shadowFunArgMap.at(shadowAddrMap);
+    }
+    return shadowAddr;
 }
 
 //TODO
@@ -304,14 +297,14 @@ extern "C" void setRealFunArg(size_t shadowAddr, size_t toAddrInt, double value)
 	op->cmd = 11;
 
 	pthread_mutex_lock(&the_mutex);
-			if(debugTh)
-		std::cout<<"setRealFunArg: producer buf size:"<<buffer.size()<<"\n";
+	if(debugTh)
+	    std::cout<<"setRealFunArg: producer buf size:"<<buffer.size()<<"\n";
 	if(buffer.size() == BUFLEN){
-			if(debugTh)
+	    if(debugTh)
 			std::cout<<"setRealFunArg: buffer is full, waiting\n";
 		pthread_cond_wait(&condp, &the_mutex);
 	}
-			if(debugTh)
+	if(debugTh)
 		std::cout<<"setRealFunArg: pushing to buffer:\n";
 	buffer.push(op);	
 	pthread_cond_signal(&condc);
@@ -325,10 +318,10 @@ extern "C" size_t getRealReturn(size_t funAddrInt){
 	size_t idx = 0;
 	if(funRetMap.count(funAddrInt) != 0){
 		idx = funRetMap.at(funAddrInt);
-	}
-  else//it shoud not happen
-	if(debug)
-    std::cout<<"getRealReturn: Error !!!! return value not found in funRetMap\n";
+    }
+    else//it shoud not happen
+        if(debug)
+            std::cout<<"getRealReturn: Error !!!! return value not found in funRetMap\n";
 	return idx;
 }
 
@@ -339,14 +332,14 @@ extern "C" void setRealReturn(size_t toAddrInt){
 	op->toAddrInt = toAddrInt;
 	op->cmd = 8;
 	pthread_mutex_lock(&the_mutex);
-			if(debugTh)
-		std::cout<<"setRealReturn: producer buf size:"<<buffer.size()<<"\n";
+	if(debugTh)
+	    std::cout<<"setRealReturn: producer buf size:"<<buffer.size()<<"\n";
 	if(buffer.size() == BUFLEN){
-			if(debugTh)
+	    if(debugTh)
 			std::cout<<"setRealReturn: buffer is full, waiting\n";
 		pthread_cond_wait(&condp, &the_mutex);
 	}
-			if(debugTh)
+	if(debugTh)
 		std::cout<<"setRealReturn: pushing to buffer:\n";
 	buffer.push(op);	
 	pthread_cond_signal(&condc);
@@ -356,11 +349,9 @@ extern "C" void setRealReturn(size_t toAddrInt){
 #endif
 }
 
-
 extern "C" void setRealTemp(size_t toAddrInt, size_t fromAddrInt, double val){
 #ifdef MULTITHREADED
 	std::cout<<"setRealTemp:"<<"\n";
-
 	ComputeR *op = new ComputeR;
 	alocced++;
 	op->toAddrInt = toAddrInt;
@@ -369,14 +360,14 @@ extern "C" void setRealTemp(size_t toAddrInt, size_t fromAddrInt, double val){
 	op->cmd = 9;
 
 	pthread_mutex_lock(&the_mutex);
-			if(debugTh)
+	if(debugTh)
 		std::cout<<"setRealTemp: producer buf size:"<<buffer.size()<<"\n";
 	if(buffer.size() == BUFLEN){
-			if(debugTh)
+	    if(debugTh)
 			std::cout<<"setRealTemp: buffer is full, waiting\n";
 		pthread_cond_wait(&condp, &the_mutex);
 	}
-			if(debugTh)
+	if(debugTh)
 		std::cout<<"setRealTemp: pushing to buffer:\n";
 	buffer.push(op);	
 	pthread_cond_signal(&condc);
@@ -396,14 +387,14 @@ extern "C" void handleLLVMMemcpy(size_t toAddrInt, size_t fromAddrInt, size_t si
 	op->size = size;
 	op->cmd = 10;
 	pthread_mutex_lock(&the_mutex);
-			if(debugTh)
+	if(debugTh)
 		std::cout<<"handleLLVMMemcpy: producer buf size:"<<buffer.size()<<"\n";
 	if(buffer.size() == BUFLEN){
-			if(debugTh)
+		if(debugTh)
 			std::cout<<"handleLLVMMemcpy: buffer is full, waiting\n";
 		pthread_cond_wait(&condp, &the_mutex);
 	}
-			if(debugTh)
+	if(debugTh)
 		std::cout<<"handleLLVMMemcpy: pushing to buffer:\n";
 	buffer.push(op);	
 	pthread_cond_signal(&condc);
@@ -449,70 +440,68 @@ extern "C" void finish(){
     delete (*it);
   }
 */
-  for (std::list<struct MyShadow*>::iterator it=varTrack.begin(); it!=varTrack.end(); ++it){
-    it = varTrack.erase(it);
-  }
-  std::cout<<"list:";
-  std::cout<<"mpfrInit:"<<mpfrInit<<"\n";
-  std::cout<<"mpfrClear:"<<mpfrClear<<"\n";
+//    for (std::list<struct MyShadow*>::iterator it=varTrack.begin(); it!=varTrack.end(); ++it){
+//        it = varTrack.erase(it);
+ //   }
+    std::cout<<"list:";
+    std::cout<<"mpfrInit:"<<mpfrInit<<"\n";
+    std::cout<<"mpfrClear:"<<mpfrClear<<"\n";
 	std::cout<<"totalCompute:"<<totalCompute<<"\n";
-  for (std::map<size_t, struct ErrorAggregate*>::iterator it=errorMap.begin(); it!=errorMap.end(); ++it){                                                                   
-    double avg = it->second->total_error/it->second->num_evals;
-    fprintf (pFile, "%f bits average error\n",avg);
-    fprintf (pFile, "%f max  error\n\n",  it->second->max_error);
-  }
-  for (std::map<size_t, struct BrError*>::iterator it=errBrMap.begin(); it!=errBrMap.end(); ++it){
-    fprintf (pFile, "compare\n");
-    fprintf (pFile, "branch flipped %lld",  it->second->incorrRes);
-    fprintf (pFile, " times out of %lld",  it->second->num_evals);
-    fprintf (pFile, " compare @ %lld", it->second->lineNo);
-    fprintf (pFile, "\n\n\n");
-  }
-  fclose (pFile);
+    for (std::map<size_t, struct ErrorAggregate*>::iterator it=errorMap.begin(); it!=errorMap.end(); ++it){
+        double avg = it->second->total_error/it->second->num_evals;
+        fprintf (pFile, "%f bits average error\n",avg);
+        fprintf (pFile, "%f max  error\n\n",  it->second->max_error);
+    }
+    for (std::map<size_t, struct BrError*>::iterator it=errBrMap.begin(); it!=errBrMap.end(); ++it){
+        fprintf (pFile, "compare\n");
+        fprintf (pFile, "branch flipped %lld",  it->second->incorrRes);
+        fprintf (pFile, " times out of %lld",  it->second->num_evals);
+        fprintf (pFile, " compare @ %lld", it->second->lineNo);
+        fprintf (pFile, "\n\n\n");
+    }
+    fclose (pFile);
 }
-
-
 
 int isNaN(Real *real){
   return mpfr_nan_p(real->mpfr_val);                                                            
 }
 
 Real* getReal(size_t AddrInt){
-	for (std::list<struct MyShadow*>::reverse_iterator rit=varTrack.rbegin(); rit!=varTrack.rend(); ++rit){
-		if (rit == varTrack.rend())
-			return NULL;
-  	if(AddrInt == (*rit)->key){
-			return (*rit)->real;	
-		}
+	//for (std::list<struct MyShadow*>::reverse_iterator rit=varTrack.rbegin(); rit!=varTrack.rend(); ++rit){
+    std::cout<<"stackIdx:"<<stackIdx<<"\n";
+	for (size_t top = stackIdx-1; top > 0; top--){
+  	    if(AddrInt == shdStack[top].key){
+			return shdStack[top].real;	
+	    }
 	}
-  return NULL;
+    return NULL;
 }
 
 void addRegRes(size_t insIndex, size_t resRegIndex){
-  insMap.insert(std::pair<size_t,size_t>(insIndex, resRegIndex));
+    insMap.insert(std::pair<size_t,size_t>(insIndex, resRegIndex));
 }
 
 size_t getRegRes(size_t insIndex){
-
-  if(insMap.count(insIndex) != 0){ 
-    size_t resRegIndex = insMap.at(insIndex);
-    return resRegIndex;
-  }
-  return 0;
+    if(insMap.count(insIndex) != 0){ 
+        size_t resRegIndex = insMap.at(insIndex);
+        return resRegIndex;
+    }
+    return 0;
 }
 
 size_t getNewRegIndex(){
-  regIndex += 1;
-  return regIndex;
+    regIndex += 1;
+    return regIndex;
 }
 
 void printStack(){
-	for (std::list<struct MyShadow*>::reverse_iterator rit=varTrack.rbegin(); rit!=varTrack.rend(); ++rit){
-		std::cout<<(*rit)->key<<"\n";
-	}
+	//for (std::list<struct MyShadow*>::reverse_iterator rit=varTrack.rbegin(); rit!=varTrack.rend(); ++rit){
+//		std::cout<<(*rit)->key<<"\n";
+//	}
 }
 
 struct MyShadow* existInStack(size_t key){
+/*
 	for (std::list<struct MyShadow*>::reverse_iterator rit=varTrack.rbegin(); rit!=varTrack.rend(); ++rit){
   	//if(currentFunc == (*rit)->key){
 	//		return NULL;
@@ -523,108 +512,109 @@ struct MyShadow* existInStack(size_t key){
 			return *rit;
 		}
 	}
+*/
+	for (size_t top = stackIdx-1; top > 0; top--){
+  	    if(key == shdStack[top].key){
+			return &shdStack[top];	
+	    }
+	}
 	return NULL;
 }
 
 void handleMath(size_t funcCode, double op1, size_t op1Int, 
                           double computedRes, size_t insIndex, size_t newRegIdx){ 
-  struct Real* real1 = NULL;
-  struct Real* real_res = new Real;
-  
-  mpfr_init2 (real_res->mpfr_val, PRECISION); 
-  mpfrInit++;
-  bool mpfrFlag1 = false; 
-  real1 = getReal(op1Int);
-  if(real1 == NULL){
-			if(debug)
-      	std::cout<<"handleMathFunc: real1 is null, using op1 value:"<<op1<<"\n";
-      real1 = new Real;
-      mpfr_init2(real1->mpfr_val, PRECISION);
-      mpfrInit++;
-      mpfr_set_d(real1->mpfr_val, op1, MPFR_RNDN);
-
-      mpfrFlag1 = true; 
-  }
-#if 0 
-  if(real1 != NULL){
-    switch(funcCode){
-      case 1: //sqrt
-	if(debug)
-        std::cout<<"handleMathFunc: sqrt:\n";
-        mpfr_sqrt(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
-        break;
-      case 2: //floor
-	if(debug)
-        std::cout<<"handleMathFunc: floor:\n";
-        mpfr_floor(real_res->mpfr_val, real1->mpfr_val);
-        break;
-      case 3: //tan
-	if(debug)
-        std::cout<<"handleMathFunc: tan:\n";
-        mpfr_tan(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
-        break;
-      case 4: //sin
-	if(debug)
-        std::cout<<"handleMathFunc: sin:\n";
-        mpfr_sin(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
-        break;
-      case 5: //cos
-	if(debug)
-        std::cout<<"handleMathFunc: cos:\n";
-        mpfr_cos(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
-        break;
-      case 6: //atan
-	if(debug)
-        std::cout<<"handleMathFunc: atan:\n";
-        mpfr_atan(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
-        break;
-      case 8: //atan
-	if(debug)
-        std::cout<<"handleMathFunc: abs:\n";
-        mpfr_abs(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
-        break;
-      case 9: //atan
-	if(debug)
-        std::cout<<"handleMathFunc: log:\n";
-        mpfr_log(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
-        break;
-      case 10: //asin
-	if(debug)
-        std::cout<<"handleMathFunc: asin:\n";
-        mpfr_asin(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
-        break;
-      default:
-        break;
+    struct Real* real1 = NULL;
+    struct Real* real_res = new Real;
+    mpfr_init2 (real_res->mpfr_val, PRECISION); 
+    mpfrInit++;
+    bool mpfrFlag1 = false; 
+    real1 = getReal(op1Int);
+    if(real1 == NULL){
+        if(debug)
+      	    std::cout<<"handleMathFunc: real1 is null, using op1 value:"<<op1<<"\n";
+        real1 = new Real;
+        mpfr_init2(real1->mpfr_val, PRECISION);
+        mpfrInit++;
+        mpfr_set_d(real1->mpfr_val, op1, MPFR_RNDN);
+        mpfrFlag1 = true; 
     }
-  }
-  else{
-    std::cout<<"handleMathFunc: Error!!!\n";
-  }
-	#endif
+#if 1 
+    if(real1 != NULL){
+        switch(funcCode){
+            case 1: //sqrt
+                if(debug)
+                    std::cout<<"handleMathFunc: sqrt:\n";
+                mpfr_sqrt(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
+                break;
+            case 2: //floor
+	            if(debug)
+                    std::cout<<"handleMathFunc: floor:\n";
+                mpfr_floor(real_res->mpfr_val, real1->mpfr_val);
+                break;
+            case 3: //tan
+	            if(debug)
+                    std::cout<<"handleMathFunc: tan:\n";
+                mpfr_tan(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
+                break;
+            case 4: //sin
+	            if(debug)
+                    std::cout<<"handleMathFunc: sin:\n";
+                mpfr_sin(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
+                break;
+            case 5: //cos
+	            if(debug)
+                    std::cout<<"handleMathFunc: cos:\n";
+                mpfr_cos(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
+                break;
+            case 6: //atan
+	            if(debug)
+                    std::cout<<"handleMathFunc: atan:\n";
+                mpfr_atan(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
+                break;
+            case 8: //atan
+	            if(debug)
+                    std::cout<<"handleMathFunc: abs:\n";
+                mpfr_abs(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
+                break;
+            case 9: //atan
+	            if(debug)
+                    std::cout<<"handleMathFunc: log:\n";
+                mpfr_log(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
+                break;
+            case 10: //asin
+	            if(debug)
+                    std::cout<<"handleMathFunc: asin:\n";
+                mpfr_asin(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
+                break;
+            default:
+                break;
+        }
+    }
+    else{
+        std::cout<<"handleMathFunc: Error!!!\n";
+    }
+    #endif
 	MyShadow *shadow = existInStack(newRegIdx);
 	if(shadow == NULL){
-		MyShadow *newShadow = new MyShadow;
-		newShadow->key = newRegIdx;
-		newShadow->real = real_res;  
-				if(newShadow->key == 0)
-					std::cout<<"insert 0 3\n";
-  	varTrack.push_back(newShadow);
+        shdStack[stackIdx].key = newRegIdx;
+        shdStack[stackIdx].real = real_res;
+        stackIdx++;
 	}
 	else{//just update the value in stack
     	mpfr_clear(shadow->real->mpfr_val);
     	mpfrClear++;
-			delete shadow->real;
+		delete shadow->real;
 		shadow->key = newRegIdx;
 		shadow->real = real_res;  
 	}
-  if(debug)
-    std::cout<<"handleMathFunc insert shadow mem::"<<newRegIdx<<"\n";
-  if(mpfrFlag1){
-    mpfr_clear(real1->mpfr_val);
-    delete  real1; 
-    mpfrClear++;
-  }
-  updateError(real_res, computedRes, insIndex);
+    if(debug)
+        std::cout<<"handleMathFunc insert shadow mem::"<<newRegIdx<<"\n";
+    if(mpfrFlag1){
+        mpfr_clear(real1->mpfr_val);
+        delete  real1; 
+        mpfrClear++;
+    }
+    updateError(real_res, computedRes, insIndex);
 }
 
 void handleMath3Args(size_t funcCode, double op1, size_t op1Int,
@@ -632,89 +622,86 @@ void handleMath3Args(size_t funcCode, double op1, size_t op1Int,
                                                 double op3, size_t op3Int,
                                                 double computedRes, size_t insIndex, size_t newRegIdx){ 
 
-  struct Real *real1, *real2, *real3;
-  struct Real* real_res = new Real;
+    struct Real *real1, *real2, *real3;
+    struct Real* real_res = new Real;
   
-  mpfr_init2 (real_res->mpfr_val, PRECISION); 
-  mpfrInit++;
+    mpfr_init2 (real_res->mpfr_val, PRECISION); 
+    mpfrInit++;
   
-  bool mpfrFlag1 = false; 
-  bool mpfrFlag2 = false; 
-  bool mpfrFlag3 = false; 
-  real1 = getReal(op1Int);
-  if(real1 == NULL){
-    real1 = new Real;
-    mpfr_init2 (real1->mpfr_val, PRECISION);
-    mpfrInit++;
-    mpfr_set_d (real1->mpfr_val, op1, MPFR_RNDD);
-    mpfrFlag1 = true;
-  }
-    real2 = getReal(op2Int);
-  if(real2 == NULL){
-    real2 = new Real;
-    mpfr_init2 (real2->mpfr_val, PRECISION);
-    mpfrInit++;
-    mpfr_set_d (real2->mpfr_val, op2, MPFR_RNDD);
-    mpfrFlag2 = true;
-  }
-    real3 = getReal(op3Int);
-  if(real3 == NULL){
-    real3 = new Real;
-    mpfr_init2 (real3->mpfr_val, PRECISION);
-    mpfrInit++;
-    mpfr_set_d (real3->mpfr_val, op3, MPFR_RNDD);
-    mpfrFlag3 = true;
-  }
-  
-#if 0
-  if(real1 != NULL && real2 != NULL && real3 != NULL){
-    switch(funcCode){
-      case 7: //fma
-        mpfr_fma(real_res->mpfr_val, real1->mpfr_val, real2->mpfr_val, real3->mpfr_val, MPFR_RNDD);
-        break;
-      default:
-        std::cout<<"Error!!!!\n";
-        break;
+    bool mpfrFlag1 = false; 
+    bool mpfrFlag2 = false; 
+    bool mpfrFlag3 = false; 
+    real1 = getReal(op1Int);
+    if(real1 == NULL){
+        real1 = new Real;
+        mpfr_init2 (real1->mpfr_val, PRECISION);
+        mpfrInit++;
+        mpfr_set_d (real1->mpfr_val, op1, MPFR_RNDD);
+        mpfrFlag1 = true;
     }
-  }
-  else
-    std::cout<<"handleMathFunc3Args: Error!!!\n";
+    real2 = getReal(op2Int);
+    if(real2 == NULL){
+        real2 = new Real;
+        mpfr_init2 (real2->mpfr_val, PRECISION);
+        mpfrInit++;
+        mpfr_set_d (real2->mpfr_val, op2, MPFR_RNDD);
+        mpfrFlag2 = true;
+    }
+    real3 = getReal(op3Int);
+    if(real3 == NULL){
+        real3 = new Real;
+        mpfr_init2 (real3->mpfr_val, PRECISION);
+        mpfrInit++;
+        mpfr_set_d (real3->mpfr_val, op3, MPFR_RNDD);
+        mpfrFlag3 = true;
+    }
+  
+#if 1
+    if(real1 != NULL && real2 != NULL && real3 != NULL){
+        switch(funcCode){
+            case 7: //fma
+                mpfr_fma(real_res->mpfr_val, real1->mpfr_val, real2->mpfr_val, real3->mpfr_val, MPFR_RNDD);
+                break;
+            default:
+                std::cout<<"Error!!!!\n";
+                break;
+        }
+    }
+    else
+        std::cout<<"handleMathFunc3Args: Error!!!\n";
 #endif
 	MyShadow *shadow = existInStack(newRegIdx);
 	if(shadow == NULL){
-		MyShadow *newShadow = new MyShadow;
-		newShadow->key = newRegIdx;
-		newShadow->real = real_res;  
-				if(newShadow->key == 0)
-					std::cout<<"insert 0 4\n";
-  	varTrack.push_back(newShadow);
+        shdStack[stackIdx].key = newRegIdx;
+        shdStack[stackIdx].real = real_res;
+        stackIdx++;
 	}
 	else{//just update the value in stack
     	mpfr_clear(shadow->real->mpfr_val);
     	mpfrClear++;
-			delete shadow->real;
+		delete shadow->real;
 		shadow->key = newRegIdx;
 		shadow->real = real_res;  
 	}
-  if(debug)
-    std::cout<<"handleMathFunc3Args insert shadow mem::"<<newRegIdx<<"\n";
+    if(debug)
+        std::cout<<"handleMathFunc3Args insert shadow mem::"<<newRegIdx<<"\n";
   
-  if(mpfrFlag1){
-    mpfr_clear(real1->mpfr_val);
-    delete  real1; 
-    mpfrClear++;
-  }
-  if(mpfrFlag2){
-    mpfr_clear(real2->mpfr_val);
-    delete  real2; 
-    mpfrClear++;
-  }
-  if(mpfrFlag3){
-    mpfr_clear(real3->mpfr_val);
-    delete  real3; 
-    mpfrClear++;
-  }
-  updateError(real_res, computedRes, insIndex);
+    if(mpfrFlag1){
+        mpfr_clear(real1->mpfr_val);
+        delete  real1; 
+        mpfrClear++;
+    }
+    if(mpfrFlag2){
+        mpfr_clear(real2->mpfr_val);
+        delete  real2; 
+        mpfrClear++;
+    }
+    if(mpfrFlag3){
+        mpfr_clear(real3->mpfr_val);
+        delete  real3; 
+        mpfrClear++;
+    }
+    updateError(real_res, computedRes, insIndex);
 }
 
 int handleCmp(mpfr_t *op1, mpfr_t *op2){
@@ -744,6 +731,7 @@ void handleOp(size_t opCode, mpfr_t *res, mpfr_t *op1, mpfr_t *op2){
       mpfr_div (*res, *op1, *op2, MPFR_RNDD);
       break;
     default:
+        std::cout<<"Error !!! op not found\n";
       // do nothing
       break;
   } 
@@ -803,12 +791,9 @@ void computeR(size_t opCode, size_t op1Idx, size_t op2Idx, float op1f, float op2
   //handleOp(opCode, &(real_res->mpfr_val), &(real1->mpfr_val), &(real2->mpfr_val));
 	MyShadow *shadow = existInStack(newRegIdx);
 	if(shadow == NULL){
-		MyShadow *newShadow = new MyShadow;
-		newShadow->key = newRegIdx;
-		newShadow->real = real_res;  
-				if(newShadow->key == 0)
-					std::cout<<"insert 0 5\n";
-  	varTrack.push_back(newShadow);
+        shdStack[stackIdx].key = newRegIdx;
+        shdStack[stackIdx].real = real_res;
+        stackIdx++;
   	if(debug)
     	std::cout<<"computeReal insert shadow stack::"<<newRegIdx<<"\n";
 	}
@@ -849,12 +834,11 @@ void funArgMap(size_t argNo, size_t funAddrInt, size_t argAddrInt){
 */
 void fInit(size_t funcAddrInt){                                                                                   
   
-  MyShadow *shadow = new MyShadow;
-  shadow->key = funcAddrInt;  
-  currentFunc = funcAddrInt;
-  varTrack.push_back(shadow);
+    currentFunc = funcAddrInt;
+    shdStack[stackIdx].key = funcAddrInt;
+    stackIdx++;
 }
-
+/*
 void fExit(size_t funcAddrInt, size_t returnIdx){
   struct MyShadow *shadow = NULL;
   struct MyShadow *newShadow = NULL;
@@ -889,6 +873,44 @@ void fExit(size_t funcAddrInt, size_t returnIdx){
     delete shadow->real;
     delete shadow;
     varTrack.pop_back();
+  }
+}
+*/
+void fExit(size_t funcAddrInt, size_t returnIdx){
+    struct MyShadow *shadow = NULL;
+    struct MyShadow *newShadow = NULL;
+    if(debug)
+        std::cout<<"funcExit:"<<returnIdx<<"\n";
+    retTrack.push(returnIdx);
+    
+    while(stackIdx > 0){
+        shadow = &shdStack[stackIdx-1];
+        if(shadow->key == funcAddrInt){
+            stackIdx--;    
+            if(newShadow != NULL){
+            shdStack[stackIdx].key = newShadow->key;
+            shdStack[stackIdx].real = newShadow->real;
+            stackIdx++;    
+            std::cout<<"Pushed back:"<<newShadow->key<<"\n";
+      }
+      break;
+    }
+    if(shadow->key == returnIdx){
+      struct Real* toReal = new Real;
+      mpfr_init2(toReal->mpfr_val, PRECISION);                                                                                  
+      mpfrInit++;
+      mpfr_set(toReal->mpfr_val, shadow->real->mpfr_val, MPFR_RNDD);
+      newShadow = new MyShadow;
+      newShadow->key = shadow->key;
+      newShadow->real = toReal;  
+    }
+    if(debug)
+        std::cout<<"Cleaned:"<<shadow->key<<"\n";
+    mpfr_clear(shadow->real->mpfr_val);
+    mpfrClear++;
+    delete shadow->real;
+//    delete shadow;
+    stackIdx--;    
   }
 }
 
@@ -1038,12 +1060,9 @@ void setReal(size_t index, double value){
     mpfr_init2(real->mpfr_val, PRECISION);
     mpfrInit++;
     mpfr_set_d(real->mpfr_val, value, MPFR_RNDN);
-    MyShadow *newShadow = new MyShadow;
-    newShadow->key = index;
-    newShadow->real = real;
-        if(newShadow->key == 0)
-          std::cout<<"insert 0 6\n";
-    varTrack.push_back(newShadow);
+            shdStack[stackIdx].key = index;
+            shdStack[stackIdx].real = real;
+            stackIdx++;    
     if(debug)
       std::cout<<"setRealReg insert shadow stack::"<<index<<"\n";
   }
@@ -1057,12 +1076,9 @@ void setFunArg(size_t shadowAddr, size_t toAddrInt, double op){
       mpfr_init2(real->mpfr_val, PRECISION);
       mpfrInit++;
       mpfr_set_d(real->mpfr_val, op, MPFR_RNDN);
-      MyShadow *newShadow = new MyShadow;
-      newShadow->key = toAddrInt;
-      newShadow->real = real;  
-        if(newShadow->key == 0)
-          std::cout<<"insert 0 7\n";
-      varTrack.push_back(newShadow);
+        shdStack[stackIdx].key = toAddrInt;
+        shdStack[stackIdx].real = real;
+        stackIdx++;    
       if(debug)
         std::cout<<"setRealFunArg insert shadow stack::"<<toAddrInt<<"\n";
     }
@@ -1071,12 +1087,9 @@ void setFunArg(size_t shadowAddr, size_t toAddrInt, double op){
       mpfr_init2(toReal->mpfr_val, PRECISION);
       mpfrInit++;
       mpfr_set(toReal->mpfr_val, shadow->real->mpfr_val, MPFR_RNDD);
-      MyShadow *newShadow = new MyShadow;
-      newShadow->key = toAddrInt;
-      newShadow->real = toReal;  
-        if(newShadow->key == 0)
-          std::cout<<"insert 0 8\n";
-      varTrack.push_back(newShadow);
+        shdStack[stackIdx].key = toAddrInt;
+        shdStack[stackIdx].real = toReal;
+            stackIdx++;    
 
       if(debug)
         std::cout<<"setRealFunArg update from:"<<shadow->key<<" to :"<<toAddrInt<<"\n";
@@ -1098,10 +1111,9 @@ void setReturn(size_t toAddrInt){
       mpfr_init2(toReal->mpfr_val, PRECISION);
       mpfrInit++;
       mpfr_set(toReal->mpfr_val, shadow->real->mpfr_val, MPFR_RNDD);
-      MyShadow *newShadow = new MyShadow;
-      newShadow->key = toAddrInt;
-      newShadow->real = toReal;  
-      varTrack.push_back(newShadow);
+        shdStack[stackIdx].key = toAddrInt;
+        shdStack[stackIdx].real = toReal;
+            stackIdx++;    
       if(debug)
         std::cout<<"setRealReturn: insert shadow stack::"<<toAddrInt<<"\n";
     }
@@ -1124,10 +1136,9 @@ void setTemp(size_t toAddrInt, size_t fromAddrInt, double op){
         mpfr_init2(toReal->mpfr_val, PRECISION);
         mpfrInit++;
         mpfr_set(toReal->mpfr_val, fromShadow->real->mpfr_val, MPFR_RNDN);
-        MyShadow *newShadow = new MyShadow;
-        newShadow->key = toAddrInt;
-        newShadow->real = toReal;  
-        varTrack.push_back(newShadow);
+        shdStack[stackIdx].key = toAddrInt;
+        shdStack[stackIdx].real = toReal;
+            stackIdx++;    
         if(debug)
           std::cout<<"setRealTemp insert shadow stack from:"<<fromShadow->key<<" to:"<<toAddrInt<<"\n";
     }
@@ -1142,12 +1153,9 @@ void setTemp(size_t toAddrInt, size_t fromAddrInt, double op){
     mpfr_init2(toReal->mpfr_val, PRECISION);
     mpfrInit++;
     mpfr_set_d(toReal->mpfr_val, op, MPFR_RNDN);
-    MyShadow *newShadow = new MyShadow;
-    newShadow->key = toAddrInt;
-    newShadow->real = toReal;  
-        if(newShadow->key == 0)
-          std::cout<<"insert 0 11\n";
-    varTrack.push_back(newShadow);
+        shdStack[stackIdx].key = toAddrInt;
+        shdStack[stackIdx].real = toReal;
+            stackIdx++;    
     if(debug)
       std::cout<<"setRealTemp insert:"<<op<<" shadow stack to:"<<toAddrInt<<"\n";
   }
@@ -1163,15 +1171,18 @@ void handleMemcpy(size_t toAddrInt, size_t fromAddrInt, size_t size){
 
 void initMain(){
 	std::cout<<"init **\n";	
+    size_t length = MAX_STACK_SIZE * sizeof(struct MyShadow);
+    shdStack = (struct MyShadow*) mmap(0, length, PROT_READ|PROT_WRITE, MMAP_FLAGS, -1, 0);
+    assert (shdStack != (void*)-1);
 #ifdef MULTITHREADED
-  pthread_mutex_init(&the_mutex, NULL); 
-  pthread_cond_init(&condc, NULL);    /* Initialize consumer condition variable */
-  pthread_cond_init(&condp, NULL);    /* Initialize consumer condition variable */
+    pthread_mutex_init(&the_mutex, NULL); 
+    pthread_cond_init(&condc, NULL);    /* Initialize consumer condition variable */
+    pthread_cond_init(&condp, NULL);    /* Initialize consumer condition variable */
 
   // Create the threads
-  pthread_create(&con, NULL, consumer, NULL);
+    pthread_create(&con, NULL, consumer, NULL);
 
-  std::cout<<"thread created\n";
+    std::cout<<"thread created\n";
 #endif
 }
 
