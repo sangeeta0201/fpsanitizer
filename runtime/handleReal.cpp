@@ -468,7 +468,6 @@ int isNaN(Real *real){
 
 Real* getReal(size_t AddrInt){
 	//for (std::list<struct MyShadow*>::reverse_iterator rit=varTrack.rbegin(); rit!=varTrack.rend(); ++rit){
-    std::cout<<"stackIdx:"<<stackIdx<<"\n";
 	for (size_t top = stackIdx-1; top > 0; top--){
   	    if(AddrInt == shdStack[top].key){
 			return shdStack[top].real;	
@@ -1440,7 +1439,7 @@ double updateError(Real *realVal, double computedVal, size_t insIndex){
   }
   eagg->total_error += bitsError;
   eagg->num_evals += 1;
-   if (1){
+   if (debug){
     std::cout<<"\neagg->max_error:"<<eagg->max_error<<"\n";
     std::cout<<"\neagg->num_evals:"<<eagg->num_evals<<" eagg->total_error:"<<eagg->total_error<<"\n";
     std::cout<<"\nThe shadow value is ";
