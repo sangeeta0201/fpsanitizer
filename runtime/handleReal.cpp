@@ -890,7 +890,6 @@ void fExit(size_t funcAddrInt, size_t returnIdx){
             shdStack[stackIdx].key = newShadow->key;
             shdStack[stackIdx].real = newShadow->real;
             stackIdx++;    
-            std::cout<<"Pushed back:"<<newShadow->key<<"\n";
       }
       break;
     }
