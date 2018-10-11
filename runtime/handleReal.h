@@ -12,10 +12,13 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <fcntl.h>
+#include <sparsepp/spp.h>
 #define PRECISION 1000
 #define BUFLEN 1000000
 #define MMAP_FLAGS (MAP_PRIVATE| MAP_ANONYMOUS| MAP_NORESERVE)
-#define MAX_STACK_SIZE 1000000
+#define MAX_STACK_SIZE 100000000
+
+using spp::sparse_hash_map;
 
 struct ErrorAggregate {
   double max_error;
@@ -63,6 +66,41 @@ struct ComputeR{
 	size_t size;
 	size_t shadowAddr;
 };
+
+int perf_fds;  
+double realTT = 0;
+double handleExtractValueTT = 0;
+double handleMemcpyTT = 0;
+double setTempTT = 0;
+double setReturnTT = 0;
+double getRealReturnTT = 0;
+double setFunArgTT = 0;
+double getRealFunArgTT = 0;
+double setRealTT = 0;
+double cmpBranchTT = 0;
+double computeRTT = 0;
+double computeRTT1 = 0;
+double handleMath3TT = 0;
+double handleMathTT = 0;
+double fExitTT = 0;
+double fInitTT = 0;
+double addFunArgTT = 0;
+size_t recordHandleExtractValue = 0;
+size_t recordHandleMemcpy = 0;
+size_t recordSetTemp = 0;
+size_t recordSetReturn = 0;
+size_t recordGetRealReturn = 0;
+size_t recordSetFunArg = 0;
+size_t recordGetRealFunArg = 0;
+size_t recordSetReal = 0;
+size_t recordCmpBranch = 0;
+size_t recordComputeR = 0;
+size_t recordHandleMath3 = 0;
+size_t recordHandleMath = 0;
+size_t recordFExit = 0;
+size_t recordFInit = 0;
+size_t recordAddFunArg = 0;
+
 size_t freed = 0;
 size_t alocced = 0;
 size_t totalCompute = 0;
@@ -77,18 +115,21 @@ bool consumerFlag = false;
 size_t compute = 0;  
 double regIndex = 100; //Assuming there are 100 constants, as we are giving index for constants for phi and select from llvm pass 
 size_t stackIdx = 0;
+size_t retIdx = 0;
 std::map<size_t, struct ErrorAggregate*>errorMap;
 std::map<size_t, struct BrError*>errBrMap;
 //this will link ins index to index of result in shadow mem
 std::queue<struct ComputeR*>buffer;
 //std::list<struct MyShadow*> varTrack;
 struct MyShadow *shdStack;
-std::stack<size_t> retTrack;
-std::map<size_t, size_t>insMap;
-std::map<size_t, size_t>returnMap;
-std::map<size_t, struct Real*> shadowMap;
+//std::stack<size_t> retTrack;
+//sparse_hash_map<size_t, size_t>insMap;
 std::map<std::map<size_t, size_t>, size_t> shadowFunArgMap;
-std::map<size_t, size_t>funRetMap;
+//std::map<size_t, size_t>funRetMap;
+//sparse_hash_map<size_t, size_t>funRetMap;
+size_t *funRetMap;
+size_t *insMap;
+size_t *retTrack;
 void fInit(size_t funcAddrInt);
 void fExit(size_t funcAddrInt, size_t returnIdx);
 void handleMath(size_t funcCode, double op1, size_t op1Int, double computedRes, size_t insIndex, size_t newRegIdx);

@@ -8,7 +8,7 @@ OPT=-O3
 
 CXXFLAGS+=-fPIC -g -Wall -lmpfr -pthread 
 
-INCPATH=-I.
+INCPATH=-I. -I sparsepp/
 ARFLAGS=-rcs
 
 # change these to set the proper directories where each files shoould be
