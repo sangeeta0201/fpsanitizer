@@ -12,13 +12,11 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <fcntl.h>
-#include <sparsepp/spp.h>
 #define PRECISION 1000
 #define BUFLEN 1000000
 #define MMAP_FLAGS (MAP_PRIVATE| MAP_ANONYMOUS| MAP_NORESERVE)
 #define MAX_STACK_SIZE 100000000
 
-using spp::sparse_hash_map;
 
 struct ErrorAggregate {
   double max_error;
