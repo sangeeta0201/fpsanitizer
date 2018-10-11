@@ -1,0 +1,23 @@
+lbm.c: In function 'LBM_compareVelocityField':
+lbm.c:663:24: warning: format '%lf' expects argument of type 'double *', but argument 3 has type 'float *' [-Wformat=]
+       fscanf( file, "%lf %lf %lf\n", &fileUx, &fileUy, &fileUz );
+                        ^
+lbm.c:663:28: warning: format '%lf' expects argument of type 'double *', but argument 4 has type 'float *' [-Wformat=]
+       fscanf( file, "%lf %lf %lf\n", &fileUx, &fileUy, &fileUz );
+                            ^
+lbm.c:663:32: warning: format '%lf' expects argument of type 'double *', but argument 5 has type 'float *' [-Wformat=]
+       fscanf( file, "%lf %lf %lf\n", &fileUx, &fileUy, &fileUz );
+                                ^
+lbm.c:663:7: warning: ignoring return value of 'fscanf', declared with attribute warn_unused_result [-Wunused-result]
+       fscanf( file, "%lf %lf %lf\n", &fileUx, &fileUy, &fileUz );
+       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+lbm.c:666:7: warning: ignoring return value of 'fscanf', declared with attribute warn_unused_result [-Wunused-result]
+       fscanf( file, "%f %f %f\n", &fileUx, &fileUy, &fileUz );
+       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+lbm.c: In function 'loadValue':
+lbm.c:542:3: warning: ignoring return value of 'fread', declared with attribute warn_unused_result [-Wunused-result]
+   fread( buffer, sizeof( OUTPUT_PRECISION ), 1, file );
+   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+lbm.c:548:3: warning: ignoring return value of 'fread', declared with attribute warn_unused_result [-Wunused-result]
+   fread( v, sizeof( OUTPUT_PRECISION ), 1, file );
+   ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

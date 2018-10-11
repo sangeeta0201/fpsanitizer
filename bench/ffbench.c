@@ -138,6 +138,8 @@
 
 #define Float	 double 	   /* Floating point type used in FFT */
 
+//#define Asize	 256		   /* Array edge size */
+//#define Passes	 63		   /* Number of FFT/Inverse passes */
 #define Asize	 256		   /* Array edge size */
 #define Passes	 63		   /* Number of FFT/Inverse passes */
 
