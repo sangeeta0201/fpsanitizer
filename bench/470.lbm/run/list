@@ -1,0 +1,2 @@
+run_base_test_gcc43-64bit.0000 dir=/home/sangeeta/install_archives/benchspec/CPU2006/470.lbm/run/run_base_test_gcc43-64bit.0000 ext=gcc43-64bit lock=0 mach=default size=test tune=base type=run username=sangeeta
+__END__
