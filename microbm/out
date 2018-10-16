@@ -1,0 +1,112 @@
+computeReal op1Idx:0 op1:1e+10
+computeReal op2Idx:0 op2:1
+computeReal: real1 is null, using op1 value:1e+10
+computeReal: real2 is null, using op2 value:1
+
+FADD
+computeReal insert shadow stack::101
+updateError: computedVal:1e+10 insIndex:2
+
+The shadow value is 1.00000000010000e10, but 1.000000e10 was computed.
+0.000000 bits error (0 ulps)
+
+
+handleMathFunc: sqrt:
+handleMathFunc insert shadow mem::102
+updateError: computedVal:100000 insIndex:3
+
+The shadow value is 1.00000000005000e5, but 1.000000e5 was computed.
+0.000000 bits error (0 ulps)
+
+
+handleMathFunc: real1 is null, using op1 value:1e+10
+handleMathFunc: sqrt:
+handleMathFunc insert shadow mem::103
+updateError: computedVal:100000 insIndex:4
+
+The shadow value is 1.00000000000000e5, but 1.000000e5 was computed.
+0.000000 bits error (0 ulps)
+
+
+computeReal op1Idx:102 op1:100000
+computeReal op2Idx:103 op2:100000
+FSUB
+computeReal insert shadow stack::104
+updateError: computedVal:4.99999e-06 insIndex:5
+
+The shadow value is 4.99999999987500e-6, but 4.999994e-6 was computed.
+32.617943 bits error (6591424635 ulps)
+
+
+setRealTemp insert shadow stack from:104 to:140730051968456
+hashInsert: inserting key:4196816 with val:0
+hashInsert: val:0
+hashInsert: hashIndex:0
+hashInsert: val:0
+funcExit:0
+Cleaned:140730051968456
+Cleaned:104
+Cleaned:103
+Cleaned:102
+Cleaned:101
+y:4.999994e-06
+computeReal op1Idx:0 op1:1e+10
+computeReal op2Idx:0 op2:1
+computeReal: real1 is null, using op1 value:1e+10
+computeReal: real2 is null, using op2 value:1
+
+FADD
+computeReal insert shadow stack::101
+updateError: computedVal:1e+10 insIndex:2
+
+The shadow value is 1.00000000010000e10, but 1.000000e10 was computed.
+0.000000 bits error (0 ulps)
+
+
+handleMathFunc: sqrt:
+handleMathFunc insert shadow mem::102
+updateError: computedVal:100000 insIndex:3
+
+The shadow value is 1.00000000005000e5, but 1.000000e5 was computed.
+0.000000 bits error (0 ulps)
+
+
+handleMathFunc: real1 is null, using op1 value:1e+10
+handleMathFunc: sqrt:
+handleMathFunc insert shadow mem::103
+updateError: computedVal:100000 insIndex:4
+
+The shadow value is 1.00000000000000e5, but 1.000000e5 was computed.
+0.000000 bits error (0 ulps)
+
+
+computeReal op1Idx:102 op1:100000
+computeReal op2Idx:103 op2:100000
+FSUB
+computeReal insert shadow stack::104
+updateError: computedVal:4.99999e-06 insIndex:5
+
+The shadow value is 4.99999999987500e-6, but 4.999994e-6 was computed.
+32.617943 bits error (6591424635 ulps)
+
+
+setRealTemp insert shadow stack from:104 to:140730051968456
+hashInsert: inserting key:4196816 with val:0
+hashInsert: val:0
+hashInsert: hashIndex:0
+hashInsert: val:0
+funcExit:0
+Cleaned:140730051968456
+Cleaned:104
+Cleaned:103
+Cleaned:102
+Cleaned:101
+y:4.999994e-06
+alloced:0
+freed:0
+list:mpfrInit:16
+mpfrClear:16
+totalCompute:4
+cycles spent in each handler****
+time spent in each handler*****
+setRealTT:0

@@ -1,0 +1,14 @@
+Cactus/CommandLine.c: In function 'CCTKi_CommandLineFinished':
+Cactus/CommandLine.c:555:5: warning: ignoring return value of 'freopen', declared with attribute warn_unused_result [-Wunused-result]
+     freopen (fname, "w", stdout);
+     ^~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Cactus/snprintf.c:567:16: warning: conflicting types for built-in function 'pow10'
+ static LDOUBLE pow10 (int exp)
+                ^~~~~
+Cactus/snprintf.c:580:13: warning: conflicting types for built-in function 'round'
+ static long round (LDOUBLE value)
+             ^~~~~
+IOUtil/Startup.c: In function 'CopyParFile':
+IOUtil/Startup.c:397:7: warning: ignoring return value of 'write', declared with attribute warn_unused_result [-Wunused-result]
+       write (out_parfile, buffer, bytes);
+       ^~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~

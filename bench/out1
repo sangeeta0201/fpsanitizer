@@ -1,0 +1,227 @@
+
+; Function Attrs: nounwind uwtable
+define internal fastcc void @trace_line(i32 %line, double %ray_h) unnamed_addr #0 {
+entry:
+  %0 = bitcast double* @object_distance to i8*
+  %1 = call i64 @getAddr(i8* %0)
+  store double 0.000000e+00, double* @object_distance, align 8, !tbaa !2
+  %.b361 = load i1, i1* @current_surfaces, align 2
+  %2 = bitcast i1* @current_surfaces to i8*
+  %3 = call i64 @getAddr(i8* %2)
+  br i1 %.b361, label %for.body.lr.ph, label %for.end
+
+for.body.lr.ph:                                   ; preds = %entry
+  %4 = load double, double* getelementptr inbounds ([9 x double], [9 x double]* @spectral_line, i64 0, i64 4), align 16
+  %5 = bitcast double* getelementptr inbounds ([9 x double], [9 x double]* @spectral_line, i64 0, i64 4) to i8*
+  %6 = call i64 @getAddr(i8* %5)
+  %idxprom8 = sext i32 %line to i64
+  %arrayidx9 = getelementptr inbounds [9 x double], [9 x double]* @spectral_line, i64 0, i64 %idxprom8
+  %7 = load double, double* getelementptr inbounds ([9 x double], [9 x double]* @spectral_line, i64 0, i64 3), align 8
+  %8 = bitcast double* getelementptr inbounds ([9 x double], [9 x double]* @spectral_line, i64 0, i64 3) to i8*
+  %9 = call i64 @getAddr(i8* %8)
+  %10 = load double, double* getelementptr inbounds ([9 x double], [9 x double]* @spectral_line, i64 0, i64 6), align 16
+  %11 = bitcast double* getelementptr inbounds ([9 x double], [9 x double]* @spectral_line, i64 0, i64 6) to i8*
+  %12 = call i64 @getAddr(i8* %11)
+  %sub10 = fsub fast double %7, %10
+  %13 = call i64 @computeReal(i32 14, i64 %9, i64 %12, double %7, double %10, double %7, double %10, double %sub10, i64 3, i32 159)
+  %14 = fdiv fast double 1.000000e+00, %sub10
+  %15 = call i64 @computeReal(i32 19, i64 0, i64 %13, double 1.000000e+00, double %sub10, double 1.000000e+00, double %sub10, double %14, i64 3, i32 160)
+  %16 = load i16, i16* @paraxial, align 2, !tbaa !8
+  %17 = bitcast i16* @paraxial to i8*
+  %18 = call i64 @getAddr(i8* %17)
+  %tobool.i = icmp eq i16 %16, 0
+  br label %for.body
+
+for.body:                                         ; preds = %for.inc, %for.body.lr.ph
+  %19 = phi i64 
+  %20 = phi double [ %.in, %for.inc ], [ 1.000000e+00, %for.body.lr.ph ]
+  %21 = phi i64 
+  %22 = phi double [ %79, %for.inc ], [ %ray_h, %for.body.lr.ph ]
+  %23 = phi i64 
+  %24 = phi double [ %sub26, %for.inc ], [ 0.000000e+00, %for.body.lr.ph ]
+  %indvars.iv = phi i64 [ %indvars.iv.next, %for.inc ], [ 1, %for.body.lr.ph ]
+  %arrayidx2 = getelementptr inbounds [10 x [5 x double]], [10 x [5 x double]]* @s, i64 0, i64 %indvars.iv, i64 1
+  %25 = load double, double* %arrayidx2, align 8, !tbaa !2
+  %26 = bitcast double* %arrayidx2 to i8*
+  %27 = call i64 @getAddr(i8* %26)
+  %arrayidx5 = getelementptr inbounds [10 x [5 x double]], [10 x [5 x double]]* @s, i64 0, i64 %indvars.iv, i64 2
+  %28 = load double, double* %arrayidx5, align 8, !tbaa !2
+  %29 = bitcast double* %arrayidx5 to i8*
+  %30 = call i64 @getAddr(i8* %29)
+  %cmp6 = fcmp fast ogt double %28, 1.000000e+00
+  call void @checkBranch(double %28, i64 %30, double 1.000000e+00, i64 0, i32 2, i1 %cmp6, i32 172, i64 0)
+  br i1 %cmp6, label %if.then, label %if.end
+
+if.then:                                          ; preds = %for.body
+  %31 = load double, double* %arrayidx9, align 8, !tbaa !2
+  %32 = bitcast double* %arrayidx9 to i8*
+  %33 = call i64 @getAddr(i8* %32)
+  %sub = fsub fast double %4, %31
+  %34 = call i64 @computeReal(i32 14, i64 %6, i64 %33, double %4, double %31, double %4, double %31, double %sub, i64 3, i32 175)
+  %35 = fmul fast double %sub, %14
+  %36 = call i64 @computeReal(i32 16, i64 %34, i64 %15, double %sub, double %14, double %sub, double %14, double %35, i64 3, i32 176)
+  %sub14 = fadd fast double %28, -1.000000e+00
+  %37 = call i64 @computeReal(i32 12, i64 %30, i64 0, double %28, double -1.000000e+00, double %28, double -1.000000e+00, double %sub14, i64 3, i32 177)
+  %arrayidx17 = getelementptr inbounds [10 x [5 x double]], [10 x [5 x double]]* @s, i64 0, i64 %indvars.iv, i64 3
+  %38 = load double, double* %arrayidx17, align 8, !tbaa !2
+  %39 = bitcast double* %arrayidx17 to i8*
+  %40 = call i64 @getAddr(i8* %39)
+  %div18 = fdiv fast double %sub14, %38
+  %41 = call i64 @computeReal(i32 19, i64 %37, i64 %40, double %sub14, double %38, double %sub14, double %38, double %div18, i64 3, i32 180)
+  %mul = fmul fast double %35, %div18
+  %42 = call i64 @computeReal(i32 16, i64 %36, i64 %41, double %35, double %div18, double %35, double %div18, double %mul, i64 3, i32 181)
+  %add = fadd fast double %mul, %28
+  %43 = call i64 @computeReal(i32 12, i64 %42, i64 %30, double %mul, double %28, double %mul, double %28, double %add, i64 3, i32 182)
+  br label %if.end
+
+if.end:                                           ; preds = %if.then, %for.body
+  %44 = phi i64 
+  %.in = phi double [ %add, %if.then ], [ %28, %for.body ]
+  %cmp.i = fcmp fast une double %25, 0.000000e+00
+  call void @checkBranch(double %25, i64 %27, double 0.000000e+00, i64 0, i32 14, i1 %cmp.i, i32 185, i64 0)
+  br i1 %tobool.i, label %if.end18.i, label %if.then.i
+
+if.then.i:                                        ; preds = %if.end
+  br i1 %cmp.i, label %if.then1.i, label %if.end13.i
+
+if.then1.i:                                       ; preds = %if.then.i
+  %cmp2.i = fcmp fast oeq double %24, 0.000000e+00
+  call void @checkBranch(double %24, i64 %23, double 0.000000e+00, i64 0, i32 1, i1 %cmp2.i, i32 188, i64 0)
+  br i1 %cmp2.i, label %if.then3.i, label %if.else.i
+
+if.then3.i:                                       ; preds = %if.then1.i
+  %45 = bitcast double* @axis_slope_angle to i8*
+  %46 = call i64 @getAddr(i8* %45)
+  store double 0.000000e+00, double* @axis_slope_angle, align 8, !tbaa !2
+  %div.i = fdiv fast double %22, %25
+  %47 = call i64 @computeReal(i32 19, i64 %21, i64 %27, double %22, double %25, double %22, double %25, double %div.i, i64 3, i32 191)
+  br label %if.end.i
+
+if.else.i:                                        ; preds = %if.then1.i
+  %sub.i = fsub fast double %24, %25
+  %48 = call i64 @computeReal(i32 14, i64 %23, i64 %27, double %24, double %25, double %24, double %25, double %sub.i, i64 3, i32 193)
+  %div4.i = fdiv fast double %sub.i, %25
+  %49 = call i64 @computeReal(i32 19, i64 %48, i64 %27, double %sub.i, double %25, double %sub.i, double %25, double %div4.i, i64 3, i32 194)
+  %50 = load double, double* @axis_slope_angle, align 8, !tbaa !2
+  %51 = bitcast double* @axis_slope_angle to i8*
+  %52 = call i64 @getAddr(i8* %51)
+  %mul.i = fmul fast double %50, %div4.i
+  %53 = call i64 @computeReal(i32 16, i64 %52, i64 %49, double %50, double %div4.i, double %50, double %div4.i, double %mul.i, i64 3, i32 196)
+  br label %if.end.i
+
+if.end.i:                                         ; preds = %if.else.i, %if.then3.i
+  %54 = phi i64 
+  %55 = phi double [ 0.000000e+00, %if.then3.i ], [ %50, %if.else.i ]
+  %56 = phi i64 
+  %iang_sin.0.i = phi double [ %div.i, %if.then3.i ], [ %mul.i, %if.else.i ]
+  %div5.i = fdiv fast double %20, %.in
+  %57 = call i64 @computeReal(i32 19, i64 %19, i64 %44, double %20, double %.in, double %20, double %.in, double %div5.i, i64 3, i32 200)
+  %mul6.i = fmul fast double %div5.i, %iang_sin.0.i
+  %58 = call i64 @computeReal(i32 16, i64 %57, i64 %56, double %div5.i, double %iang_sin.0.i, double %div5.i, double %iang_sin.0.i, double %mul6.i, i64 3, i32 201)
+  %add.i = fadd fast double %iang_sin.0.i, %55
+  %59 = call i64 @computeReal(i32 12, i64 %56, i64 %54, double %iang_sin.0.i, double %55, double %iang_sin.0.i, double %55, double %add.i, i64 3, i32 202)
+  %sub7.i = fsub fast double %add.i, %mul6.i
+  %60 = call i64 @computeReal(i32 14, i64 %59, i64 %58, double %add.i, double %mul6.i, double %add.i, double %mul6.i, double %sub7.i, i64 3, i32 203)
+  %61 = bitcast double* @axis_slope_angle to i8*
+  %62 = call i64 @getAddr(i8* %61)
+  call void bitcast (void (i64, i64, <2 x double>)* @setRealTemp to void (i64, i64, double)*)(i64 %62, i64 %60, double %sub7.i)
+  store double %sub7.i, double* @axis_slope_angle, align 8, !tbaa !2
+  %cmp8.i = fcmp fast une double %24, 0.000000e+00
+  call void @checkBranch(double %24, i64 %23, double 0.000000e+00, i64 0, i32 14, i1 %cmp8.i, i32 205, i64 0)
+  %mul10.i = fmul fast double %55, %24
+  %63 = call i64 @computeReal(i32 16, i64 %54, i64 %23, double %55, double %24, double %55, double %24, double %mul10.i, i64 3, i32 206)
+  %64 = select i1 %cmp8.i, double %mul10.i, double %22
+  %div12.i = fdiv fast double %64, %sub7.i
+  br label %transit_surface.exit
+
+if.end13.i:                                       ; preds = %if.then.i
+  %div14.i = fdiv fast double %.in, %20
+  %mul15.i = fmul fast double %div14.i, %24
+  %65 = load double, double* @axis_slope_angle, align 8, !tbaa !2
+  %div16.i = fdiv fast double %20, %.in
+  %mul17.i = fmul fast double %65, %div16.i
+  store double %mul17.i, double* @axis_slope_angle, align 8, !tbaa !2
+  br label %transit_surface.exit
+
+if.end18.i:                                       ; preds = %if.end
+  br i1 %cmp.i, label %if.then20.i, label %if.end45.i
+
+if.then20.i:                                      ; preds = %if.end18.i
+  %cmp21.i = fcmp fast oeq double %24, 0.000000e+00
+  br i1 %cmp21.i, label %if.then22.i, label %if.else24.i
+
+if.then22.i:                                      ; preds = %if.then20.i
+  store double 0.000000e+00, double* @axis_slope_angle, align 8, !tbaa !2
+  %div23.i = fdiv fast double %22, %25
+  br label %if.end28.i
+
+if.else24.i:                                      ; preds = %if.then20.i
+  %sub25.i = fsub fast double %24, %25
+  %div26.i = fdiv fast double %sub25.i, %25
+  %66 = load double, double* @axis_slope_angle, align 8, !tbaa !2
+  %67 = tail call fast double @llvm.sin.f64(double %66) #6
+  %mul27.i = fmul fast double %67, %div26.i
+  br label %if.end28.i
+
+if.end28.i:                                       ; preds = %if.else24.i, %if.then22.i
+  %68 = phi i64 
+  %69 = phi double [ 0.000000e+00, %if.then22.i ], [ %66, %if.else24.i ]
+  %70 = phi i64 
+  %iang_sin.1.i = phi double [ %div23.i, %if.then22.i ], [ %mul27.i, %if.else24.i ]
+  %call.i = tail call fast double @__asin_finite(double %iang_sin.1.i) #8
+  %div29.i = fdiv fast double %20, %.in
+  %mul30.i = fmul fast double %div29.i, %iang_sin.1.i
+  %add31.i = fadd fast double %call.i, %69
+  %call32.i = tail call fast double @__asin_finite(double %mul30.i) #8
+  %sub33.i = fsub fast double %add31.i, %call32.i
+  store double %sub33.i, double* @axis_slope_angle, align 8, !tbaa !2
+  %div35.i = fmul fast double %add31.i, 5.000000e-01
+  %71 = tail call fast double @llvm.sin.f64(double %div35.i) #6
+  %72 = fmul fast double %71, %71
+  %mul38.i = fmul fast double %72, 2.000000e+00
+  %73 = tail call fast double @llvm.sin.f64(double %add31.i) #6
+  %call41.i = tail call fast double @tan(double %sub33.i) #8
+  %div42.i = fdiv fast double 1.000000e+00, %call41.i
+  %mul43.i = fmul fast double %div42.i, %73
+  %reass.add.i = fadd fast double %mul43.i, %mul38.i
+  %reass.mul.i = fmul fast double %reass.add.i, %25
+  br label %transit_surface.exit
+
+if.end45.i:                                       ; preds = %if.end18.i
+  %div46.i = fdiv fast double %20, %.in
+  %74 = load double, double* @axis_slope_angle, align 8, !tbaa !2
+  %75 = tail call fast double @llvm.sin.f64(double %74) #6
+  %mul47.i = fmul fast double %75, %div46.i
+  %call48.i = tail call fast double @__asin_finite(double %mul47.i) #8
+  %76 = tail call fast double @llvm.cos.f64(double %call48.i) #6
+  %mul51.i = fmul fast double %76, %.in
+  %77 = tail call fast double @llvm.cos.f64(double %74) #6
+  %mul52.i = fmul fast double %77, %20
+  %div53.i = fdiv fast double %mul51.i, %mul52.i
+  %mul54.i = fmul fast double %div53.i, %24
+  store double %call48.i, double* @axis_slope_angle, align 8, !tbaa !2
+  br label %transit_surface.exit
+
+transit_surface.exit:                             ; preds = %if.end.i, %if.end13.i, %if.end28.i, %if.end45.i
+  %78 = phi i64 
+  %79 = phi double [ %64, %if.end.i ], [ %22, %if.end13.i ], [ %22, %if.end28.i ], [ %22, %if.end45.i ]
+  %80 = phi i64 
+  %81 = phi double [ %div12.i, %if.end.i ], [ %mul15.i, %if.end13.i ], [ %reass.mul.i, %if.end28.i ], [ %mul54.i, %if.end45.i ]
+  %cmp20 = icmp ult i64 %indvars.iv, 4
+  br i1 %cmp20, label %for.inc, label %for.end.loopexit
+
+for.inc:                                          ; preds = %transit_surface.exit
+  %arrayidx25 = getelementptr inbounds [10 x [5 x double]], [10 x [5 x double]]* @s, i64 0, i64 %indvars.iv, i64 4
+  %82 = load double, double* %arrayidx25, align 8, !tbaa !2
+  %sub26 = fsub fast double %81, %82
+  %indvars.iv.next = add nuw nsw i64 %indvars.iv, 1
+  br label %for.body
+
+for.end.loopexit:                                 ; preds = %transit_surface.exit
+  store double %81, double* @object_distance, align 8, !tbaa !2
+  br label %for.end
+
+for.end:                                          ; preds = %for.end.loopexit, %entry
+  ret void
+}
+

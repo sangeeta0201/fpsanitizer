@@ -13,9 +13,10 @@
 #include <sys/mman.h>
 #include <fcntl.h>
 #define PRECISION 1000
-#define BUFLEN 1000000
+#define BUFLEN 10000000
 #define MMAP_FLAGS (MAP_PRIVATE| MAP_ANONYMOUS| MAP_NORESERVE)
-#define MAX_STACK_SIZE 100000000
+#define MAX_STACK_SIZE 10000000
+#define MAX_SIZE 1
 
 
 struct ErrorAggregate {
@@ -114,10 +115,13 @@ size_t compute = 0;
 double regIndex = 100; //Assuming there are 100 constants, as we are giving index for constants for phi and select from llvm pass 
 size_t stackIdx = 0;
 size_t retIdx = 0;
+size_t bufIdxEnd = 1;
+size_t bufIdxBgn = 0;
 std::map<size_t, struct ErrorAggregate*>errorMap;
 std::map<size_t, struct BrError*>errBrMap;
 //this will link ins index to index of result in shadow mem
-std::queue<struct ComputeR*>buffer;
+//std::queue<struct ComputeR*>buffer;
+struct ComputeR *buffer;
 //std::list<struct MyShadow*> varTrack;
 struct MyShadow *shdStack;
 //std::stack<size_t> retTrack;
@@ -125,9 +129,16 @@ struct MyShadow *shdStack;
 std::map<std::map<size_t, size_t>, size_t> shadowFunArgMap;
 //std::map<size_t, size_t>funRetMap;
 //sparse_hash_map<size_t, size_t>funRetMap;
-size_t *funRetMap;
+struct FunRet{
+	size_t key;
+	size_t val;
+	struct FunRet *next;
+};
+
+struct FunRet *funRetMap;
 size_t *insMap;
 size_t *retTrack;
+static inline int advance(volatile size_t *idx);
 void fInit(size_t funcAddrInt);
 void fExit(size_t funcAddrInt, size_t returnIdx);
 void handleMath(size_t funcCode, double op1, size_t op1Int, double computedRes, size_t insIndex, size_t newRegIdx);

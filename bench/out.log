@@ -1,0 +1,7 @@
+4 passes.  No errors in results.
+compute:9224522
+setReal:3670016
+list:mpfrInit:10077085
+mpfrClear:10077085
+3346.36user 0.03system 55:44.85elapsed 100%CPU (0avgtext+0avgdata 9532maxresident)k
+0inputs+16outputs (0major+1378minor)pagefaults 0swaps

@@ -5,26 +5,13 @@
 #include <gmp.h>
 #include <mpfr.h>
 
-static mpfr_t m_x, m_y, one, r1, r2, r3;
 
-/* This is a basic program that demonstrates what appears to be a bug
-   in FpDebug. When run under FpDebug (with the relevant lines
-   uncommented out), the inserted shadow value should be the same as
-   the "actual" value computed using mpfr versions of all the
-   operations. However, this is not the case, and instead, fpdebug
-   reports an actual value of zero. After investigating several
-   potential causes (too few bits, no sqrt support), it looks like the
-   shadow result of the x + 1 operation gets indexed to a temporary
-   variable where the sqrt operation can't find it. Why? No one in the
-   entire planet knows.*/
 int main(void){
+	mpfr_t m_x, m_y, one, r1, r2, r3;
   double x, y;
   printf("Sanity checking the fpdebug functionality...\n");
 
   x = 1e16;
-  // The formula we're computing. Here it's computed in normal
-  // precision, but under FpDebug it should be shadowed with 120 bit
-  // values.
   y = sqrt(x + 1.0) - sqrt(x);
 
   // Recompute that same formula in arbitrary precision.
