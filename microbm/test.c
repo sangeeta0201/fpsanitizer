@@ -3,11 +3,13 @@
 
 double foo(double a, double b, int count){
 
-
   double temp = 0.0;
+
   for(int i = 0; i < count; i++){
+    
     temp = a + b * 0.1;
   }
+
   return temp;
 }
 
@@ -32,14 +34,20 @@ int main(int argc, char** argv){
 
   count = atoi(argv[1]);
   a = atoi(argv[2]);
+ 
+  
   b = atoi(argv[3]);
+  
   double sum = 0.0f;
+	printf("count:%d", count);
   for(int i = 0; i < count; i++){
+
     sum = sum + foo(a, b, count);
+    
     sum = sum + foo(a, b, count);
   }
 
   printf("The value of double is %f\n", sum);
   return 0;
-  
+
 }

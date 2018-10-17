@@ -115,8 +115,6 @@ size_t compute = 0;
 double regIndex = 100; //Assuming there are 100 constants, as we are giving index for constants for phi and select from llvm pass 
 size_t stackIdx = 0;
 size_t retIdx = 0;
-size_t bufIdxEnd = 1;
-size_t bufIdxBgn = 0;
 std::map<size_t, struct ErrorAggregate*>errorMap;
 std::map<size_t, struct BrError*>errBrMap;
 //this will link ins index to index of result in shadow mem

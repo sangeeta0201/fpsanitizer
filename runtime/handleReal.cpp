@@ -14,22 +14,27 @@
 #include <asm/unistd.h>
 #include <sys/syscall.h>
 #include <stdlib.h>
-
+#include <atomic>
+#include <thread>
+#include <string>
 /*TODO : 
 1. Handle const in llvm - gsl-modpi.c
 2. Clean up shadow
 3. How to figure out memcpy of only double?
 */
-//#define MULTITHREADED 
-#define debug 1
+#define MULTITHREADED 
+#define debug 0
+#define debugp 1
+#define debugc 1
 #define debugTh 0
 #define time 0
 #define cycles 0
 
+
 pthread_t con;
 FILE *pFile = fopen ("error.out","w");  
-
-
+std::atomic <size_t>  _tail = {0};
+std::atomic <size_t>  _head = {0};
 static long
 perf_event_open(struct perf_event_attr *hw_event, pid_t pid,
                 int cpu, int group_fd, unsigned long flags)
@@ -66,6 +71,10 @@ long long count;
 
     close(perf_fds);
     return count;
+}
+
+size_t increment(size_t idx){
+  return (idx + 1) % BUFLEN;
 }
 
 int hashKey(int key){
@@ -148,18 +157,21 @@ extern "C" void addFunArg(size_t argNo, size_t funAddrInt, size_t argAddrInt){
 
 extern "C" void funcInit(size_t funcAddrInt){
 #ifdef MULTITHREADED
-		//if(debugTh)
-			//std::cout<<"producer funcInit: bufIdxEnd:"<<bufIdxEnd<<" bufIdxBgn:"<<bufIdxBgn<<"\n";
-		while((bufIdxEnd + 1) % BUFLEN == bufIdxBgn){
+
+		const auto current_tail = _tail.load(std::memory_order_relaxed);
+  	const auto next_tail = increment(current_tail);
+  	while(next_tail == _head.load(std::memory_order_acquire))
+  	{
 			if(debugTh)
 				std::cout<<"producer funcInit :buffer is full\n";
 			sleep(0);
 		}
-		if(debugTh)
-			std::cout<<"producer funcInit: bufIdxEnd:"<<bufIdxEnd<<" bufIdxBgn:"<<bufIdxBgn<<"\n";
-		buffer[bufIdxEnd].funcAddrInt = funcAddrInt;	
-		buffer[bufIdxEnd].cmd = 1;	
-		advance(&bufIdxEnd);
+
+		buffer[current_tail].funcAddrInt = funcAddrInt;	
+		buffer[current_tail].cmd = 1;	
+    _tail.store(next_tail, std::memory_order_release);
+		if(debugp)
+			std::cout<<"producer: pushed cmd 1\n";
 		if(debugTh)
 			std::cout<<"producer: process object with cmd:"<<1<<"\n";
 #else
@@ -171,17 +183,21 @@ extern "C" void funcExit(size_t funcAddrInt, size_t returnIdx){
 	//funRetMap[funcAddrInt] = returnIdx;
 	hashInsert(funcAddrInt, returnIdx);
 #ifdef MULTITHREADED
-	while((bufIdxEnd + 1) % BUFLEN == bufIdxBgn){
+	const auto current_tail = _tail.load(std::memory_order_relaxed);
+  const auto next_tail = increment(current_tail);
+  while(next_tail == _head.load(std::memory_order_acquire))
+  {
 		if(debugTh)
-			std::cout<<"producer funcExit :buffer is full\n";
+			std::cout<<"producer funcInit :buffer is full\n";
 		sleep(0);
 	}
-	if(debugTh)
-		std::cout<<"producer funcExit: bufIdxEnd:"<<bufIdxEnd<<" bufIdxBgn:"<<bufIdxBgn<<"\n";
-	buffer[bufIdxEnd].funcAddrInt = funcAddrInt;	
-	buffer[bufIdxEnd].returnIdx = returnIdx;	
-	buffer[bufIdxEnd].cmd = 2;	
-	advance(&bufIdxEnd);
+	buffer[current_tail].funcAddrInt = funcAddrInt;	
+	buffer[current_tail].returnIdx = returnIdx;	
+	buffer[current_tail].cmd = 2;	
+	_tail.store(next_tail, std::memory_order_release);
+	if(debugp)
+		std::cout<<"producer: pushed cmd 2\n";
+	//advance(&current_tail);
 	if(debugTh)
 		std::cout<<"producer: process object with cmd:"<<2<<"\n";
 #else
@@ -197,21 +213,25 @@ extern "C" size_t handleMathFunc(size_t funcCode, double op1, size_t op1Idx,
 		addRegRes(insIndex, newRegIdx);
 	}
 #ifdef MULTITHREADED
-	while((bufIdxEnd + 1) % BUFLEN == bufIdxBgn){
+	const auto current_tail = _tail.load(std::memory_order_relaxed);
+  const auto next_tail = increment(current_tail);
+  while(next_tail == _head.load(std::memory_order_acquire))
+  {
 		if(debugTh)
-		std::cout<<"producer handleMathFunc :buffer is full\n";
+			std::cout<<"producer funcInit :buffer is full\n";
 		sleep(0);
 	}
-	if(debugTh)
-		std::cout<<"producer handleMathFunc: bufIdxEnd:"<<bufIdxEnd<<" bufIdxBgn:"<<bufIdxBgn<<"\n";
-	buffer[bufIdxEnd].funcCode = funcCode;
-	buffer[bufIdxEnd].op1Idx = op1Idx;
-	buffer[bufIdxEnd].op1d = op1;
-	buffer[bufIdxEnd].computedRes = computedRes;
-	buffer[bufIdxEnd].insIndex = insIndex;
-	buffer[bufIdxEnd].cmd = 3;
-	buffer[bufIdxEnd].newRegIdx = newRegIdx;	
-	advance(&bufIdxEnd);	
+	buffer[current_tail].funcCode = funcCode;
+	buffer[current_tail].op1Idx = op1Idx;
+	buffer[current_tail].op1d = op1;
+	buffer[current_tail].computedRes = computedRes;
+	buffer[current_tail].insIndex = insIndex;
+	buffer[current_tail].cmd = 3;
+	buffer[current_tail].newRegIdx = newRegIdx;	
+  _tail.store(next_tail, std::memory_order_release);
+	if(debugp)
+		std::cout<<"producer: pushed cmd 3\n";
+	//advance(&current_tail);	
 	if(debugTh)
 		std::cout<<"producer: process object with cmd:"<<3<<"\n";
 #else
@@ -230,24 +250,28 @@ extern "C" size_t handleMathFunc3Args(size_t funcCode, double op1, size_t op1Int
 		addRegRes(insIndex, newRegIdx);
 	}
 #ifdef MULTITHREADED
-	while((bufIdxEnd + 1) % BUFLEN == bufIdxBgn){
+	const auto current_tail = _tail.load(std::memory_order_relaxed);
+  const auto next_tail = increment(current_tail);
+  while(next_tail == _head.load(std::memory_order_acquire))
+  {
 		if(debugTh)
-			std::cout<<"producer handleMathFunc3Args :buffer is full\n";
+			std::cout<<"producer funcInit :buffer is full\n";
+		sleep(0);
 	}
-	if(debugTh)
-		std::cout<<"producer handleMathFunc3Args: bufIdxEnd:"<<bufIdxEnd<<" bufIdxBgn:"<<bufIdxBgn<<"\n";
-	buffer[bufIdxEnd].funcCode = funcCode;
-	buffer[bufIdxEnd].op1Idx = op1Int;
-	buffer[bufIdxEnd].op1d = op1;
-	buffer[bufIdxEnd].op2Idx = op2Int;
-	buffer[bufIdxEnd].op2d = op2;
-	buffer[bufIdxEnd].op3Idx = op3Int;
-	buffer[bufIdxEnd].op3d = op3;
-	buffer[bufIdxEnd].computedRes = computedRes;
-	buffer[bufIdxEnd].insIndex = insIndex;
-	buffer[bufIdxEnd].cmd = 4;
-	buffer[bufIdxEnd].newRegIdx = newRegIdx;	
-	advance(&bufIdxEnd);
+	buffer[current_tail].funcCode = funcCode;
+	buffer[current_tail].op1Idx = op1Int;
+	buffer[current_tail].op1d = op1;
+	buffer[current_tail].op2Idx = op2Int;
+	buffer[current_tail].op2d = op2;
+	buffer[current_tail].op3Idx = op3Int;
+	buffer[current_tail].op3d = op3;
+	buffer[current_tail].computedRes = computedRes;
+	buffer[current_tail].insIndex = insIndex;
+	buffer[current_tail].cmd = 4;
+	buffer[current_tail].newRegIdx = newRegIdx;	
+  _tail.store(next_tail, std::memory_order_release);
+	if(debugp)
+		std::cout<<"producer: pushed cmd 4\n";
 	if(debugTh)
 		std::cout<<"producer: process object with cmd:"<<4<<"\n";
 #else
@@ -275,28 +299,30 @@ extern "C" size_t computeReal(size_t opCode, size_t op1Idx, size_t op2Idx, float
                         (double) (tv2.tv_sec - tv1.tv_sec);
     }
 #ifdef MULTITHREADED
-	while((bufIdxEnd + 1) % BUFLEN == bufIdxBgn){
-		if(debugTh){
-			std::cout<<"producer computeReal: bufIdxEnd:"<<bufIdxEnd<<" bufIdxBgn:"<<bufIdxBgn<<"\n";
-			std::cout<<"producer computeReal :buffer is full\n";
-		}
+	const auto current_tail = _tail.load(std::memory_order_relaxed);
+  const auto next_tail = increment(current_tail);
+  while(next_tail == _head.load(std::memory_order_acquire))
+  {
+		if(debugTh)
+			std::cout<<"producer funcInit :buffer is full\n";
 		sleep(0);
 	}
-	if(debugTh)
-		std::cout<<"producer computeReal: bufIdxEnd:"<<bufIdxEnd<<" bufIdxBgn:"<<bufIdxBgn<<"\n";
-	buffer[bufIdxEnd].opCode = opCode;
-	buffer[bufIdxEnd].op1Idx = op1Idx;
-	buffer[bufIdxEnd].op2Idx = op2Idx;
-	buffer[bufIdxEnd].op1f = op1f;
-	buffer[bufIdxEnd].op2f = op2f;
-	buffer[bufIdxEnd].op1d = op1d;
-	buffer[bufIdxEnd].op2d = op2d;
-	buffer[bufIdxEnd].computedRes = computedRes;
-	buffer[bufIdxEnd].typeId = typeId;
-	buffer[bufIdxEnd].insIndex = insIndex;
-	buffer[bufIdxEnd].cmd = 5;
-	buffer[bufIdxEnd].newRegIdx = newRegIdx;
-	advance(&bufIdxEnd);
+	buffer[current_tail].opCode = opCode;
+	buffer[current_tail].op1Idx = op1Idx;
+	buffer[current_tail].op2Idx = op2Idx;
+	buffer[current_tail].op1f = op1f;
+	buffer[current_tail].op2f = op2f;
+	buffer[current_tail].op1d = op1d;
+	buffer[current_tail].op2d = op2d;
+	buffer[current_tail].computedRes = computedRes;
+	buffer[current_tail].typeId = typeId;
+	buffer[current_tail].insIndex = insIndex;
+	buffer[current_tail].cmd = 5;
+	buffer[current_tail].newRegIdx = newRegIdx;
+  _tail.store(next_tail, std::memory_order_release);
+	if(debugp)
+		std::cout<<"producer: pushed cmd 5\n";
+	//advance(&current_tail);
 	if(debugTh)
 		std::cout<<"producer: process object with cmd:"<<5<<"\n";
 #else 
@@ -309,23 +335,26 @@ extern "C" size_t computeReal(size_t opCode, size_t op1Idx, size_t op2Idx, float
 extern "C" void checkBranch(double op1, size_t op1Int, double op2, size_t op2Int, 
                             int fcmpFlag, bool computedRes, size_t insIndex, size_t lineNo){
 #ifdef MULTITHREADED
-	while((bufIdxEnd + 1) % BUFLEN == bufIdxBgn){
+	const auto current_tail = _tail.load(std::memory_order_relaxed);
+  const auto next_tail = increment(current_tail);
+  while(next_tail == _head.load(std::memory_order_acquire))
+  {
 		if(debugTh)
-			std::cout<<"producer checkBranch: buffer is full\n";
+			std::cout<<"producer funcInit :buffer is full\n";
 		sleep(0);
 	}
-	if(debugTh)
-		std::cout<<"producer checkBranch: bufIdxEnd:"<<bufIdxEnd<<" bufIdxBgn:"<<bufIdxBgn<<"\n";
-	buffer[bufIdxEnd].op1Idx = op1Int;
-	buffer[bufIdxEnd].op2Idx = op2Int;
-	buffer[bufIdxEnd].op1d = op1;
-	buffer[bufIdxEnd].op2d = op2;
-	buffer[bufIdxEnd].fcmpFlag = fcmpFlag;
-	buffer[bufIdxEnd].computedRes = computedRes;
-	buffer[bufIdxEnd].insIndex = insIndex;
-	buffer[bufIdxEnd].lineNo = lineNo;
-	buffer[bufIdxEnd].cmd = 6;
-	advance(&bufIdxEnd);
+	buffer[current_tail].op1Idx = op1Int;
+	buffer[current_tail].op2Idx = op2Int;
+	buffer[current_tail].op1d = op1;
+	buffer[current_tail].op2d = op2;
+	buffer[current_tail].fcmpFlag = fcmpFlag;
+	buffer[current_tail].computedRes = computedRes;
+	buffer[current_tail].insIndex = insIndex;
+	buffer[current_tail].lineNo = lineNo;
+	buffer[current_tail].cmd = 6;
+  _tail.store(next_tail, std::memory_order_release);
+	if(debugp)
+		std::cout<<"producer: pushed cmd 6\n";
 	if(debugTh)
 		std::cout<<"producer: process object with cmd:"<<6<<"\n";
 #else
@@ -336,17 +365,21 @@ extern "C" void checkBranch(double op1, size_t op1Int, double op2, size_t op2Int
 extern "C" size_t setRealReg(size_t index, double value){
  
 #ifdef MULTITHREADED
-	while((bufIdxEnd + 1) % BUFLEN == bufIdxBgn){
+	const auto current_tail = _tail.load(std::memory_order_relaxed);
+  const auto next_tail = increment(current_tail);
+  while(next_tail == _head.load(std::memory_order_acquire))
+  {
 		if(debugTh)
-			std::cout<<"producer setRealReg :buffer is full\n";
+			std::cout<<"producer funcInit :buffer is full\n";
 		sleep(0);
 	}
-	if(debugTh)
-		std::cout<<"producer setRealReg: bufIdxEnd:"<<bufIdxEnd<<" bufIdxBgn:"<<bufIdxBgn<<"\n";
-	buffer[bufIdxEnd].op1Idx = index;
-	buffer[bufIdxEnd].op1d = value;
-	buffer[bufIdxEnd].cmd = 7;
-	advance(&bufIdxEnd);
+	buffer[current_tail].op1Idx = index;
+	buffer[current_tail].op1d = value;
+	buffer[current_tail].cmd = 7;
+  _tail.store(next_tail, std::memory_order_release);
+	if(debugp)
+		std::cout<<"producer: pushed cmd 7\n";
+	//advance(&current_tail);
 	if(debugTh)
 		std::cout<<"producer: process object with cmd:"<<7<<"\n";
 #else 
@@ -382,18 +415,21 @@ extern "C" size_t getRealFunArg(size_t index, size_t funAddrInt){
 //TODO
 extern "C" void setRealFunArg(size_t shadowAddr, size_t toAddrInt, double value){
 #ifdef MULTITHREADED
-	while((bufIdxEnd + 1) % BUFLEN == bufIdxBgn){
+	const auto current_tail = _tail.load(std::memory_order_relaxed);
+  const auto next_tail = increment(current_tail);
+  while(next_tail == _head.load(std::memory_order_acquire))
+  {
 		if(debugTh)
-			std::cout<<"producer setRealFunArg :buffer is full\n";
+			std::cout<<"producer funcInit :buffer is full\n";
 		sleep(0);
 	}
-	if(debugTh)
-		std::cout<<"producer setRealFunArg: bufIdxEnd:"<<bufIdxEnd<<" bufIdxBgn:"<<bufIdxBgn<<"\n";
-	buffer[bufIdxEnd].shadowAddr = shadowAddr;
-	buffer[bufIdxEnd].toAddrInt = toAddrInt;
-	buffer[bufIdxEnd].op1d = value;
-	buffer[bufIdxEnd].cmd = 11;
-	advance(&bufIdxEnd);
+	buffer[current_tail].shadowAddr = shadowAddr;
+	buffer[current_tail].toAddrInt = toAddrInt;
+	buffer[current_tail].op1d = value;
+	buffer[current_tail].cmd = 11;
+  _tail.store(next_tail, std::memory_order_release);
+	if(debugp)
+		std::cout<<"producer: pushed cmd 11\n";
 	if(debugTh)
 		std::cout<<"producer: process object with cmd:"<<11<<"\n";
 #else 
@@ -430,16 +466,19 @@ extern "C" size_t getRealReturn(size_t funAddrInt){
 
 extern "C" void setRealReturn(size_t toAddrInt){
 #ifdef MULTITHREADED
-	while((bufIdxEnd + 1) % BUFLEN == bufIdxBgn){
+	const auto current_tail = _tail.load(std::memory_order_relaxed);
+  const auto next_tail = increment(current_tail);
+  while(next_tail == _head.load(std::memory_order_acquire))
+  {
 		if(debugTh)
-			std::cout<<"producer setRealReturn :buffer is full\n";
+			std::cout<<"producer funcInit :buffer is full\n";
 		sleep(0);
 	}
-	if(debugTh)
-		std::cout<<"producer setRealReturn: bufIdxEnd:"<<bufIdxEnd<<" bufIdxBgn:"<<bufIdxBgn<<"\n";
-	buffer[bufIdxEnd].toAddrInt = toAddrInt;
-	buffer[bufIdxEnd].cmd = 8;
-	advance(&bufIdxEnd);
+	buffer[current_tail].toAddrInt = toAddrInt;
+	buffer[current_tail].cmd = 8;
+  _tail.store(next_tail, std::memory_order_release);
+	if(debugp)
+		std::cout<<"producer: pushed cmd 8\n";
 	if(debugTh)
 		std::cout<<"producer: process object with cmd:"<<8<<"\n";
 #else
@@ -449,18 +488,22 @@ extern "C" void setRealReturn(size_t toAddrInt){
 
 extern "C" void setRealTemp(size_t toAddrInt, size_t fromAddrInt, double val){
 #ifdef MULTITHREADED
-	while((bufIdxEnd + 1) % BUFLEN == bufIdxBgn){
+	const auto current_tail = _tail.load(std::memory_order_relaxed);
+  const auto next_tail = increment(current_tail);
+  while(next_tail == _head.load(std::memory_order_acquire))
+  {
 		if(debugTh)
-			std::cout<<"producer setRealTemp :buffer is full\n";
+			std::cout<<"producer funcInit :buffer is full\n";
 		sleep(0);
 	}
-	if(debugTh)
-		std::cout<<"producer setRealTemp: bufIdxEnd:"<<bufIdxEnd<<" bufIdxBgn:"<<bufIdxBgn<<"\n";
-	buffer[bufIdxEnd].toAddrInt = toAddrInt;
-	buffer[bufIdxEnd].fromAddrInt = fromAddrInt;
-	buffer[bufIdxEnd].op1d = val;
-	buffer[bufIdxEnd].cmd = 9;
-	advance(&bufIdxEnd);
+	buffer[current_tail].toAddrInt = toAddrInt;
+	buffer[current_tail].fromAddrInt = fromAddrInt;
+	buffer[current_tail].op1d = val;
+	buffer[current_tail].cmd = 9;
+  _tail.store(next_tail, std::memory_order_release);
+	if(debugp)
+		std::cout<<"producer: pushed cmd 9\n";
+	//advance(&current_tail);
 	if(debugTh)
 		std::cout<<"producer: process object with cmd:"<<9<<"\n";
 #else
@@ -470,18 +513,22 @@ extern "C" void setRealTemp(size_t toAddrInt, size_t fromAddrInt, double val){
 
 extern "C" void handleLLVMMemcpy(size_t toAddrInt, size_t fromAddrInt, size_t size){
 #ifdef MULTITHREADED
-	while((bufIdxEnd + 1) % BUFLEN == bufIdxBgn){
+	const auto current_tail = _tail.load(std::memory_order_relaxed);
+  const auto next_tail = increment(current_tail);
+  while(next_tail == _head.load(std::memory_order_acquire))
+  {
 		if(debugTh)
-			std::cout<<"producer handleLLVMMemcpy :buffer is full\n";
+			std::cout<<"producer funcInit :buffer is full\n";
 		sleep(0);
 	}
-	if(debugTh)
-		std::cout<<"producer handleLLVMMemcpy: bufIdxEnd:"<<bufIdxEnd<<" bufIdxBgn:"<<bufIdxBgn<<"\n";
-	buffer[bufIdxEnd].toAddrInt = toAddrInt;
-	buffer[bufIdxEnd].fromAddrInt = fromAddrInt;
-	buffer[bufIdxEnd].size = size;
-	buffer[bufIdxEnd].cmd = 10;
-	advance(&bufIdxEnd);
+	buffer[current_tail].toAddrInt = toAddrInt;
+	buffer[current_tail].fromAddrInt = fromAddrInt;
+	buffer[current_tail].size = size;
+	buffer[current_tail].cmd = 10;
+  _tail.store(next_tail, std::memory_order_release);
+	if(debugp)
+		std::cout<<"producer: pushed cmd 10\n";
+	//advance(&current_tail);
 	if(debugTh)
 		std::cout<<"producer: process object with cmd:"<<10<<"\n";
 #else
@@ -675,123 +722,124 @@ void printStack(){
 
 struct MyShadow* existInStack(size_t key){
 	for (size_t top = stackIdx-1; top > 0; top--){
-  	    if(currentFunc == shdStack[top].key){
+		if(currentFunc == shdStack[top].key){
 			return NULL;
 		}
-  	    if(key == shdStack[top].key){
+		if(key == shdStack[top].key){
 			return &shdStack[top];	
-	    }
+		}
 	}
 	return NULL;
 }
 
 void handleMath(size_t funcCode, double op1, size_t op1Int, 
                           double computedRes, size_t insIndex, size_t newRegIdx){ 
-    struct timeval  tv1, tv2;
-    if(time){
-        gettimeofday(&tv1, NULL);
-    }
-    if(cycles)
-        start_count();
-    struct Real* real1 = NULL;
-    struct Real* real_res = new Real;
-    mpfr_init2 (real_res->mpfr_val, PRECISION); 
-    mpfrInit++;
-    bool mpfrFlag1 = false; 
-    real1 = getReal(op1Int);
-    if(real1 == NULL){
-        if(debug)
-      	    std::cout<<"handleMathFunc: real1 is null, using op1 value:"<<op1<<"\n";
-        real1 = new Real;
-        mpfr_init2(real1->mpfr_val, PRECISION);
-        mpfrInit++;
-        mpfr_set_d(real1->mpfr_val, op1, MPFR_RNDN);
-        mpfrFlag1 = true; 
-    }
+	struct timeval  tv1, tv2;
+	if(time){
+		gettimeofday(&tv1, NULL);
+	}
+	if(cycles)
+		start_count();
+	struct Real* real1 = NULL;
+	struct Real* real_res = new Real;
+	mpfr_init2 (real_res->mpfr_val, PRECISION); 
+	mpfrInit++;
+	bool mpfrFlag1 = false; 
+	real1 = getReal(op1Int);
+	if(real1 == NULL){
+		if(debug)
+			std::cout<<"handleMathFunc: real1 is null, using op1 value:"<<op1<<"\n";
+		real1 = new Real;
+		mpfr_init2(real1->mpfr_val, PRECISION);
+		mpfrInit++;
+		mpfr_set_d(real1->mpfr_val, op1, MPFR_RNDN);
+		mpfrFlag1 = true; 
+	}
 #if 1 
-    if(real1 != NULL){
-        switch(funcCode){
-            case 1: //sqrt
-                if(debug)
-                    std::cout<<"handleMathFunc: sqrt:\n";
-                mpfr_sqrt(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
-                break;
-            case 2: //floor
-	            if(debug)
-                    std::cout<<"handleMathFunc: floor:\n";
-                mpfr_floor(real_res->mpfr_val, real1->mpfr_val);
-                break;
-            case 3: //tan
-	            if(debug)
-                    std::cout<<"handleMathFunc: tan:\n";
-                mpfr_tan(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
-                break;
-            case 4: //sin
-	            if(debug)
-                    std::cout<<"handleMathFunc: sin:\n";
-                mpfr_sin(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
-                break;
-            case 5: //cos
-	            if(debug)
-                    std::cout<<"handleMathFunc: cos:\n";
-                mpfr_cos(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
-                break;
-            case 6: //atan
-	            if(debug)
-                    std::cout<<"handleMathFunc: atan:\n";
-                mpfr_atan(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
-                break;
-            case 8: //atan
-	            if(debug)
-                    std::cout<<"handleMathFunc: abs:\n";
-                mpfr_abs(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
-                break;
-            case 9: //atan
-	            if(debug)
-                    std::cout<<"handleMathFunc: log:\n";
-                mpfr_log(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
-                break;
-            case 10: //asin
-	            if(debug)
-                    std::cout<<"handleMathFunc: asin:\n";
-                mpfr_asin(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
-                break;
-            default:
-                break;
-        }
+	if(real1 != NULL){
+		switch(funcCode){
+			case 1: //sqrt
+						if(debug)
+							std::cout<<"handleMathFunc: sqrt:\n";
+						mpfr_sqrt(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
+						break;
+			case 2: //floor
+						if(debug)
+							std::cout<<"handleMathFunc: floor:\n";
+						mpfr_floor(real_res->mpfr_val, real1->mpfr_val);
+						break;
+			case 3: //tan
+						if(debug)
+							std::cout<<"handleMathFunc: tan:\n";
+						mpfr_tan(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
+						break;
+			case 4: //sin
+						if(debug)
+							std::cout<<"handleMathFunc: sin:\n";
+						mpfr_sin(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
+						break;
+			case 5: //cos
+						if(debug)
+							std::cout<<"handleMathFunc: cos:\n";
+						mpfr_cos(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
+						break;
+			case 6: //atan
+						if(debug)
+							std::cout<<"handleMathFunc: atan:\n";
+						mpfr_atan(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
+						break;
+			case 8: //atan	
+						if(debug)
+							std::cout<<"handleMathFunc: abs:\n";
+						mpfr_abs(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
+						break;
+			case 9: //atan
+						if(debug)
+							std::cout<<"handleMathFunc: log:\n";
+						mpfr_log(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
+						break;
+			case 10: //asin
+						if(debug)
+							std::cout<<"handleMathFunc: asin:\n";
+						mpfr_asin(real_res->mpfr_val, real1->mpfr_val, MPFR_RNDD);
+						break;
+			default:
+						std::cout<<"handleMathFunc: Error!!! math function not captured:\n";
+						break;
+			}
     }
     else{
         std::cout<<"handleMathFunc: Error!!!\n";
     }
-    #endif
+	#endif
 	MyShadow *shadow = existInStack(newRegIdx);
 	if(shadow == NULL){
-        shdStack[stackIdx].key = newRegIdx;
-        shdStack[stackIdx].real = real_res;
-        stackIdx++;
+		shdStack[stackIdx].key = newRegIdx;
+		shdStack[stackIdx].real = real_res;
+		stackIdx++;
 	}
 	else{//just update the value in stack
-    	mpfr_clear(shadow->real->mpfr_val);
-    	mpfrClear++;
+		mpfr_clear(shadow->real->mpfr_val);
+		mpfrClear++;
 		delete shadow->real;
 		shadow->key = newRegIdx;
 		shadow->real = real_res;  
 	}
-    if(debug)
-        std::cout<<"handleMathFunc insert shadow mem::"<<newRegIdx<<"\n";
-    if(mpfrFlag1){
-        mpfr_clear(real1->mpfr_val);
-        delete  real1; 
-        mpfrClear++;
-    }
-    updateError(real_res, computedRes, insIndex);
-    if(cycles)
-        recordHandleMath += stop_n_get_count();  
-    if(time){
-        gettimeofday(&tv2, NULL);
-        handleMathTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+	if(debug)
+		std::cout<<"handleMathFunc insert shadow mem::"<<newRegIdx<<"\n";
+	if(mpfrFlag1){
+		mpfr_clear(real1->mpfr_val);
+		delete  real1; 
+		mpfrClear++;
+	}
+	updateError(real_res, computedRes, insIndex);
+	if(cycles)
+		recordHandleMath += stop_n_get_count();  
+	if(time){
+		gettimeofday(&tv2, NULL);
+		handleMathTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
                         (double) (tv2.tv_sec - tv1.tv_sec);
-    }
+	}
 }
 
 void handleMath3Args(size_t funcCode, double op1, size_t op1Int,
@@ -1485,7 +1533,6 @@ void initMain(){
     insMap = (size_t*) mmap(0, len, PROT_READ|PROT_WRITE, MMAP_FLAGS, -1, 0);
     retTrack = (size_t*) mmap(0, len, PROT_READ|PROT_WRITE, MMAP_FLAGS, -1, 0);
     assert (shdStack != (void*)-1);
-		shdStack[0].key = 1;
 #ifdef MULTITHREADED
   // Create the threads
 		pthread_create(&con, NULL, consumer, NULL);
@@ -1501,15 +1548,20 @@ static inline int advance(volatile size_t *idx)
 	return oldIdx;
 }
 */
+
 static inline int advance(volatile size_t *idx)
 {
+/*
 	size_t oldIdx, newIdx;
 	do
 	{
 		oldIdx = *idx;
 		newIdx = (oldIdx + 1) % BUFLEN;
+		std::cout<<"advance:"<<
 	} while(!__sync_bool_compare_and_swap(idx, oldIdx, newIdx));
 	return oldIdx;
+*/
+	
 }
 
 
@@ -1543,22 +1595,24 @@ void* consumer(void *ptr) {
 	size_t shadowAddr;
 
 	while(true){
-		if(debugTh)
-			std::cout<<"consumer: bufIdxEnd - bufIdxBgn:"<<bufIdxEnd - bufIdxBgn<<"\n";
-		while(bufIdxEnd == bufIdxBgn){
+		const auto current_head = _head.load(std::memory_order_relaxed);
+		while(current_head == _tail.load(std::memory_order_acquire)){
 			if(consumerFlag){
 				std::cout<<"consumer:exiting\n";
 				pthread_exit(0);
 			}
+			if(debugc)
+				std::cout<<"consumer: sleping......:"<<"\n";
 			sleep(0);
 		}
-		size_t index = advance(&bufIdxBgn);
-		op = &buffer[index];
-		cmd = op->cmd;
-		if(debugTh){
+			if(debugc)
+				std::cout<<"consumer: woke up......:"<<"\n";
+		//size_t index = advance(&bufIdxBgn);
+			op = &buffer[current_head];
+			_head.store(increment(current_head), std::memory_order_release);
+			cmd = op->cmd;
+			if(debugc)
 				std::cout<<"consumer: process object with cmd:"<<cmd<<"\n";
-			std::cout<<"consumer: bufIdxEnd:"<<bufIdxEnd<<" bufIdxBgn:"<<bufIdxBgn<<"\n";
-		}
 			switch(cmd){
 				case 1:
 						funcAddrInt = op->funcAddrInt;
@@ -1644,11 +1698,12 @@ void* consumer(void *ptr) {
 						setFunArg(shadowAddr, toAddrInt, op1d);
 						break;
 				default: 
-						std::cout<<"Error !!! unknown operation\n";
+						std::cout<<"Error !!! unknown operation with cmd:"<<cmd<<"\n";
 			}
+			if(debugc)
+				std::cout<<"consumer: done......:"<<"\n";
 	}
-}
-
+	}
 float getFloat(Real *real){  
   return mpfr_get_flt(real->mpfr_val, MPFR_RNDN);
 }
