@@ -913,18 +913,8 @@ void FPInstrument::handleNewPhi(Function &F){
   		} 
       else if (isa<ConstantFP>(IncValue) || TrackIToFCast.count(IValue) || isa<BitCastInst>(IncValue)) {  
         size_t Index;
-        if(ConsMap.count(IncValue) != 0){
-          Index = ConsMap.at(IncValue); // it should never fail
-        }
-        else{
-          Index = ConsCount++; 
-          ConsMap.insert(std::pair<Value*, size_t>(IncValue, ConsCount));
-        }
-        Constant* consIndex = ConstantInt::get(Type::getInt32Ty(M->getContext()), Index); 
-        SetRealConstant = M->getOrInsertFunction("setRealReg", Int64Ty, Int32Ty, IncValue->getType());
-        Instruction *NewIns = IRB.CreateCall(SetRealConstant, {consIndex, IncValue});
-
-        iPHI->addIncoming(NewIns, IBB);
+        Constant* consIndex = ConstantInt::get(Type::getInt32Ty(M->getContext()), 0); 
+        iPHI->addIncoming(consIndex, IBB);
       } 
 			else if (isa<UndefValue>(IncValue)){
         Constant* cons = ConstantInt::get(Type::getInt64Ty(M->getContext()), 0); 
@@ -1066,17 +1056,8 @@ void FPInstrument::handleSelect(Instruction *I, SelectInst *SI, Function &F){
 	size_t Index;
 	errs()<<"handleSelect:"<<*I<<"\n";
   if (isa<ConstantFP>(OP2) || TrackIToFCast.count(Op2Ins)) {
-		if(ConsMap.count(OP2) != 0){
-			Index = ConsMap.at(OP2); // it should never fail
-		}
-		else{
-			Index = ConsCount++; 
-			ConsMap.insert(std::pair<Value*, size_t>(OP2, ConsCount));
-		}
-		Constant* consIndex = ConstantInt::get(Type::getInt32Ty(M->getContext()), Index); 
-		SetRealConstant = M->getOrInsertFunction("setRealReg", Int64Ty, Int32Ty, DoubleTy);
-		Instruction *NewIns = IRB.CreateCall(SetRealConstant, {consIndex, OP2});
-    NewOp2 = dyn_cast<Value>(NewIns);
+		Constant* consIndex = ConstantInt::get(Type::getInt32Ty(M->getContext()), 0); 
+    NewOp2 = dyn_cast<Value>(consIndex);
   }
 	else if(RegIdMap.count(Op2Ins) != 0){ //handling registers
 		Instruction *Index = RegIdMap.at(Op2Ins);
@@ -1100,17 +1081,8 @@ void FPInstrument::handleSelect(Instruction *I, SelectInst *SI, Function &F){
 		errs()<<"handleSelect: Error !!! op2 not found:"<<*OP2<<"\n";
 	} 
   if (isa<ConstantFP>(OP3) || TrackIToFCast.count(Op3Ins)) {
-		if(ConsMap.count(OP3) != 0){
-			Index = ConsMap.at(OP3); // it should never fail
-		}
-		else{
-			Index = ConsCount++; 
-			ConsMap.insert(std::pair<Value*, size_t>(OP3, ConsCount));
-		}
-		Constant* consIndex = ConstantInt::get(Type::getInt32Ty(M->getContext()), Index); 
-		SetRealConstant = M->getOrInsertFunction("setRealReg", Int64Ty, Int32Ty, OP3->getType());
-		Instruction *NewIns = IRB.CreateCall(SetRealConstant, {consIndex, OP3});
-    NewOp3 = dyn_cast<Value>(NewIns);
+		Constant* consIndex = ConstantInt::get(Type::getInt32Ty(M->getContext()), 0); 
+    NewOp3 = dyn_cast<Value>(consIndex);
   }
 	else if(RegIdMap.count(Op3Ins) != 0){ //handling registers
 		Instruction *Index = RegIdMap.at(Op3Ins);
