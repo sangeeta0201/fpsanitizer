@@ -26,7 +26,6 @@ public:
   FPInstrument() : ModulePass(ID) {}
 
   virtual bool runOnModule(Module &module);
-	void handleFuncMainInit(Function &F);
 	bool isFPArray(Type *type);
 	void cleanGEP(StructType *ST,Instruction *I, BasicBlock *BB,  GetElementPtrInst *GEP, Function &F, size_t index);
   //it returns true if function is in the list of instrumented functions
@@ -59,16 +58,18 @@ public:
   //it creates a call to runtime to print register real value
   void createPrintFunc(Instruction *I, CallInst *CI, Function &F); 
   //it creates call to runtime for clean up and printing
+  void handleMainInit(Instruction *I, Function &F);
   void handleMainRet(Instruction *I, Function &F);
   //this function matches return value of callee to the caller
   void handleFuncReturn(Instruction *I, ReturnInst *RI, Function &F);
   //this function looks one instruction ahead and return it
   Instruction* getNextInstruction(Instruction *I, BasicBlock *BB);
-  void handleFuncExit(Instruction *I, BasicBlock *BB, Function &F);  
+  void handleFuncExit(Instruction *I, ReturnInst *RI, BasicBlock *BB, Function &F);  
   void handleFuncInit(Function &F);  
+  void handleFuncMainInit(Function &F);  
   void handleAlloca(Instruction *I, BasicBlock *BB, AllocaInst *A, Function &F);  void handleCleanup(Instruction *I, ReturnInst *RI, Function &F); 
   void handleSelect(Instruction *I, SelectInst *SI, Function &F);
-  void handleLoad(Instruction *I, LoadInst *LI, Function &F);
+  void handleLoad(Instruction *I,  BasicBlock *BB, LoadInst *LI, Function &F);
 	void instrumentAllFunctions(std::string FN);
 	void handleExtractValue(Instruction *I, ExtractValueInst *EVI, Function &F);
 	void handleLLVMMemcpy(Instruction *I, CallInst *CI, Function &F);
@@ -76,11 +77,13 @@ public:
 private:
   SmallVector<Function*, 8> AllFuncList;
   SmallVector<ReturnInst*, 8> AllReturn;
+	std::map<std::map<size_t, size_t>, size_t> shadowFunArgMap;
   std::map<Instruction*, Instruction*> TrackIToFCast;
   //this is used to track address of a variable loaded from memory 
   std::map<Instruction*, Value*> LoadMap;
   //this is used to track reg index
   std::map<Instruction*, Instruction*> RegIdMap;
+  std::map<Function*, Instruction*> RetMap;
   //it is used for constant used in phi node, since phi node is of type size then we need to store
   //floating point constant in shadow memory and get its index in size_t. If we will leave constant
   //as it is then there will type mismatch because constant would be of type double and if run time 
@@ -96,7 +99,7 @@ private:
   //runtime for its address or index. 
   std::map<Argument*, size_t> ArgMap;
   //this is index for constants 
-  size_t ConsCount = 0;
+  size_t ConsCount = 1;
   //this is index for instructions
   size_t InsCount = 0;
   //these are handlers for run time functions

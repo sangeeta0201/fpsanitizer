@@ -1,13 +1,9 @@
-0.000000 bits average error
-0.000000 max  error
-
-0.000000 bits average error
-0.000000 max  error
-
-62.000986 bits average error
-62.001267 max  error
+4.191770 bits average error
+5.977280 max  error
 
 compare
-branch flipped 0 times out of 4 compare @ 9
+branch flipped 1 times out of 1 compare
 
+compare
+branch flipped 1 times out of 500 compare
 
