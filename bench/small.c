@@ -12,5 +12,7 @@ int main() {
   printf("y:%e\n", y);
   calcY(&y, x);
   printf("y:%e\n", y);
+	double sum = x + y;
+  printf("sum:%e\n", sum);
   return 0;
 }

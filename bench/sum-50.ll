@@ -3,7 +3,7 @@ source_filename = "sum-50.c"
 target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
 target triple = "x86_64-unknown-linux-gnu"
 
-@.str = private dso_local unnamed_addr constant [7 x i8] c"%.20g\0A\00", align 1
+@.str = private unnamed_addr constant [7 x i8] c"%.20g\0A\00", align 1
 
 ; Function Attrs: nounwind uwtable
 define dso_local i32 @main() local_unnamed_addr #0 {
@@ -12,23 +12,21 @@ entry:
   %x.0.x.0..sroa_cast = bitcast double* %x to i8*
   call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %x.0.x.0..sroa_cast)
   store volatile double 0.000000e+00, double* %x, align 8, !tbaa !2
-  %x.0.x.0.4 = load volatile double, double* %x, align 8, !tbaa !2
-  %cmp5 = fcmp olt double %x.0.x.0.4, 2.000000e+00
-  %x.0.x.0.16 = load volatile double, double* %x, align 8, !tbaa !2
-  br i1 %cmp5, label %for.inc, label %for.end
+  %x.0.x.0.5 = load volatile double, double* %x, align 8, !tbaa !2
+  %cmp6 = fcmp olt double %x.0.x.0.5, 2.000000e+00
+  br i1 %cmp6, label %for.body, label %for.end
 
-for.inc:                                          ; preds = %entry, %for.inc
-  %x.0.x.0.17 = phi double [ %x.0.x.0.1, %for.inc ], [ %x.0.x.0.16, %entry ]
-  %add = fadd double %x.0.x.0.17, 2.000000e-01
+for.body:                                         ; preds = %entry, %for.body
+  %x.0.x.0.1 = load volatile double, double* %x, align 8, !tbaa !2
+  %call = tail call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([7 x i8], [7 x i8]* @.str, i64 0, i64 0), double %x.0.x.0.1)
+  %x.0.x.0.2 = load volatile double, double* %x, align 8, !tbaa !2
+  %add = fadd double %x.0.x.0.2, 2.000000e-01
   store volatile double %add, double* %x, align 8, !tbaa !2
   %x.0.x.0. = load volatile double, double* %x, align 8, !tbaa !2
   %cmp = fcmp olt double %x.0.x.0., 2.000000e+00
-  %x.0.x.0.1 = load volatile double, double* %x, align 8, !tbaa !2
-  br i1 %cmp, label %for.inc, label %for.end
+  br i1 %cmp, label %for.body, label %for.end
 
-for.end:                                          ; preds = %for.inc, %entry
-  %x.0.x.0.1.lcssa = phi double [ %x.0.x.0.16, %entry ], [ %x.0.x.0.1, %for.inc ]
-  %call = tail call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([7 x i8], [7 x i8]* @.str, i64 0, i64 0), double %x.0.x.0.1.lcssa)
+for.end:                                          ; preds = %for.body, %entry
   call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %x.0.x.0..sroa_cast)
   ret i32 0
 }

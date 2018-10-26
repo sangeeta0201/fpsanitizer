@@ -3,58 +3,47 @@ source_filename = "sum-50.c"
 target datalayout = "e-m:e-i64:64-f80:128-n8:16:32:64-S128"
 target triple = "x86_64-unknown-linux-gnu"
 
-@.str = private dso_local unnamed_addr constant [7 x i8] c"%.20g\0A\00", align 1
+@.str = private unnamed_addr constant [7 x i8] c"%.20g\0A\00", align 1
 
 ; Function Attrs: nounwind uwtable
 define dso_local i32 @main() local_unnamed_addr #0 {
 entry:
+  call void @init()
   %0 = bitcast i32 ()* @main to i8*
-  call void @funcInit(i8* %0)
+  %1 = call i64 @getAddr(i8* %0)
+  call void @funcInit(i64 %1)
   %x = alloca double, align 8
-  %1 = bitcast double* %x to i8*
-  call void @handleAlloca(i8* %1)
   %x.0.x.0..sroa_cast = bitcast double* %x to i8*
   call void @llvm.lifetime.start.p0i8(i64 8, i8* nonnull %x.0.x.0..sroa_cast)
   %2 = bitcast double* %x to i8*
-  call void @setRealConstant(i8* %2, double 0.000000e+00)
+  %3 = call i64 @getRegRes(i32 0)
   store volatile double 0.000000e+00, double* %x, align 8, !tbaa !2
-  %x.0.x.0.4 = load volatile double, double* %x, align 8, !tbaa !2
-  %cmp5 = fcmp olt double %x.0.x.0.4, 2.000000e+00
-  %x.0.x.0.16 = load volatile double, double* %x, align 8, !tbaa !2
-  %3 = bitcast double* %x to i8*
-  %4 = call i8 @getAddr(i8* %3)
-  %5 = bitcast double* %x to i8*
-  %6 = call i8 @getAddr(i8* %5)
-  br i1 %cmp5, label %for.inc, label %for.end
+  %x.0.x.0.5 = load volatile double, double* %x, align 8, !tbaa !2
+  %4 = call i64 @getRegRes(i32 4)
+  %cmp6 = fcmp olt double %x.0.x.0.5, 2.000000e+00
+  call void @checkBranch(double %x.0.x.0.5, i64 %4, double 2.000000e+00, i64 0, i32 4, i1 %cmp6, i32 5, i64 0)
+  br i1 %cmp6, label %for.body, label %for.end
 
-for.inc:                                          ; preds = %entry, %for.inc
-  %7 = phi i8 [ %16, %for.inc ], [ %6, %entry ]
-  %x.0.x.0.17 = phi double [ %x.0.x.0.1, %for.inc ], [ %x.0.x.0.16, %entry ]
-  %8 = bitcast i8* null to i8*
-  %9 = bitcast i8* null to i8*
-  %add = fadd double %x.0.x.0.17, 2.000000e-01
-  %10 = call i8* @computeReal(i32 12, i8 %7, i8* %9, i8 0, i8* %8, double %x.0.x.0.17, double 2.000000e-01, double %add, i32 11)
-  %11 = bitcast double* %x to i8*
-  %12 = bitcast i8* %10 to i8*
-  call void @setRealTemp(i8* %11, i8* %12)
+for.body:                                         ; preds = %entry, %for.body
+  %x.0.x.0.1 = load volatile double, double* %x, align 8, !tbaa !2
+  %5 = call i64 @getRegRes(i32 7)
+  %call = tail call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([7 x i8], [7 x i8]* @.str, i64 0, i64 0), double %x.0.x.0.1)
+  %x.0.x.0.2 = load volatile double, double* %x, align 8, !tbaa !2
+  %6 = call i64 @getRegRes(i32 9)
+  %add = fadd double %x.0.x.0.2, 2.000000e-01
+  %7 = call i64 @computeReal(i32 12, i64 %6, i64 0, double %x.0.x.0.2, double 2.000000e-01, double %x.0.x.0.2, double 2.000000e-01, double %add, i64 3, i32 10)
+  %8 = bitcast double* %x to i8*
+  %9 = call i64 @getRegRes(i32 0)
+  call void @setRealTemp(i64 %9, i64 %7, double %add)
   store volatile double %add, double* %x, align 8, !tbaa !2
   %x.0.x.0. = load volatile double, double* %x, align 8, !tbaa !2
+  %10 = call i64 @getRegRes(i32 12)
   %cmp = fcmp olt double %x.0.x.0., 2.000000e+00
-  %x.0.x.0.1 = load volatile double, double* %x, align 8, !tbaa !2
-  %13 = bitcast double* %x to i8*
-  %14 = call i8 @getAddr(i8* %13)
-  %15 = bitcast double* %x to i8*
-  %16 = call i8 @getAddr(i8* %15)
-  br i1 %cmp, label %for.inc, label %for.end
+  call void @checkBranch(double %x.0.x.0., i64 %10, double 2.000000e+00, i64 0, i32 4, i1 %cmp, i32 13, i64 0)
+  br i1 %cmp, label %for.body, label %for.end
 
-for.end:                                          ; preds = %for.inc, %entry
-  %17 = phi i8 [ %4, %entry ], [ %14, %for.inc ]
-  %x.0.x.0.1.lcssa = phi double [ %x.0.x.0.16, %entry ], [ %x.0.x.0.1, %for.inc ]
-  %call = tail call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([7 x i8], [7 x i8]* @.str, i64 0, i64 0), double %x.0.x.0.1.lcssa)
+for.end:                                          ; preds = %for.body, %entry
   call void @llvm.lifetime.end.p0i8(i64 8, i8* nonnull %x.0.x.0..sroa_cast)
-  %18 = bitcast i32 ()* @main to i8*
-  call void @funcExit(i8* %18)
-  call void @cleanComputeReal(i32 11)
   call void @finish()
   ret i32 0
 }
@@ -68,23 +57,21 @@ declare dso_local i32 @printf(i8* nocapture readonly, ...) local_unnamed_addr #2
 ; Function Attrs: argmemonly nounwind
 declare void @llvm.lifetime.end.p0i8(i64, i8* nocapture) #1
 
-declare void @funcInit(i8*)
+declare i64 @getRegRes(i32)
 
-declare void @funcExit(i8*)
+declare void @setRealTemp(i64, i64, double)
 
-declare void @handleAlloca(i8*)
+declare void @checkBranch(double, i64, double, i64, i32, i1, i32, i64)
 
-declare void @setRealConstant(i8*, double)
-
-declare i8* @computeReal(i32, i8, i8*, i8, i8*, double, double, double, i32)
-
-declare void @setRealTemp(i8*, i8*)
-
-declare void @cleanComputeReal(i32)
+declare i64 @computeReal(i32, i64, i64, double, double, double, double, double, i64, i32)
 
 declare void @finish()
 
-declare i8 @getAddr(i8*)
+declare i64 @getAddr(i8*)
+
+declare void @funcInit(i64)
+
+declare void @init()
 
 attributes #0 = { nounwind uwtable "correctly-rounded-divide-sqrt-fp-math"="false" "disable-tail-calls"="false" "less-precise-fpmad"="false" "no-frame-pointer-elim"="false" "no-infs-fp-math"="false" "no-jump-tables"="false" "no-nans-fp-math"="false" "no-signed-zeros-fp-math"="false" "no-trapping-math"="false" "stack-protector-buffer-size"="8" "target-cpu"="x86-64" "target-features"="+fxsr,+mmx,+sse,+sse2,+x87" "unsafe-fp-math"="false" "use-soft-float"="false" }
 attributes #1 = { argmemonly nounwind }

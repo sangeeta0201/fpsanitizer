@@ -20,8 +20,8 @@ double foo(double x, double y){
 }
 
 int main(){
-  float x = 2.2;
-  float y = 3.2;
+  double x = 2.2;
+  double y = 3.2;
   double z = foo(x, y);
   printf("z: %e:\n", z);
 }   

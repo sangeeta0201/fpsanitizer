@@ -17,20 +17,10 @@ entry:
   ret double %temp.0.lcssa
 }
 
-; Function Attrs: norecurse nounwind readnone uwtable
-define dso_local double @bar(double %a, double %b, i32 %count) local_unnamed_addr #0 {
-entry:
-  %cmp5 = icmp sgt i32 %count, 0
-  %add.le = fadd double %a, %b
-  %add1.le = fadd double %add.le, 1.000000e-01
-  %temp.0.lcssa = select i1 %cmp5, double %add1.le, double 0.000000e+00
-  ret double %temp.0.lcssa
-}
-
 ; Function Attrs: nounwind uwtable
 define dso_local i32 @main(i32 %argc, i8** nocapture readonly %argv) local_unnamed_addr #1 {
 entry:
-  %cmp = icmp slt i32 %argc, 3
+  %cmp = icmp slt i32 %argc, 1
   br i1 %cmp, label %if.then, label %if.end
 
 if.then:                                          ; preds = %entry
@@ -41,35 +31,19 @@ if.end:                                           ; preds = %entry
   %arrayidx = getelementptr inbounds i8*, i8** %argv, i64 1
   %0 = load i8*, i8** %arrayidx, align 8, !tbaa !2
   %call1 = tail call i32 @atoi(i8* %0) #4
-  %arrayidx2 = getelementptr inbounds i8*, i8** %argv, i64 2
-  %1 = load i8*, i8** %arrayidx2, align 8, !tbaa !2
-  %call3 = tail call i32 @atoi(i8* %1) #4
-  %arrayidx4 = getelementptr inbounds i8*, i8** %argv, i64 3
-  %2 = load i8*, i8** %arrayidx4, align 8, !tbaa !2
-  %call5 = tail call i32 @atoi(i8* %2) #4
-  %call7 = tail call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([9 x i8], [9 x i8]* @.str.1, i64 0, i64 0), i32 %call1)
-  %cmp831 = icmp sgt i32 %call1, 0
-  br i1 %cmp831, label %for.body.lr.ph, label %for.cond.cleanup
+  %call2 = tail call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([9 x i8], [9 x i8]* @.str.1, i64 0, i64 0), i32 %call1)
+  %cmp324 = icmp sgt i32 %call1, 0
+  br i1 %cmp324, label %for.cond.for.cond.cleanup_crit_edge, label %for.cond.cleanup
 
-for.body.lr.ph:                                   ; preds = %if.end
-  %conv6 = sitofp i32 %call5 to double
-  %conv = sitofp i32 %call3 to double
-  %call10 = tail call double @foo(double %conv, double %conv6, i32 %call1)
-  br label %for.body
+for.cond.for.cond.cleanup_crit_edge:              ; preds = %if.end
+  %call5.le = tail call double @foo(double 2.000000e-01, double 0.000000e+00, i32 %call1)
+  %add6.le = fadd double %call5.le, 0.000000e+00
+  br label %for.cond.cleanup
 
-for.cond.cleanup:                                 ; preds = %for.body, %if.end
-  %sum.0.lcssa = phi double [ 0.000000e+00, %if.end ], [ %add12, %for.body ]
-  %call13 = tail call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([27 x i8], [27 x i8]* @.str.2, i64 0, i64 0), double %sum.0.lcssa)
+for.cond.cleanup:                                 ; preds = %for.cond.for.cond.cleanup_crit_edge, %if.end
+  %sum.0.lcssa = phi double [ %add6.le, %for.cond.for.cond.cleanup_crit_edge ], [ 0.000000e+00, %if.end ]
+  %call7 = tail call i32 (i8*, ...) @printf(i8* getelementptr inbounds ([27 x i8], [27 x i8]* @.str.2, i64 0, i64 0), double %sum.0.lcssa)
   br label %cleanup
-
-for.body:                                         ; preds = %for.body, %for.body.lr.ph
-  %i.033 = phi i32 [ 0, %for.body.lr.ph ], [ %inc, %for.body ]
-  %sum.032 = phi double [ 0.000000e+00, %for.body.lr.ph ], [ %add12, %for.body ]
-  %add = fadd double %sum.032, %call10
-  %add12 = fadd double %call10, %add
-  %inc = add nuw nsw i32 %i.033, 1
-  %exitcond = icmp eq i32 %inc, %call1
-  br i1 %exitcond, label %for.cond.cleanup, label %for.body
 
 cleanup:                                          ; preds = %for.cond.cleanup, %if.then
   ret i32 0
