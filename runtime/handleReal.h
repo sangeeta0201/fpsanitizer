@@ -12,13 +12,15 @@
 #include <sys/stat.h>
 #include <sys/mman.h>
 #include <fcntl.h>
+#include "tbb/concurrent_queue.h"
+#include "tbb/concurrent_unordered_map.h"
 #define PRECISION 1000
 #define BUFLEN 10000000
 #define MMAP_FLAGS (MAP_PRIVATE| MAP_ANONYMOUS| MAP_NORESERVE)
-#define MAX_STACK_SIZE 10000000
-#define MAX_SIZE 1
+#define MAX_STACK_SIZE 1000000000
+#define MAX_SIZE 100000000
 
-
+using namespace tbb;
 struct ErrorAggregate {
   double max_error;
   double total_error;
@@ -67,23 +69,29 @@ struct ComputeR{
 };
 
 int perf_fds;  
+size_t frameIndex = 1;
+size_t count = 1;
 double realTT = 0;
 double handleExtractValueTT = 0;
 double handleMemcpyTT = 0;
 double setTempTT = 0;
-double setReturnTT = 0;
 double getRealReturnTT = 0;
-double setFunArgTT = 0;
 double getRealFunArgTT = 0;
-double setRealTT = 0;
-double cmpBranchTT = 0;
-double computeRTT = 0;
-double computeRTT1 = 0;
-double handleMath3TT = 0;
-double handleMathTT = 0;
-double fExitTT = 0;
-double fInitTT = 0;
+double setRealFunArgTT = 0;
+double checkBranchTT = 0;
+double computeRealTT = 0;
+double handleMathFunc3TT = 0;
+double handleMathFuncTT = 0;
+double funcExitTT = 0;
+double funcInitTT = 0;
+double getAddrTT = 0;
 double addFunArgTT = 0;
+double finishTT = 0;
+double initTT = 0;
+double handleLLVMMemcpyTT = 0;
+double setRealTempTT = 0;
+double setRealReturnTT = 0;
+double setRealRegTT = 0;
 size_t recordHandleExtractValue = 0;
 size_t recordHandleMemcpy = 0;
 size_t recordSetTemp = 0;
@@ -113,29 +121,17 @@ size_t currentFunc = 0;
 bool consumerFlag = false;
 size_t compute = 0;  
 double regIndex = 100; //Assuming there are 100 constants, as we are giving index for constants for phi and select from llvm pass 
-size_t stackIdx = 0;
 size_t retIdx = 0;
+size_t newRegIdx = -1;
 std::map<size_t, struct ErrorAggregate*>errorMap;
 std::map<size_t, struct BrError*>errBrMap;
-//this will link ins index to index of result in shadow mem
-//std::queue<struct ComputeR*>buffer;
-struct ComputeR *buffer;
-//std::list<struct MyShadow*> varTrack;
+concurrent_queue<struct ComputeR*> buffer;
 struct MyShadow *shdStack;
-//std::stack<size_t> retTrack;
-//sparse_hash_map<size_t, size_t>insMap;
 std::map<std::map<size_t, size_t>, size_t> shadowFunArgMap;
-//std::map<size_t, size_t>funRetMap;
-//sparse_hash_map<size_t, size_t>funRetMap;
-struct FunRet{
-	size_t key;
-	size_t val;
-	struct FunRet *next;
-};
-
-struct FunRet *funRetMap;
+concurrent_unordered_map<size_t, size_t> funRetMap;
 size_t *insMap;
-size_t *retTrack;
+size_t *indexMap;
+size_t *indexToshadowMap;
 static inline int advance(volatile size_t *idx);
 void fInit(size_t funcAddrInt);
 void fExit(size_t funcAddrInt, size_t returnIdx);
@@ -149,14 +145,15 @@ void computeR(size_t opCode, size_t op1Idx, size_t op2Idx, float op1f, float op2
                                     size_t typeId, size_t insIndex, size_t newRegIdx);
 void compareBranch(double op1, size_t op1Int, double op2, size_t op2Int,                                                                                                    
                             int fcmpFlag, bool computedRes, size_t insIndex, size_t lineNo);
-size_t getRegRes(size_t insIndex);
+extern "C" size_t getRegRes(size_t insIndex);
 size_t getNewRegIndex();
 void fini();
 void initMain();
 void setReal(size_t index, double value);
 void setFunArg(size_t shadowAddr, size_t toAddrInt, double op);
-void setReturn(size_t toAddrInt);
+void setReturn(size_t toAddrInt, size_t funAddr);
 void setTemp(size_t toAddrInt, size_t fromAddrInt, double op);
+void setConstant(size_t toAddrInt, double op);
 void handleMemcpy(size_t toAddrInt, size_t fromAddrInt, size_t size);
 void addRegRes(size_t insIndex, size_t resRegIndex);
 void printReal(mpfr_t mpfr_val);

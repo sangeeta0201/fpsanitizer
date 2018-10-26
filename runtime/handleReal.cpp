@@ -14,27 +14,22 @@
 #include <asm/unistd.h>
 #include <sys/syscall.h>
 #include <stdlib.h>
-#include <atomic>
-#include <thread>
-#include <string>
 /*TODO : 
 1. Handle const in llvm - gsl-modpi.c
 2. Clean up shadow
 3. How to figure out memcpy of only double?
 */
-#define MULTITHREADED 
-#define debug 0
-#define debugp 1
-#define debugc 1
+//#define MULTITHREADED 
+#define debug 1
+#define debugp 0
+#define debugc 0
 #define debugTh 0
-#define time 0
+#define time 1
 #define cycles 0
 
 
 pthread_t con;
 FILE *pFile = fopen ("error.out","w");  
-std::atomic <size_t>  _tail = {0};
-std::atomic <size_t>  _head = {0};
 static long
 perf_event_open(struct perf_event_attr *hw_event, pid_t pid,
                 int cpu, int group_fd, unsigned long flags)
@@ -73,203 +68,153 @@ long long count;
     return count;
 }
 
-size_t increment(size_t idx){
-  return (idx + 1) % BUFLEN;
-}
-
-int hashKey(int key){
-    return key % MAX_SIZE;
-}
-
-size_t hashFind(size_t key){
-	size_t hashIndex = key % MAX_SIZE;
-	size_t tmp = funRetMap[hashIndex].key;
-	struct FunRet *node = &(funRetMap[hashIndex]);
-	while(node != NULL){
-		if(node->key == key)
-			return node->val;
-		node = funRetMap[hashIndex].next;
-	} 
-	return 0;
-}
-
-void hashInsert(size_t key, size_t val){
-	size_t hashIndex = key % MAX_SIZE;
-	struct FunRet *node = &(funRetMap[hashIndex]);
-	struct FunRet *newNode;
-	std::cout<<"hashInsert: inserting key:"<<key<<" with val:"<<val<<"\n";
-	std::cout<<"hashInsert: val:"<<node->val<<"\n";
-	if(node->val == 0){
-		
-		std::cout<<"hashInsert: hashIndex:"<<hashIndex<<"\n";
-		funRetMap[hashIndex].key = key;
-		funRetMap[hashIndex].val = val;
-		std::cout<<"hashInsert: val:"<<node->val<<"\n";
-	}
-	else if(node->key == key){
-		std::cout<<"hasInsert: updating\n";
-		funRetMap[hashIndex].val = val;
-	}
-	else{
-		while(node->next != NULL){
-			node = node->next;
-		}
-		if(node->next == NULL){
-				std::cout<<"hashInsert: hashIndex collision"<<hashIndex<<"\n";
-    		newNode = (struct FunRet *) mmap(0, 1, PROT_READ|PROT_WRITE, MMAP_FLAGS, -1, 0);
-				newNode->key = key;
-				newNode->val = val;
-				node->next = newNode;	
-				std::cout<<"hashInsert: collision val:"<<node->val<<"\n";
-		}
-	}
-}
 extern "C" size_t getAddr(void *Addr){
+	struct timeval  tv1, tv2;
+	if(time){
+		gettimeofday(&tv1, NULL);
+	}
   size_t AddrInt = (size_t) Addr;
-  return AddrInt;
+	size_t offset = (AddrInt) & 0xffffff;
+	newRegIdx = getRegRes(offset);
+	
+	if(time){
+		gettimeofday(&tv2, NULL);
+		getAddrTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+                        (double) (tv2.tv_sec - tv1.tv_sec);
+	}
+  return newRegIdx;
 }
 
 extern "C" void addFunArg(size_t argNo, size_t funAddrInt, size_t argAddrInt){
-    struct timeval  tv1, tv2;
-    if(time){
-        gettimeofday(&tv1, NULL);
-    }
-    if(cycles)
-        start_count();
+	struct timeval  tv1, tv2;
+	if(time){
+		gettimeofday(&tv1, NULL);
+	}
+	if(cycles)
+		start_count();
 
-    std::map<size_t, size_t> data;
-    data.insert(std::pair<size_t, size_t>(funAddrInt, argNo));
-    std::map<std::map<size_t, size_t>, size_t>::iterator it = shadowFunArgMap.find(data); 
+	std::map<size_t, size_t> data;
+	data.insert(std::pair<size_t, size_t>(funAddrInt, argNo));
+	std::map<std::map<size_t, size_t>, size_t>::iterator it = shadowFunArgMap.find(data); 
 
-    if (it != shadowFunArgMap.end()){
-        shadowFunArgMap.erase(it);
-    }
-    shadowFunArgMap.insert(std::pair<std::map<size_t, size_t>, size_t>(data, argAddrInt));
-    if(cycles)
-        recordAddFunArg += stop_n_get_count();  
-    if(time){
-        gettimeofday(&tv2, NULL);
-        addFunArgTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+	if(it != shadowFunArgMap.end()){
+		shadowFunArgMap.erase(it);
+	}
+	shadowFunArgMap.insert(std::pair<std::map<size_t, size_t>, size_t>(data, argAddrInt));
+	if(cycles)
+		recordAddFunArg += stop_n_get_count();  
+	if(time){
+		gettimeofday(&tv2, NULL);
+		addFunArgTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
                         (double) (tv2.tv_sec - tv1.tv_sec);
-    }
-
+	}
 }
 
 extern "C" void funcInit(size_t funcAddrInt){
 #ifdef MULTITHREADED
-
-		const auto current_tail = _tail.load(std::memory_order_relaxed);
-  	const auto next_tail = increment(current_tail);
-  	while(next_tail == _head.load(std::memory_order_acquire))
-  	{
-			if(debugTh)
-				std::cout<<"producer funcInit :buffer is full\n";
-			sleep(0);
-		}
-
-		buffer[current_tail].funcAddrInt = funcAddrInt;	
-		buffer[current_tail].cmd = 1;	
-    _tail.store(next_tail, std::memory_order_release);
-		if(debugp)
-			std::cout<<"producer: pushed cmd 1\n";
-		if(debugTh)
-			std::cout<<"producer: process object with cmd:"<<1<<"\n";
+	struct ComputeR* op = new ComputeR;
+	op->funcAddrInt = funcAddrInt;
+	op->cmd = 1;
+	buffer.push(op);
+	if(debugp)
+		std::cout<<"producer: pushed cmd 1\n";
+	if(debugTh)
+		std::cout<<"producer: process object with cmd:"<<1<<"\n";
 #else
+	struct timeval  tv1, tv2;
+	if(time){
+		gettimeofday(&tv1, NULL);
+  }
 	fInit(funcAddrInt);
+	if(time){
+		gettimeofday(&tv2, NULL);
+		funcInitTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+                        (double) (tv2.tv_sec - tv1.tv_sec);
+	}
 #endif
 }
 
 extern "C" void funcExit(size_t funcAddrInt, size_t returnIdx){
-	//funRetMap[funcAddrInt] = returnIdx;
-	hashInsert(funcAddrInt, returnIdx);
+	struct timeval  tv1, tv2;
+  if(time){                                                                                                                     
+    gettimeofday(&tv1, NULL);
+  }
+	funRetMap.insert(std::pair<size_t, size_t>(funcAddrInt, returnIdx));
 #ifdef MULTITHREADED
-	const auto current_tail = _tail.load(std::memory_order_relaxed);
-  const auto next_tail = increment(current_tail);
-  while(next_tail == _head.load(std::memory_order_acquire))
-  {
-		if(debugTh)
-			std::cout<<"producer funcInit :buffer is full\n";
-		sleep(0);
-	}
-	buffer[current_tail].funcAddrInt = funcAddrInt;	
-	buffer[current_tail].returnIdx = returnIdx;	
-	buffer[current_tail].cmd = 2;	
-	_tail.store(next_tail, std::memory_order_release);
+	struct ComputeR* op = new ComputeR;
+	op->funcAddrInt = funcAddrInt;
+	op->returnIdx = returnIdx;
+	op->cmd = 2;
+	buffer.push(op);
 	if(debugp)
 		std::cout<<"producer: pushed cmd 2\n";
-	//advance(&current_tail);
 	if(debugTh)
 		std::cout<<"producer: process object with cmd:"<<2<<"\n";
 #else
-	fExit(funcAddrInt, returnIdx);
+	//fExit(funcAddrInt, returnIdx);
 #endif
+	if(time){
+		gettimeofday(&tv2, NULL);
+		funcExitTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+                        (double) (tv2.tv_sec - tv1.tv_sec);
+	}
 }
 
 extern "C" size_t handleMathFunc(size_t funcCode, double op1, size_t op1Idx, 
                                                 double computedRes, size_t insIndex){ 
-	size_t newRegIdx = getRegRes(insIndex);
-	if(!newRegIdx){
-		newRegIdx = getNewRegIndex();
-		addRegRes(insIndex, newRegIdx);
-	}
+	struct timeval  tv1, tv2;
+  if(time){                                                                                                                     
+    gettimeofday(&tv1, NULL);
+  }
+	newRegIdx = getRegRes(insIndex);
 #ifdef MULTITHREADED
-	const auto current_tail = _tail.load(std::memory_order_relaxed);
-  const auto next_tail = increment(current_tail);
-  while(next_tail == _head.load(std::memory_order_acquire))
-  {
-		if(debugTh)
-			std::cout<<"producer funcInit :buffer is full\n";
-		sleep(0);
-	}
-	buffer[current_tail].funcCode = funcCode;
-	buffer[current_tail].op1Idx = op1Idx;
-	buffer[current_tail].op1d = op1;
-	buffer[current_tail].computedRes = computedRes;
-	buffer[current_tail].insIndex = insIndex;
-	buffer[current_tail].cmd = 3;
-	buffer[current_tail].newRegIdx = newRegIdx;	
-  _tail.store(next_tail, std::memory_order_release);
+	struct ComputeR* op = new ComputeR;
+	op->funcCode = funcCode;
+	op->op1Idx = op1Idx;
+	op->op1d = op1;
+	op->computedRes = computedRes;
+	op->insIndex = insIndex;
+	op->newRegIdx = newRegIdx;
+	op->cmd = 3;
+	buffer.push(op);
 	if(debugp)
 		std::cout<<"producer: pushed cmd 3\n";
-	//advance(&current_tail);	
 	if(debugTh)
 		std::cout<<"producer: process object with cmd:"<<3<<"\n";
 #else
 	handleMath(funcCode, op1, op1Idx, computedRes, insIndex, newRegIdx);
 #endif
-    return newRegIdx;
+	if(time){
+		gettimeofday(&tv2, NULL);
+		handleMathFuncTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+                        (double) (tv2.tv_sec - tv1.tv_sec);
+	}
+	return newRegIdx;
 }
 
 extern "C" size_t handleMathFunc3Args(size_t funcCode, double op1, size_t op1Int,
                                                 double op2, size_t op2Int,
                                                 double op3, size_t op3Int,
                                                 double computedRes, size_t insIndex){ 
-	size_t newRegIdx = getRegRes(insIndex);
-	if(!newRegIdx){
-		newRegIdx = getNewRegIndex();
-		addRegRes(insIndex, newRegIdx);
-	}
+	struct timeval  tv1, tv2;
+  if(time){                                                                                                                     
+    gettimeofday(&tv1, NULL);
+  }
+	newRegIdx = getRegRes(insIndex);
 #ifdef MULTITHREADED
-	const auto current_tail = _tail.load(std::memory_order_relaxed);
-  const auto next_tail = increment(current_tail);
-  while(next_tail == _head.load(std::memory_order_acquire))
-  {
-		if(debugTh)
-			std::cout<<"producer funcInit :buffer is full\n";
-		sleep(0);
-	}
-	buffer[current_tail].funcCode = funcCode;
-	buffer[current_tail].op1Idx = op1Int;
-	buffer[current_tail].op1d = op1;
-	buffer[current_tail].op2Idx = op2Int;
-	buffer[current_tail].op2d = op2;
-	buffer[current_tail].op3Idx = op3Int;
-	buffer[current_tail].op3d = op3;
-	buffer[current_tail].computedRes = computedRes;
-	buffer[current_tail].insIndex = insIndex;
-	buffer[current_tail].cmd = 4;
-	buffer[current_tail].newRegIdx = newRegIdx;	
-  _tail.store(next_tail, std::memory_order_release);
+	struct ComputeR* op = new ComputeR;
+	op->funcCode = funcCode;
+	op->op1Idx = op1Int;
+	op->op1d = op1;
+	op->op2Idx = op2Int;
+	op->op2d = op2;
+	op->op3Idx = op3Int;
+	op->op3d = op3;
+	op->computedRes = computedRes;
+	op->insIndex = insIndex;
+	op->newRegIdx = newRegIdx;
+	op->cmd = 4;
+	buffer.push(op);
 	if(debugp)
 		std::cout<<"producer: pushed cmd 4\n";
 	if(debugTh)
@@ -277,6 +222,11 @@ extern "C" size_t handleMathFunc3Args(size_t funcCode, double op1, size_t op1Int
 #else
 	handleMath3Args(funcCode, op1, op1Int, op2, op2Int, op3, op3Int, computedRes, insIndex, newRegIdx);
 #endif
+	if(time){
+		gettimeofday(&tv2, NULL);
+		handleMathFunc3TT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+                        (double) (tv2.tv_sec - tv1.tv_sec);
+	}
 	return newRegIdx;
 }
 
@@ -284,75 +234,62 @@ extern "C" size_t computeReal(size_t opCode, size_t op1Idx, size_t op2Idx, float
 								double op1d, double op2d, double computedRes,
                                     size_t typeId, size_t insIndex){
 	
-    struct timeval  tv1, tv2;
-    if(time){
-        gettimeofday(&tv1, NULL);
-    }
-    size_t newRegIdx = getRegRes(insIndex);
-    if(!newRegIdx){
-        newRegIdx = getNewRegIndex();
-        addRegRes(insIndex, newRegIdx);
-    }
-    if(time){
-        gettimeofday(&tv2, NULL);
-        realTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
-                        (double) (tv2.tv_sec - tv1.tv_sec);
-    }
-#ifdef MULTITHREADED
-	const auto current_tail = _tail.load(std::memory_order_relaxed);
-  const auto next_tail = increment(current_tail);
-  while(next_tail == _head.load(std::memory_order_acquire))
-  {
-		if(debugTh)
-			std::cout<<"producer funcInit :buffer is full\n";
-		sleep(0);
+	struct timeval  tv1, tv2;
+	if(time){
+		gettimeofday(&tv1, NULL);
 	}
-	buffer[current_tail].opCode = opCode;
-	buffer[current_tail].op1Idx = op1Idx;
-	buffer[current_tail].op2Idx = op2Idx;
-	buffer[current_tail].op1f = op1f;
-	buffer[current_tail].op2f = op2f;
-	buffer[current_tail].op1d = op1d;
-	buffer[current_tail].op2d = op2d;
-	buffer[current_tail].computedRes = computedRes;
-	buffer[current_tail].typeId = typeId;
-	buffer[current_tail].insIndex = insIndex;
-	buffer[current_tail].cmd = 5;
-	buffer[current_tail].newRegIdx = newRegIdx;
-  _tail.store(next_tail, std::memory_order_release);
+	std::cout<<"computeReal starts**\n";
+	newRegIdx = getRegRes(insIndex);
+#ifdef MULTITHREADED
+	struct ComputeR* op = new ComputeR;
+	op->opCode = opCode;
+	op->op1Idx = op1Idx;
+	op->op2Idx = op2Idx;
+	op->op1f = op1f;
+	op->op2f = op2f;
+	op->op1d = op1d;
+	op->op2d = op2d;
+	op->computedRes = computedRes;
+	op->typeId = typeId;
+	op->insIndex = insIndex;
+	op->newRegIdx = newRegIdx;
+	op->cmd = 5;
+	buffer.push(op);
 	if(debugp)
 		std::cout<<"producer: pushed cmd 5\n";
-	//advance(&current_tail);
 	if(debugTh)
 		std::cout<<"producer: process object with cmd:"<<5<<"\n";
 #else 
 	computeR(opCode, op1Idx, op2Idx, op1f, op2f, op1d, op2d, computedRes, typeId, insIndex, newRegIdx);
 #endif
-    return newRegIdx;
+	if(time){
+		gettimeofday(&tv2, NULL);
+		computeRealTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+                        (double) (tv2.tv_sec - tv1.tv_sec);
+	}
+	std::cout<<"computeReal: newRegIdx:"<<newRegIdx<<"\n";
+	return newRegIdx;
 }
 
 
 extern "C" void checkBranch(double op1, size_t op1Int, double op2, size_t op2Int, 
                             int fcmpFlag, bool computedRes, size_t insIndex, size_t lineNo){
+	struct timeval  tv1, tv2;
+  if(time){                                                                                                                     
+    gettimeofday(&tv1, NULL);
+  }
 #ifdef MULTITHREADED
-	const auto current_tail = _tail.load(std::memory_order_relaxed);
-  const auto next_tail = increment(current_tail);
-  while(next_tail == _head.load(std::memory_order_acquire))
-  {
-		if(debugTh)
-			std::cout<<"producer funcInit :buffer is full\n";
-		sleep(0);
-	}
-	buffer[current_tail].op1Idx = op1Int;
-	buffer[current_tail].op2Idx = op2Int;
-	buffer[current_tail].op1d = op1;
-	buffer[current_tail].op2d = op2;
-	buffer[current_tail].fcmpFlag = fcmpFlag;
-	buffer[current_tail].computedRes = computedRes;
-	buffer[current_tail].insIndex = insIndex;
-	buffer[current_tail].lineNo = lineNo;
-	buffer[current_tail].cmd = 6;
-  _tail.store(next_tail, std::memory_order_release);
+	struct ComputeR* op = new ComputeR;
+	op->op1Idx = op1Int;
+	op->op2Idx = op2Int;
+	op->op1d = op1;
+	op->op2d = op2;
+	op->fcmpFlag = fcmpFlag;
+	op->computedRes = computedRes;
+	op->insIndex = insIndex;
+	op->lineNo = lineNo;
+	op->cmd = 6;
+	buffer.push(op);
 	if(debugp)
 		std::cout<<"producer: pushed cmd 6\n";
 	if(debugTh)
@@ -360,74 +297,50 @@ extern "C" void checkBranch(double op1, size_t op1Int, double op2, size_t op2Int
 #else
     compareBranch(op1, op1Int, op2, op2Int, fcmpFlag, computedRes, insIndex, lineNo);
 #endif
-}
-
-extern "C" size_t setRealReg(size_t index, double value){
- 
-#ifdef MULTITHREADED
-	const auto current_tail = _tail.load(std::memory_order_relaxed);
-  const auto next_tail = increment(current_tail);
-  while(next_tail == _head.load(std::memory_order_acquire))
-  {
-		if(debugTh)
-			std::cout<<"producer funcInit :buffer is full\n";
-		sleep(0);
-	}
-	buffer[current_tail].op1Idx = index;
-	buffer[current_tail].op1d = value;
-	buffer[current_tail].cmd = 7;
-  _tail.store(next_tail, std::memory_order_release);
-	if(debugp)
-		std::cout<<"producer: pushed cmd 7\n";
-	//advance(&current_tail);
-	if(debugTh)
-		std::cout<<"producer: process object with cmd:"<<7<<"\n";
-#else 
-	setReal(index, value);
-#endif
-	return index;
+    if(time){
+        gettimeofday(&tv2, NULL);
+        checkBranchTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+                        (double) (tv2.tv_sec - tv1.tv_sec);
+    }
 }
 
 extern "C" size_t getRealFunArg(size_t index, size_t funAddrInt){
-    struct timeval  tv1, tv2;
-    if(time){
-        gettimeofday(&tv1, NULL);
-    }
-    if(cycles)
-        start_count();
-    std::vector<size_t>::iterator it; 
-    std::map<size_t, size_t> shadowAddrMap;
-    size_t shadowAddr = 0;
-    shadowAddrMap.insert(std::pair<size_t, size_t>(funAddrInt, index));
-    if(shadowFunArgMap.count(shadowAddrMap) != 0){ 
-        shadowAddr = shadowFunArgMap.at(shadowAddrMap);
-    }
-    if(cycles)
-        recordGetRealFunArg += stop_n_get_count();  
-    if(time){
-        gettimeofday(&tv2, NULL);
-        getRealFunArgTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+	struct timeval  tv1, tv2;
+	if(time){
+		gettimeofday(&tv1, NULL);
+	}
+	if(cycles)
+		start_count();
+	std::vector<size_t>::iterator it; 
+	std::map<size_t, size_t> shadowAddrMap;
+	size_t shadowAddr = 0;
+	shadowAddrMap.insert(std::pair<size_t, size_t>(funAddrInt, index));
+	if(shadowFunArgMap.count(shadowAddrMap) != 0){ 
+		shadowAddr = shadowFunArgMap.at(shadowAddrMap);
+	}
+	if(cycles)
+		recordGetRealFunArg += stop_n_get_count();  
+	if(time){
+		gettimeofday(&tv2, NULL);
+		getRealFunArgTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
                         (double) (tv2.tv_sec - tv1.tv_sec);
-    }
-    return shadowAddr;
+	}
+	return shadowAddr;
 }
 
 //TODO
 extern "C" void setRealFunArg(size_t shadowAddr, size_t toAddrInt, double value){
+	struct timeval  tv1, tv2;
+  if(time){                                                                                                                     
+    gettimeofday(&tv1, NULL);
+  }
 #ifdef MULTITHREADED
-	const auto current_tail = _tail.load(std::memory_order_relaxed);
-  const auto next_tail = increment(current_tail);
-  while(next_tail == _head.load(std::memory_order_acquire))
-  {
-		if(debugTh)
-			std::cout<<"producer funcInit :buffer is full\n";
-		sleep(0);
-	}
-	buffer[current_tail].shadowAddr = shadowAddr;
-	buffer[current_tail].toAddrInt = toAddrInt;
-	buffer[current_tail].op1d = value;
-	buffer[current_tail].cmd = 11;
-  _tail.store(next_tail, std::memory_order_release);
+	struct ComputeR* op = new ComputeR;
+	op->shadowAddr = shadowAddr;
+	op->toAddrInt = toAddrInt;
+	op->op1d = value;
+	op->cmd = 11;
+	buffer.push(op);
 	if(debugp)
 		std::cout<<"producer: pushed cmd 11\n";
 	if(debugTh)
@@ -435,6 +348,11 @@ extern "C" void setRealFunArg(size_t shadowAddr, size_t toAddrInt, double value)
 #else 
 	setFunArg(shadowAddr, toAddrInt, value);
 #endif
+	if(time){
+		gettimeofday(&tv2, NULL);
+		setRealFunArgTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+                        (double) (tv2.tv_sec - tv1.tv_sec);
+	}
 }
 
 extern "C" size_t getRealReturn(size_t funAddrInt){
@@ -445,13 +363,10 @@ extern "C" size_t getRealReturn(size_t funAddrInt){
   }
   if(cycles)       
 		start_count();
-	size_t val = hashFind(funAddrInt);
-/*	
-	if(funRetMap[funAddrInt] != 0){
-		idx = funRetMap[funAddrInt];
-  }
-*/
-	if(val == 0)
+	size_t idx = 0;
+	if(funRetMap.count(funAddrInt) != 0)
+		idx = funRetMap.at(funAddrInt);
+	else	
 		if(debug)
 			std::cout<<"getRealReturn: Error !!!! return value not found in funRetMap\n";
   if(cycles)
@@ -461,114 +376,156 @@ extern "C" size_t getRealReturn(size_t funAddrInt){
 		getRealReturnTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
                         (double) (tv2.tv_sec - tv1.tv_sec);
 	}
-	return val;
+	return idx;
 }
 
-extern "C" void setRealReturn(size_t toAddrInt){
+extern "C" void setRealReturn(size_t toAddrInt, size_t funAddr){
+	struct timeval  tv1, tv2;
+  if(time){                                                                                                                     
+    gettimeofday(&tv1, NULL);
+  }
 #ifdef MULTITHREADED
-	const auto current_tail = _tail.load(std::memory_order_relaxed);
-  const auto next_tail = increment(current_tail);
-  while(next_tail == _head.load(std::memory_order_acquire))
-  {
-		if(debugTh)
-			std::cout<<"producer funcInit :buffer is full\n";
-		sleep(0);
-	}
-	buffer[current_tail].toAddrInt = toAddrInt;
-	buffer[current_tail].cmd = 8;
-  _tail.store(next_tail, std::memory_order_release);
+	struct ComputeR* op = new ComputeR;
+	op->toAddrInt = toAddrInt;
+	op->funcAddrInt = funAddr;
+	op->cmd = 8;
+	buffer.push(op);
 	if(debugp)
 		std::cout<<"producer: pushed cmd 8\n";
 	if(debugTh)
 		std::cout<<"producer: process object with cmd:"<<8<<"\n";
 #else
-	setReturn(toAddrInt);
+	setReturn(toAddrInt, funAddr);
 #endif
+	if(time){
+		gettimeofday(&tv2, NULL);
+		setRealReturnTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+                        (double) (tv2.tv_sec - tv1.tv_sec);
+	}
 }
 
-extern "C" void setRealTemp(size_t toAddrInt, size_t fromAddrInt, double val){
+extern "C" void setRealConstant(size_t toAddrInt, double val){
+	struct timeval  tv1, tv2;
+  if(time){                                                                                                                     
+    gettimeofday(&tv1, NULL);
+  }
 #ifdef MULTITHREADED
-	const auto current_tail = _tail.load(std::memory_order_relaxed);
-  const auto next_tail = increment(current_tail);
-  while(next_tail == _head.load(std::memory_order_acquire))
-  {
-		if(debugTh)
-			std::cout<<"producer funcInit :buffer is full\n";
-		sleep(0);
-	}
-	buffer[current_tail].toAddrInt = toAddrInt;
-	buffer[current_tail].fromAddrInt = fromAddrInt;
-	buffer[current_tail].op1d = val;
-	buffer[current_tail].cmd = 9;
-  _tail.store(next_tail, std::memory_order_release);
+	struct ComputeR* op = new ComputeR;
+	op->toAddrInt = toAddrInt;
+	op->fromAddrInt = fromAddrInt;
+	op->op1d = val;
+	op->cmd = 9;
+	buffer.push(op);
 	if(debugp)
 		std::cout<<"producer: pushed cmd 9\n";
-	//advance(&current_tail);
+	if(debugTh)
+		std::cout<<"producer: process object with cmd:"<<9<<"\n";
+#else
+	setConstant(toAddrInt, val);
+#endif
+	if(time){
+		gettimeofday(&tv2, NULL);
+		setRealTempTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+                        (double) (tv2.tv_sec - tv1.tv_sec);
+	}
+}
+extern "C" void setRealTemp(size_t toAddrInt, size_t fromAddrInt, double val){
+	struct timeval  tv1, tv2;
+  if(time){                                                                                                                     
+    gettimeofday(&tv1, NULL);
+  }
+#ifdef MULTITHREADED
+	struct ComputeR* op = new ComputeR;
+	op->toAddrInt = toAddrInt;
+	op->fromAddrInt = fromAddrInt;
+	op->op1d = val;
+	op->cmd = 9;
+	buffer.push(op);
+	if(debugp)
+		std::cout<<"producer: pushed cmd 9\n";
 	if(debugTh)
 		std::cout<<"producer: process object with cmd:"<<9<<"\n";
 #else
 	setTemp(toAddrInt, fromAddrInt, val);
 #endif
+	if(time){
+		gettimeofday(&tv2, NULL);
+		setRealTempTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+                        (double) (tv2.tv_sec - tv1.tv_sec);
+	}
 }
 
 extern "C" void handleLLVMMemcpy(size_t toAddrInt, size_t fromAddrInt, size_t size){
+	struct timeval  tv1, tv2;
+  if(time){                                                                                                                     
+    gettimeofday(&tv1, NULL);
+  }
 #ifdef MULTITHREADED
-	const auto current_tail = _tail.load(std::memory_order_relaxed);
-  const auto next_tail = increment(current_tail);
-  while(next_tail == _head.load(std::memory_order_acquire))
-  {
-		if(debugTh)
-			std::cout<<"producer funcInit :buffer is full\n";
-		sleep(0);
-	}
-	buffer[current_tail].toAddrInt = toAddrInt;
-	buffer[current_tail].fromAddrInt = fromAddrInt;
-	buffer[current_tail].size = size;
-	buffer[current_tail].cmd = 10;
-  _tail.store(next_tail, std::memory_order_release);
+	struct ComputeR* op = new ComputeR;
+	op->toAddrInt = toAddrInt;
+	op->fromAddrInt = fromAddrInt;
+	op->size = size;
+	op->cmd = 10;
+	buffer.push(op);
 	if(debugp)
 		std::cout<<"producer: pushed cmd 10\n";
-	//advance(&current_tail);
 	if(debugTh)
 		std::cout<<"producer: process object with cmd:"<<10<<"\n";
 #else
 	handleMemcpy(toAddrInt, fromAddrInt, size);
 #endif
+	if(time){
+		gettimeofday(&tv2, NULL);
+		handleLLVMMemcpyTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+                        (double) (tv2.tv_sec - tv1.tv_sec);
+	}
 }
 
 extern "C" size_t handleExtractValue(size_t idx, size_t funAddrInt){
-    struct timeval  tv1, tv2;
-    if(time){
-        gettimeofday(&tv1, NULL);
-    }
-    if(cycles)
-        start_count();
+	
+	struct timeval  tv1, tv2;
+	if(time){
+		gettimeofday(&tv1, NULL);
+	}
+	if(cycles)
+		start_count();
+
+	size_t shadowIdx = 0;
 	if(debug)
 	    std::cout<<"handleExtractValue: idx:"<<idx<<"\n";
-/*
-	if(funRetMap[funAddrInt] != 0){
-		shadowIdx = funRetMap[funAddrInt];
+	if(funRetMap.count(funAddrInt) != 0){
+		shadowIdx = funRetMap.at(funAddrInt);
 		if(debug)
 			std::cout<<"handleExtractValue:"<< shadowIdx + idx * sizeof(double)<<"\n";
 	}
-*/
-	size_t shadowIdx = hashFind(funAddrInt);
-    if(cycles)
-        recordHandleExtractValue += stop_n_get_count();  
-    if(time){
-        gettimeofday(&tv2, NULL);
-        handleExtractValueTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+  if(cycles)
+      recordHandleExtractValue += stop_n_get_count();  
+	if(time){
+		gettimeofday(&tv2, NULL);
+		handleExtractValueTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
                         (double) (tv2.tv_sec - tv1.tv_sec);
-    }
-    
+	}
 	return shadowIdx + idx * sizeof(double); //TODO: handling just double, generate error for other cases
 }
 
 extern "C" void init(){
+	struct timeval  tv1, tv2;                                                                                                     
+  if(time){                                                                                                                     
+    gettimeofday(&tv1, NULL);
+  }
 	initMain();
+	if(time){
+		gettimeofday(&tv2, NULL);
+		initTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+                        (double) (tv2.tv_sec - tv1.tv_sec);
+	}
 }
 
 extern "C" void finish(){
+	struct timeval  tv1, tv2;
+  if(time){                                                                                                                     
+    gettimeofday(&tv1, NULL);
+  }
 #ifdef MULTITHREADED
 	consumerFlag = true;
 	std::cout<<"finish join\n";
@@ -626,39 +583,36 @@ extern "C" void finish(){
   if(recordHandleExtractValue)
     std::cout<<"handleExtractValue:"<<recordHandleExtractValue<<"\n";
   std::cout<<"time spent in each handler*****\n";
-  if(realTT)
-    std::cout<<"realTT:"<<realTT<<"\n";
   if(addFunArgTT)
     std::cout<<"addFunArg:"<<addFunArgTT<<"\n";
-  if(fInitTT)
-    std::cout<<"funcInit:"<<fInitTT<<"\n";
-  if(fExitTT)
-    std::cout<<"funcExit:"<<fExitTT<<"\n";
-  if(handleMathTT)
-    std::cout<<"handleMathFunc:"<<handleMathTT<<"\n";
-  if(handleMath3TT)
-    std::cout<<"handleMathFunc3:"<<handleMath3TT<<"\n";
-  if(computeRTT)
-    std::cout<<"computeReal:"<<computeRTT<<"\n";
-  if(computeRTT1)
-    std::cout<<"computeReal1:"<<computeRTT1<<"\n";
-  if(cmpBranchTT)
-    std::cout<<"checkBranch:"<<cmpBranchTT<<"\n";
-  std::cout<<"setRealTT:"<<setRealTT<<"\n";
-  if(setRealTT)
-    std::cout<<"setRealReg:"<<setRealTT<<"\n";
+  if(funcInitTT)
+    std::cout<<"funcInit:"<<funcInitTT<<"\n";
+  if(getAddrTT)
+    std::cout<<"getAddrTT:"<<getAddrTT<<"\n";
+  if(funcExitTT)
+    std::cout<<"funcExit:"<<funcExitTT<<"\n";
+  if(handleMathFuncTT)
+    std::cout<<"handleMathFunc:"<<handleMathFuncTT<<"\n";
+  if(handleMathFunc3TT)
+    std::cout<<"handleMathFunc3:"<<handleMathFunc3TT<<"\n";
+  if(computeRealTT)
+    std::cout<<"computeReal:"<<computeRealTT<<"\n";
+  if(checkBranchTT)
+    std::cout<<"checkBranch:"<<checkBranchTT<<"\n";
+	if(setRealFunArgTT)
+  std::cout<<"setRealFunArgTT:"<<setRealFunArgTT<<"\n";
+  if(setRealReturnTT)
+    std::cout<<"setRealReturn:"<<setRealReturnTT<<"\n";
+  if(setRealRegTT)
+    std::cout<<"setRealReg:"<<setRealRegTT<<"\n";
   if(getRealFunArgTT)
     std::cout<<"getRealFunArg:"<<getRealFunArgTT<<"\n";
-  if(setFunArgTT)
-    std::cout<<"setRealFunArg:"<<setFunArgTT<<"\n";
   if(getRealReturnTT)
     std::cout<<"getRealReturn:"<<getRealReturnTT<<"\n";
-  if(setReturnTT)    
-     std::cout<<"setRealReturn:"<<setReturnTT<<"\n";
-  if(setTempTT)
-    std::cout<<"setRealTemp:"<<setTempTT<<"\n";
-  if(handleMemcpyTT)
-    std::cout<<"handleLLVMMemcpy:"<<handleMemcpyTT<<"\n";
+  if(setRealTempTT)
+    std::cout<<"setRealTemp:"<<setRealTempTT<<"\n";
+  if(handleLLVMMemcpyTT)
+    std::cout<<"handleLLVMMemcpy:"<<handleLLVMMemcpyTT<<"\n";
   if(handleExtractValueTT)
     std::cout<<"handleExtractValue:"<<handleExtractValueTT<<"\n";
 
@@ -676,6 +630,12 @@ extern "C" void finish(){
         fprintf (pFile, "\n\n\n");
     }
     fclose (pFile);
+	if(time){
+		gettimeofday(&tv2, NULL);
+		finishTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+                        (double) (tv2.tv_sec - tv1.tv_sec);
+	}
+	std::cout<<"finish:"<<finishTT<<"\n";
 }
 
 int isNaN(Real *real){
@@ -684,34 +644,23 @@ int isNaN(Real *real){
 
 Real* getReal(size_t AddrInt){
 	//for (std::list<struct MyShadow*>::reverse_iterator rit=varTrack.rbegin(); rit!=varTrack.rend(); ++rit){
-	for (size_t top = stackIdx-1; top > 0; top--){
-  	    if(currentFunc == shdStack[top].key){
-			return NULL;
-		}
-  	    if(AddrInt == shdStack[top].key){
-			return shdStack[top].real;	
-	    }
+	if(AddrInt == 0){
+		return NULL;
 	}
-    return NULL;
+	return shdStack[AddrInt].real;	
 }
 
-void addRegRes(size_t insIndex, size_t resRegIndex){
-//    insMap.insert(std::pair<size_t,size_t>(insIndex, resRegIndex));
-    
-	insMap[insIndex] = resRegIndex;
-}
-
-size_t getRegRes(size_t insIndex){
-    if(insMap[insIndex] != 0){ 
-        size_t resRegIndex = insMap[insIndex];
-        return resRegIndex;
-    }
-    return 0;
-}
-
-size_t getNewRegIndex(){
-    regIndex += 1;
-    return regIndex;
+extern "C" size_t getRegRes(size_t insIndex){
+	if(insMap[insIndex] != 0){ 
+		size_t resRegIndex = insMap[insIndex];
+		resRegIndex = resRegIndex + frameIndex;
+		return resRegIndex;
+	}
+	else{
+		newRegIdx += 1;
+		insMap[insIndex] = newRegIdx;
+    return newRegIdx;
+	}
 }
 
 void printStack(){
@@ -721,6 +670,10 @@ void printStack(){
 }
 
 struct MyShadow* existInStack(size_t key){
+	if(key == 0)
+		return NULL;
+	return &shdStack[key];
+/*
 	for (size_t top = stackIdx-1; top > 0; top--){
 		if(currentFunc == shdStack[top].key){
 			return NULL;
@@ -729,17 +682,12 @@ struct MyShadow* existInStack(size_t key){
 			return &shdStack[top];	
 		}
 	}
+*/
 	return NULL;
 }
 
 void handleMath(size_t funcCode, double op1, size_t op1Int, 
                           double computedRes, size_t insIndex, size_t newRegIdx){ 
-	struct timeval  tv1, tv2;
-	if(time){
-		gettimeofday(&tv1, NULL);
-	}
-	if(cycles)
-		start_count();
 	struct Real* real1 = NULL;
 	struct Real* real_res = new Real;
 	mpfr_init2 (real_res->mpfr_val, PRECISION); 
@@ -813,10 +761,8 @@ void handleMath(size_t funcCode, double op1, size_t op1Int,
     }
 	#endif
 	MyShadow *shadow = existInStack(newRegIdx);
-	if(shadow == NULL){
-		shdStack[stackIdx].key = newRegIdx;
-		shdStack[stackIdx].real = real_res;
-		stackIdx++;
+	if(shadow->real == NULL){
+		shdStack[newRegIdx].real = real_res;
 	}
 	else{//just update the value in stack
 		mpfr_clear(shadow->real->mpfr_val);
@@ -833,26 +779,12 @@ void handleMath(size_t funcCode, double op1, size_t op1Int,
 		mpfrClear++;
 	}
 	updateError(real_res, computedRes, insIndex);
-	if(cycles)
-		recordHandleMath += stop_n_get_count();  
-	if(time){
-		gettimeofday(&tv2, NULL);
-		handleMathTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
-                        (double) (tv2.tv_sec - tv1.tv_sec);
-	}
 }
 
 void handleMath3Args(size_t funcCode, double op1, size_t op1Int,
                                                 double op2, size_t op2Int,
                                                 double op3, size_t op3Int,
                                                 double computedRes, size_t insIndex, size_t newRegIdx){ 
-    struct timeval  tv1, tv2;
-    if(time){
-        gettimeofday(&tv1, NULL);
-    }
-    if(cycles)
-        start_count();
-
     struct Real *real1, *real2, *real3;
     struct Real* real_res = new Real;
   
@@ -902,10 +834,8 @@ void handleMath3Args(size_t funcCode, double op1, size_t op1Int,
         std::cout<<"handleMathFunc3Args: Error!!!\n";
 #endif
 	MyShadow *shadow = existInStack(newRegIdx);
-	if(shadow == NULL){
-        shdStack[stackIdx].key = newRegIdx;
-        shdStack[stackIdx].real = real_res;
-        stackIdx++;
+	if(shadow->real == NULL){
+        shdStack[newRegIdx].real = real_res;
 	}
 	else{//just update the value in stack
     	mpfr_clear(shadow->real->mpfr_val);
@@ -933,13 +863,6 @@ void handleMath3Args(size_t funcCode, double op1, size_t op1Int,
         mpfrClear++;
     }
     updateError(real_res, computedRes, insIndex);
-    if(cycles)
-        recordHandleMath3 += stop_n_get_count();  
-    if(time){
-        gettimeofday(&tv2, NULL);
-        handleMath3TT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
-                        (double) (tv2.tv_sec - tv1.tv_sec);
-    }
 }
 
 int handleCmp(mpfr_t *op1, mpfr_t *op2){
@@ -978,10 +901,7 @@ void handleOp(size_t opCode, mpfr_t *res, mpfr_t *op1, mpfr_t *op2){
 void computeR(size_t opCode, size_t op1Idx, size_t op2Idx, float op1f, float op2f,
                                     double op1d, double op2d, double computedRes,
                                     size_t typeId, size_t insIndex, size_t newRegIdx){
-    struct timeval  tv1, tv2;
-    struct timeval  t1, t2;
-    if(cycles)
-        start_count();
+	std::cout<<"computeR: newRegIdx:"<<newRegIdx<<"\n";
 	totalCompute++;	
 	double op1, op2;
 
@@ -996,107 +916,74 @@ void computeR(size_t opCode, size_t op1Idx, size_t op2Idx, float op1f, float op2
 	else
 		std::cout<<"computeReal: Error!!! Unknown type:"<<typeId<<"\n";
 	
-    bool mpfrFlag1 = false;
-    bool mpfrFlag2 = false;
-    Real *real1;
-    Real *real2;
-
-    struct Real* real_res = new Real;
-    if(debug){
+	bool mpfrFlag1 = false;
+	bool mpfrFlag2 = false;
+	Real *real1;
+	Real *real2;
+	struct Real* real_res = new Real;
+	if(debug){	
 		std::cout<<"computeReal op1Idx:"<<op1Idx<<" op1:"<<op1<<"\n";	
 		std::cout<<"computeReal op2Idx:"<<op2Idx<<" op2:"<<op2<<"\n";
-    }
-    if(time){
-        gettimeofday(&t1, NULL);
-    }
+	}
 	real1 = getReal(op1Idx);
 	if(real1 == NULL){
 		if(debug)
-            std::cout<<"computeReal: real1 is null, using op1 value:"<<op1<<"\n";
-      //data might be set without store
-        real1 = new Real;
-        mpfr_init2(real1->mpfr_val, PRECISION);
-        mpfrInit++;
-        mpfr_set_d(real1->mpfr_val, op1, MPFR_RNDN);
-        mpfrFlag1 = true; 
-    }
+			std::cout<<"computeReal: real1 is null, using op1 value:"<<op1<<"\n";
+		//data might be set without store
+		real1 = new Real;
+		mpfr_init2(real1->mpfr_val, PRECISION);
+		mpfrInit++;
+		mpfr_set_d(real1->mpfr_val, op1, MPFR_RNDN);
+		mpfrFlag1 = true; 
+	}
 	real2 = getReal(op2Idx);
-    if(real2 == NULL){
-        if(debug)
-            std::cout<<"computeReal: real2 is null, using op2 value:"<<op2<<"\n";
-        real2 = new Real;
-        mpfr_init2(real2->mpfr_val, PRECISION);
-        mpfrInit++;
-        mpfr_set_d(real2->mpfr_val, op2, MPFR_RNDN);
-        mpfrFlag2 = true; 
-    }
-    if(time){
-        gettimeofday(&t2, NULL);
-        computeRTT1 += (double) (t2.tv_usec - t1.tv_usec) / 1000000 +
-                        (double) (t2.tv_sec - t1.tv_sec);
-    }
-    mpfr_init2 (real_res->mpfr_val, PRECISION); 
-    mpfrInit++;
-
-    handleOp(opCode, &(real_res->mpfr_val), &(real1->mpfr_val), &(real2->mpfr_val));
-    if(time){
-        gettimeofday(&tv1, NULL);
-    }
-		MyShadow *shadow = existInStack(newRegIdx);
-    if(time){
-        gettimeofday(&tv2, NULL);
-        computeRTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
-                        (double) (tv2.tv_sec - tv1.tv_sec);
-    }
-	if(shadow == NULL){
-        shdStack[stackIdx].key = newRegIdx;
-        shdStack[stackIdx].real = real_res;
-        stackIdx++;
-  	if(debug)
-    	std::cout<<"computeReal insert shadow stack::"<<newRegIdx<<"\n";
+	if(real2 == NULL){
+		if(debug)
+			std::cout<<"computeReal: real2 is null, using op2 value:"<<op2<<"\n";
+		real2 = new Real;
+		mpfr_init2(real2->mpfr_val, PRECISION);
+		mpfrInit++;
+		mpfr_set_d(real2->mpfr_val, op2, MPFR_RNDN);
+		mpfrFlag2 = true; 
+	}
+	mpfr_init2 (real_res->mpfr_val, PRECISION); 
+	mpfrInit++;
+	
+	handleOp(opCode, &(real_res->mpfr_val), &(real1->mpfr_val), &(real2->mpfr_val));
+	MyShadow *shadow = existInStack(newRegIdx);
+	if(shadow->real == NULL){
+		assert(newRegIdx<=MAX_STACK_SIZE);
+		shdStack[newRegIdx].real = real_res;
+    std::cout<<"computeReal insert shadow stack::"<<newRegIdx<<"\n";
 	}
 	else{//just update the value in stack		
 		mpfr_clear(shadow->real->mpfr_val);
-        delete(shadow->real);
-        mpfrClear++;
-
+		delete(shadow->real);
+		mpfrClear++;
 		shadow->key = newRegIdx;
 		shadow->real = real_res;  
-  	    if(debug)
-    	    std::cout<<"computeReal update shadow stack::"<<newRegIdx<<"\n";
+		std::cout<<"computeReal update shadow stack::"<<newRegIdx<<"\n";
 	}
   updateError(real_res, computedRes, insIndex);
-    if(mpfrFlag1){
-        mpfr_clear(real1->mpfr_val);
-        delete  real1; 
-        mpfrClear++;
-    }
-    if(mpfrFlag2){
-        mpfr_clear(real2->mpfr_val);
-        delete  real2; 
-        mpfrClear++;
-    }
-    if(cycles)
-        recordComputeR += stop_n_get_count();  
+	if(mpfrFlag1){
+		mpfr_clear(real1->mpfr_val);
+		delete  real1; 
+		mpfrClear++;
+	}
+	if(mpfrFlag2){
+		mpfr_clear(real2->mpfr_val);
+		delete  real2; 
+		mpfrClear++;
+	}
 }
+
 void fInit(size_t funcAddrInt){ 
-    struct timeval  tv1, tv2;
-    if(time){                                                                                        
-        gettimeofday(&tv1, NULL);
-    }
-    if(cycles)
-        start_count();
- 
-    currentFunc = funcAddrInt;
-    shdStack[stackIdx].key = funcAddrInt;
-    stackIdx++;
-    if(cycles)
-        recordFInit += stop_n_get_count();  
-    if(time){
-        gettimeofday(&tv2, NULL);
-        fInitTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
-                        (double) (tv2.tv_sec - tv1.tv_sec);
-    }
+	frameIndex = newRegIdx;
+	assert(newRegIdx<=MAX_STACK_SIZE);
+	shdStack[newRegIdx].key = funcAddrInt;
+	std::cout<<"fInit inserted at::"<<newRegIdx<<"\n"; 
+	newRegIdx++;
+	count = 1;
 }
 /*
 void fExit(size_t funcAddrInt, size_t returnIdx){
@@ -1137,67 +1024,35 @@ void fExit(size_t funcAddrInt, size_t returnIdx){
 }
 */
 void fExit(size_t funcAddrInt, size_t returnIdx){
-    struct timeval  tv1, tv2;
-    if(time){                                                                                        
-        gettimeofday(&tv1, NULL);
-    }
-    if(cycles)
-        start_count();
-
-    struct MyShadow *shadow = NULL;
-    struct MyShadow *newShadow = NULL;
-    if(debug)
-        std::cout<<"funcExit:"<<returnIdx<<"\n";
-    retTrack[retIdx] = returnIdx;
-    retIdx++;
-
-    while(stackIdx > 0){
-        shadow = &shdStack[stackIdx-1];
-        if(shadow->key == funcAddrInt){
-            stackIdx--;    
-            if(newShadow != NULL){
-            shdStack[stackIdx].key = newShadow->key;
-            shdStack[stackIdx].real = newShadow->real;
-            stackIdx++;    
-      }
-      break;
-    }
-    if(shadow->key == returnIdx){
-      struct Real* toReal = new Real;
-      mpfr_init2(toReal->mpfr_val, PRECISION);                                                                                  
-      mpfrInit++;
-      mpfr_set(toReal->mpfr_val, shadow->real->mpfr_val, MPFR_RNDD);
-      newShadow = new MyShadow;
-      newShadow->key = shadow->key;
-      newShadow->real = toReal;  
-    }
-    if(debug)
-        std::cout<<"Cleaned:"<<shadow->key<<"\n";
-    mpfr_clear(shadow->real->mpfr_val);
-    mpfrClear++;
-    delete shadow->real;
-//    delete shadow;
-    stackIdx--;    
-  }
-    if(cycles)
-        recordFExit += stop_n_get_count();  
-    if(time){
-        gettimeofday(&tv2, NULL);
-        fExitTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
-                        (double) (tv2.tv_sec - tv1.tv_sec);
-    }
+	struct MyShadow *shadow = NULL;
+	struct MyShadow *newShadow = NULL;
+	size_t tmp = newRegIdx;
+	std::cout<<"fExit funcAddrInt:"<<funcAddrInt<<"\n";
+	while(newRegIdx > 0){
+		shadow = &shdStack[newRegIdx];
+		std::cout<<"fExit newRegIdx:"<<newRegIdx<<"\n";
+		std::cout<<"fExit shadow->key:"<<shadow->key<<"\n";
+		std::cout<<"fExit funcAddrInt:"<<funcAddrInt<<"\n";
+		std::cout<<"fExit returnIdx:"<<returnIdx<<"\n";
+		std::cout<<"newRegIdx:"<<newRegIdx<<"returnIdx:"<<returnIdx<<"\n";
+		if(shadow->key == funcAddrInt){
+			break;
+		}
+		else if(newRegIdx != returnIdx){
+			if(debug)
+				std::cout<<"Cleaned:"<<newRegIdx<<"\n";
+			mpfr_clear(shadow->real->mpfr_val);
+			mpfrClear++;
+			delete shadow->real;
+			shadow->real = NULL;
+			newRegIdx--;
+		}
+	}
 }
-
 
 void compareBranch(double op1, size_t op1Int, double op2, size_t op2Int, 
                             int fcmpFlag, bool computedRes, size_t insIndex, size_t lineNo){
 
-    struct timeval  tv1, tv2;
-    if(time){
-        gettimeofday(&tv1, NULL);
-    }
-    if(cycles)
-        start_count();
     Real *real1;
     Real *real2;
 
@@ -1330,110 +1185,54 @@ void compareBranch(double op1, size_t op1Int, double op2, size_t op2Int,
     if(debug)
         std::cout<<"checkBranch: realRes:"<<realRes<<" computedRes:"<<computedRes<<"\n";
     updateBranchError(realRes, computedRes, insIndex, lineNo);
-    if(cycles)
-        recordCmpBranch += stop_n_get_count();  
-    if(time){
-        gettimeofday(&tv2, NULL);
-        cmpBranchTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
-                        (double) (tv2.tv_sec - tv1.tv_sec);
-    }
 }
 
-void setReal(size_t index, double value){
-    struct timeval  tv1, tv2;
-    if(time){
-        gettimeofday(&tv1, NULL);
-    }
-    if(cycles)
-        start_count();
-                                                                                                                                
-    MyShadow *shadow = existInStack(index);
-    if(shadow == NULL){
-        struct Real* real = new Real;
-        mpfr_init2(real->mpfr_val, PRECISION);
-        mpfrInit++;
-        mpfr_set_d(real->mpfr_val, value, MPFR_RNDN);
-        shdStack[stackIdx].key = index;
-        shdStack[stackIdx].real = real;
-        stackIdx++;    
-        if(debug)
-            std::cout<<"setRealReg insert shadow stack::"<<index<<"\n";
-    }
-    if(cycles)
-        recordSetReal += stop_n_get_count();  
-    if(time){
-        gettimeofday(&tv2, NULL);
-        setRealTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
-                        (double) (tv2.tv_sec - tv1.tv_sec);
-    }
-}
-
+//TODO: store shadowAddr to toAddrInt
 void setFunArg(size_t shadowAddr, size_t toAddrInt, double op){
-    struct timeval  tv1, tv2;
-    if(time){
-        gettimeofday(&tv1, NULL);
-    }
-    if(cycles)
-        start_count();
-    if(shadowAddr != 0){ 
-        MyShadow *shadow = existInStack(shadowAddr);
-        if(shadow == NULL){
-            struct Real* real = new Real;
-            mpfr_init2(real->mpfr_val, PRECISION);
-            mpfrInit++;
-            mpfr_set_d(real->mpfr_val, op, MPFR_RNDN);
-            shdStack[stackIdx].key = toAddrInt;
-            shdStack[stackIdx].real = real;
-            stackIdx++;    
-            if(debug)
-                std::cout<<"setRealFunArg insert shadow stack::"<<toAddrInt<<"\n";
-        }
+	std::cout<<"setFunArg shadowAddr:"<<shadowAddr<<"\n";
+	if(shadowAddr != 0){ 
+		MyShadow *shadow = existInStack(shadowAddr);
+		if(shadow->real == NULL){
+/*
+			struct Real* real = new Real;
+			mpfr_init2(real->mpfr_val, PRECISION);
+			mpfrInit++;
+			mpfr_set_d(real->mpfr_val, op, MPFR_RNDN);
+//			assert(stackIdx<=MAX_STACK_SIZE);
+			shdStack[toAddrInt].real = real;
+			if(debug)
+				std::cout<<"setRealFunArg insert shadow stack::"<<toAddrInt<<"\n";
+*/
+		}
 		else{//just update the value in stack
-            struct Real* toReal = new Real;
-            mpfr_init2(toReal->mpfr_val, PRECISION);
-            mpfrInit++;
-            mpfr_set(toReal->mpfr_val, shadow->real->mpfr_val, MPFR_RNDD);
-            shdStack[stackIdx].key = toAddrInt;
-            shdStack[stackIdx].real = toReal;
-            stackIdx++;    
-
-            if(debug)
-                std::cout<<"setRealFunArg update from:"<<shadow->key<<" to :"<<toAddrInt<<"\n";
-        }
-    }
-    else{
-        if(debug)
-            std::cout<<"setRealFunArg Error !!! Argument not found\n";
-    }
-    if(cycles)
-        recordSetFunArg += stop_n_get_count();  
-    if(time){
-        gettimeofday(&tv2, NULL);
-        setFunArgTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
-                        (double) (tv2.tv_sec - tv1.tv_sec);
-    }
+			struct Real* toReal = new Real;
+			mpfr_init2(toReal->mpfr_val, PRECISION);
+			mpfrInit++;
+			mpfr_set(toReal->mpfr_val, shadow->real->mpfr_val, MPFR_RNDD);
+			assert(toAddrInt<=MAX_STACK_SIZE);
+			shdStack[toAddrInt].real = toReal;
+			std::cout<<"setFunArg inserted at::"<<toAddrInt<<"\n"; 
+		}
+	}
+	else{
+		if(debug)
+			std::cout<<"setRealFunArg Error !!! Argument not found\n";
+	}
 }
 
-void setReturn(size_t toAddrInt){
-    struct timeval  tv1, tv2;
-    if(time){
-        gettimeofday(&tv1, NULL);
-    }
-    if(cycles)
-        start_count();
-		std::cout<<"retIdx:"<<retIdx<<"\n";
-    if(retIdx){
-        size_t idx = retTrack[retIdx-1];
-        retIdx--;
+void setReturn(size_t toAddrInt, size_t funAddr){
+		if(funRetMap.count(funAddr) != 0){
+			size_t idx = funRetMap.at(funAddr);
+			std::cout<<"setReturn: funAddr:"<<funAddr<<" idx:"<<idx<<"\n";
         MyShadow *shadow = existInStack(idx);
-        if(shadow != NULL){//just update the value in stack
+        if(shadow->real != NULL){//just update the value in stack
             struct Real* toReal = new Real;
             mpfr_init2(toReal->mpfr_val, PRECISION);
             mpfrInit++;
             mpfr_set(toReal->mpfr_val, shadow->real->mpfr_val, MPFR_RNDD);
-            shdStack[stackIdx].key = toAddrInt;
-            shdStack[stackIdx].real = toReal;
-            stackIdx++;    
+						assert(toAddrInt<=MAX_STACK_SIZE);
+            shdStack[toAddrInt].real = toReal;
+						std::cout<<"setReturn inserted at::"<<toAddrInt<<"\n"; 
             if(debug)
                 std::cout<<"setRealReturn: insert shadow stack::"<<toAddrInt<<"\n";
         }
@@ -1444,37 +1243,30 @@ void setReturn(size_t toAddrInt){
     }
     else
         std::cout<<"setRealReturn: Error !!!! return value not found in stack\n";
-    
-    if(cycles)
-        recordSetReturn += stop_n_get_count();  
-    if(time){
-        gettimeofday(&tv2, NULL);
-        setReturnTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
-                        (double) (tv2.tv_sec - tv1.tv_sec);
-    }
+}
+
+void setConstant(size_t toAddrInt, double op){
+	MyShadow *toShadow = existInStack(toAddrInt);
+	if(toShadow != NULL && toShadow->real != NULL){
+		std::cout<<"setConstant: toAddrInt:"<<toAddrInt<<"\n";
+		mpfr_set_d(toShadow->real->mpfr_val, op, MPFR_RNDD);
+	}
 }
 
 void setTemp(size_t toAddrInt, size_t fromAddrInt, double op){
-    struct timeval  tv1, tv2;
-    if(time){
-        gettimeofday(&tv1, NULL);
-    }
-    if(cycles)
-        start_count();
     MyShadow *fromShadow = existInStack(fromAddrInt);
     MyShadow *toShadow = existInStack(toAddrInt);
-
-    if(fromShadow != NULL){
-      if(toShadow == NULL){
+		std::cout<<"setTemp: toAddrInt:"<<toAddrInt<<" fromAddrInt:"<<fromAddrInt<<"\n";
+    if(fromShadow->real != NULL){
+      if(toShadow->real == NULL){
         struct Real* toReal = new Real;
         mpfr_init2(toReal->mpfr_val, PRECISION);
         mpfrInit++;
         mpfr_set(toReal->mpfr_val, fromShadow->real->mpfr_val, MPFR_RNDN);
-        shdStack[stackIdx].key = toAddrInt;
-        shdStack[stackIdx].real = toReal;
-            stackIdx++;    
+        shdStack[toAddrInt].real = toReal;
+				std::cout<<"setTemp inserted at::"<<toAddrInt<<"\n"; 
         if(debug)
-          std::cout<<"setRealTemp insert shadow stack from:"<<fromShadow->key<<" to:"<<toAddrInt<<"\n";
+          std::cout<<"setRealTemp insert shadow stack from:"<<fromAddrInt<<" to:"<<toAddrInt<<"\n";
     }
     else{//just update the value in stack
       if(debug)
@@ -1487,51 +1279,28 @@ void setTemp(size_t toAddrInt, size_t fromAddrInt, double op){
     mpfr_init2(toReal->mpfr_val, PRECISION);
     mpfrInit++;
     mpfr_set_d(toReal->mpfr_val, op, MPFR_RNDN);
-        shdStack[stackIdx].key = toAddrInt;
-        shdStack[stackIdx].real = toReal;
-            stackIdx++;    
+		assert(toAddrInt<=MAX_STACK_SIZE);
+		shdStack[toAddrInt].real = toReal;
+		std::cout<<"setTemp inserted at::"<<toAddrInt<<"\n"; 
     if(debug)
       std::cout<<"setRealTemp insert:"<<op<<" shadow stack to:"<<toAddrInt<<"\n";
   }
-    if(cycles)
-        recordSetTemp += stop_n_get_count();  
-    if(time){
-        gettimeofday(&tv2, NULL);
-        setTempTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
-                        (double) (tv2.tv_sec - tv1.tv_sec);
-    }
 }
 
 void handleMemcpy(size_t toAddrInt, size_t fromAddrInt, size_t size){
-    struct timeval  tv1, tv2;
-    if(time){
-        gettimeofday(&tv1, NULL);
-    }
-    if(cycles)
-        start_count();
     size_t tmp = 0;                                                                                                               
     while(size != tmp){ //handling only double
         setTemp(toAddrInt+tmp, fromAddrInt+tmp, 0);
         tmp += 8;
     }
-    if(cycles)
-        recordHandleMemcpy += stop_n_get_count();  
-    if(time){
-        gettimeofday(&tv2, NULL);
-        handleMemcpyTT += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
-                        (double) (tv2.tv_sec - tv1.tv_sec);
-    }
 }
 
 void initMain(){
     size_t length = MAX_STACK_SIZE * sizeof(struct MyShadow);
-    size_t len = MAX_SIZE * sizeof(struct FunRet);
-    size_t len1 = BUFLEN * sizeof(struct ComputeR);
+    size_t len = MAX_SIZE * sizeof(size_t);
     shdStack = (struct MyShadow*) mmap(0, length, PROT_READ|PROT_WRITE, MMAP_FLAGS, -1, 0);
-    buffer = (struct ComputeR*) mmap(0, len1, PROT_READ|PROT_WRITE, MMAP_FLAGS, -1, 0);
-    funRetMap = (struct FunRet *) mmap(0, len, PROT_READ|PROT_WRITE, MMAP_FLAGS, -1, 0);
     insMap = (size_t*) mmap(0, len, PROT_READ|PROT_WRITE, MMAP_FLAGS, -1, 0);
-    retTrack = (size_t*) mmap(0, len, PROT_READ|PROT_WRITE, MMAP_FLAGS, -1, 0);
+    assert (insMap != (void*)-1);
     assert (shdStack != (void*)-1);
 #ifdef MULTITHREADED
   // Create the threads
@@ -1582,7 +1351,7 @@ void* consumer(void *ptr) {
 	double computedRes;
 	size_t typeId;
 	size_t insIndex;
-	size_t newRegIdx;
+	size_t newReg;
 	size_t funcAddrInt;
 	size_t returnIdx; 
 	size_t cmd;
@@ -1595,25 +1364,16 @@ void* consumer(void *ptr) {
 	size_t shadowAddr;
 
 	while(true){
-		const auto current_head = _head.load(std::memory_order_relaxed);
-		while(current_head == _tail.load(std::memory_order_acquire)){
-			if(consumerFlag){
-				std::cout<<"consumer:exiting\n";
-				pthread_exit(0);
-			}
-			if(debugc)
-				std::cout<<"consumer: sleping......:"<<"\n";
-			sleep(0);
-		}
-			if(debugc)
-				std::cout<<"consumer: woke up......:"<<"\n";
 		//size_t index = advance(&bufIdxBgn);
-			op = &buffer[current_head];
-			_head.store(increment(current_head), std::memory_order_release);
-			cmd = op->cmd;
-			if(debugc)
-				std::cout<<"consumer: process object with cmd:"<<cmd<<"\n";
-			switch(cmd){
+		if(consumerFlag && !buffer.unsafe_size())
+			pthread_exit(0);
+		bool flag = buffer.try_pop(op);
+		if(!flag)
+			continue;
+		cmd = op->cmd;
+		if(debugc)
+			std::cout<<"consumer: process object with cmd:"<<cmd<<"\n";
+		switch(cmd){
 				case 1:
 						funcAddrInt = op->funcAddrInt;
 						fInit(funcAddrInt);	
@@ -1629,8 +1389,8 @@ void* consumer(void *ptr) {
 						op1Idx = op->op1Idx;
 						computedRes = op->computedRes;
 						insIndex = op->insIndex;
-						newRegIdx = op->newRegIdx;
-						handleMath(funcCode, op1d, op1Idx, computedRes, insIndex, newRegIdx);
+						newReg = op->newRegIdx;
+						handleMath(funcCode, op1d, op1Idx, computedRes, insIndex, newReg);
 						break;
 				case 4:
 						funcCode = op->funcCode;
@@ -1642,8 +1402,8 @@ void* consumer(void *ptr) {
 						op3d = op->op3d;
 						computedRes = op->computedRes;
 						insIndex = op->insIndex;
-						newRegIdx = op->newRegIdx;
-						handleMath3Args(funcCode, op1d, op1Idx, op2d, op2Idx, op3d, op3Idx, computedRes, insIndex, newRegIdx);
+						newReg = op->newRegIdx;
+						handleMath3Args(funcCode, op1d, op1Idx, op2d, op2Idx, op3d, op3Idx, computedRes, insIndex, newReg);
 						break;
 				case 5:
 						opCode = op->opCode;
@@ -1656,8 +1416,8 @@ void* consumer(void *ptr) {
 						computedRes = op->computedRes;
 						typeId = op->typeId;
 						insIndex = op->insIndex;
-						newRegIdx = op->newRegIdx;
-						computeR(opCode, op1Idx, op2Idx, op1f, op2f, op1d, op2d, computedRes, typeId, insIndex, newRegIdx);
+						newReg = op->newRegIdx;
+						computeR(opCode, op1Idx, op2Idx, op1f, op2f, op1d, op2d, computedRes, typeId, insIndex, newReg);
 						break;
 				case 6:
 						op1Idx = op->op1Idx;
@@ -1671,13 +1431,14 @@ void* consumer(void *ptr) {
 						compareBranch(op1d, op1Idx, op2d, op2Idx, fcmpFlag, computedRes, insIndex, lineNo);
 						break;
 				case 7:
-						op1Idx = op->op1Idx;
+						toAddrInt = op->toAddrInt;
 						op1d = op->op1d;
-						setReal(op1Idx, op1d);
+						setConstant(toAddrInt, op1d);
 						break;
 				case 8:
 						toAddrInt = op->toAddrInt;
-						setReturn(toAddrInt);
+						funcAddrInt = op->funcAddrInt;
+						setReturn(toAddrInt, funcAddrInt);
 						break;
 				case 9:
 						toAddrInt = op->toAddrInt;
@@ -1699,11 +1460,13 @@ void* consumer(void *ptr) {
 						break;
 				default: 
 						std::cout<<"Error !!! unknown operation with cmd:"<<cmd<<"\n";
-			}
-			if(debugc)
-				std::cout<<"consumer: done......:"<<"\n";
+		}
+		if(debugc)
+			std::cout<<"consumer: done......:"<<"\n";
+		delete op;
 	}
-	}
+}
+
 float getFloat(Real *real){  
   return mpfr_get_flt(real->mpfr_val, MPFR_RNDN);
 }

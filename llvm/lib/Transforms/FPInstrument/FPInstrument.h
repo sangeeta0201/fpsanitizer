@@ -83,6 +83,7 @@ private:
   std::map<Instruction*, Value*> LoadMap;
   //this is used to track reg index
   std::map<Instruction*, Instruction*> RegIdMap;
+  std::map<Function*, Instruction*> RetMap;
   //it is used for constant used in phi node, since phi node is of type size then we need to store
   //floating point constant in shadow memory and get its index in size_t. If we will leave constant
   //as it is then there will type mismatch because constant would be of type double and if run time 

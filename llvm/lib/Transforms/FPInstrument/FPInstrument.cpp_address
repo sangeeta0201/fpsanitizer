@@ -456,12 +456,8 @@ void FPInstrument::setReal(Instruction *I, Value *ToAddr, Value *OP, Function &F
           IRB.CreateCall(SetRealTemp, {ToAddrIdx});
         }
       } 
-			else if (isa<ConstantFP>(OP)) {
-    		SetRealTemp = M->getOrInsertFunction("setRealConstant", VoidTy, Int64Ty, OpTy);//We need it to reset mpfr value to constant or just clear it
-      	IRB.CreateCall(SetRealTemp, {ToAddrIdx, OP});
-			}
       else{
-        errs()<<"setReal: Error !!! setReal: not a pointer, not a constant, not in load map and not a func arg:"<<*I<<"\n";
+        errs()<<"setReal: Error !!! setReal: not a pointer, not a constant, not in load map and not a func arg\n";
         //it means that ita variables passed through call by val, address of this valiable is stored in 
         //funArg with the address of a called function 
         //TODO look for better way to check if its arg passed by value
@@ -917,7 +913,7 @@ void FPInstrument::handleNewPhi(Function &F){
   		} 
       else if (isa<ConstantFP>(IncValue) || TrackIToFCast.count(IValue) || isa<BitCastInst>(IncValue)) {  
         size_t Index;
-        Constant* consIndex = ConstantInt::get(Type::getInt64Ty(M->getContext()), 0); 
+        Constant* consIndex = ConstantInt::get(Type::getInt32Ty(M->getContext()), 0); 
         iPHI->addIncoming(consIndex, IBB);
       } 
 			else if (isa<UndefValue>(IncValue)){
@@ -1060,7 +1056,7 @@ void FPInstrument::handleSelect(Instruction *I, SelectInst *SI, Function &F){
 	size_t Index;
 	errs()<<"handleSelect:"<<*I<<"\n";
   if (isa<ConstantFP>(OP2) || TrackIToFCast.count(Op2Ins)) {
-		Constant* consIndex = ConstantInt::get(Type::getInt64Ty(M->getContext()), 0); 
+		Constant* consIndex = ConstantInt::get(Type::getInt32Ty(M->getContext()), 0); 
     NewOp2 = dyn_cast<Value>(consIndex);
   }
 	else if(RegIdMap.count(Op2Ins) != 0){ //handling registers
@@ -1085,7 +1081,7 @@ void FPInstrument::handleSelect(Instruction *I, SelectInst *SI, Function &F){
 		errs()<<"handleSelect: Error !!! op2 not found:"<<*OP2<<"\n";
 	} 
   if (isa<ConstantFP>(OP3) || TrackIToFCast.count(Op3Ins)) {
-		Constant* consIndex = ConstantInt::get(Type::getInt64Ty(M->getContext()), 0); 
+		Constant* consIndex = ConstantInt::get(Type::getInt32Ty(M->getContext()), 0); 
     NewOp3 = dyn_cast<Value>(consIndex);
   }
 	else if(RegIdMap.count(Op3Ins) != 0){ //handling registers

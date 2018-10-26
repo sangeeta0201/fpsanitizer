@@ -1,0 +1,213 @@
+fInit inserted at::0
+fInit inserted at::2
+x: 6.000000e-01:
+y: 3.200000e+00:
+computeReal starts**
+computeR: newRegIdx:5
+computeReal op1Idx:0 op1:3.2
+computeReal op2Idx:0 op2:0.2
+computeReal: real1 is null, using op1 value:3.2
+computeReal: real2 is null, using op2 value:0.2
+
+FADD
+computeReal insert shadow stack::5
+updateError: computedVal:3.4 insIndex:6
+
+The shadow value is 3.40000000000000e0, but 3.400000 was computed.
+0.000000 bits error (0 ulps)
+
+
+computeReal: newRegIdx:5
+checkBranch fcmpFlag:10
+checkBranch op1Idx:0 op1:0.6
+checkBranch op2Idx:0 op2:0
+checkBranch: real1 is null, using op1 value:0.6
+checkBranch: real2 is null, using op2 value:0
+checkBranch: realRes:1 computedRes:1
+computeReal starts**
+computeR: newRegIdx:5
+computeReal op1Idx:0 op1:0.6
+computeReal op2Idx:0 op2:-0.2
+computeReal: real1 is null, using op1 value:0.6
+computeReal: real2 is null, using op2 value:-0.2
+
+FADD
+computeReal update shadow stack::5
+updateError: computedVal:0.4 insIndex:10
+
+The shadow value is 4.00000000000000e-1, but 4.000000e-1 was computed.
+0.000000 bits error (0 ulps)
+
+
+computeReal: newRegIdx:5
+fInit inserted at::4
+x: 4.000000e-01:
+y: 3.400000e+00:
+computeReal starts**
+computeR: newRegIdx:9
+computeReal op1Idx:0 op1:3.4
+computeReal op2Idx:0 op2:0.2
+computeReal: real1 is null, using op1 value:3.4
+computeReal: real2 is null, using op2 value:0.2
+
+FADD
+computeReal insert shadow stack::9
+updateError: computedVal:3.6 insIndex:6
+
+The shadow value is 3.60000000000000e0, but 3.600000 was computed.
+0.000000 bits error (0 ulps)
+
+
+computeReal: newRegIdx:9
+checkBranch fcmpFlag:10
+checkBranch op1Idx:0 op1:0.4
+checkBranch op2Idx:0 op2:0
+checkBranch: real1 is null, using op1 value:0.4
+checkBranch: real2 is null, using op2 value:0
+checkBranch: realRes:1 computedRes:1
+computeReal starts**
+computeR: newRegIdx:9
+computeReal op1Idx:0 op1:0.4
+computeReal op2Idx:0 op2:-0.2
+computeReal: real1 is null, using op1 value:0.4
+computeReal: real2 is null, using op2 value:-0.2
+
+FADD
+computeReal update shadow stack::9
+updateError: computedVal:0.2 insIndex:10
+
+The shadow value is 2.00000000000000e-1, but 2.000000e-1 was computed.
+0.000000 bits error (0 ulps)
+
+
+computeReal: newRegIdx:9
+fInit inserted at::6
+x: 2.000000e-01:
+y: 3.600000e+00:
+computeReal starts**
+computeR: newRegIdx:11
+computeReal op1Idx:0 op1:3.6
+computeReal op2Idx:0 op2:0.2
+computeReal: real1 is null, using op1 value:3.6
+computeReal: real2 is null, using op2 value:0.2
+
+FADD
+computeReal insert shadow stack::11
+updateError: computedVal:3.8 insIndex:6
+
+The shadow value is 3.80000000000000e0, but 3.800000 was computed.
+0.000000 bits error (0 ulps)
+
+
+computeReal: newRegIdx:11
+checkBranch fcmpFlag:10
+checkBranch op1Idx:0 op1:0.2
+checkBranch op2Idx:0 op2:0
+checkBranch: real1 is null, using op1 value:0.2
+checkBranch: real2 is null, using op2 value:0
+checkBranch: realRes:1 computedRes:1
+computeReal starts**
+computeR: newRegIdx:11
+computeReal op1Idx:0 op1:0.2
+computeReal op2Idx:0 op2:-0.2
+computeReal: real1 is null, using op1 value:0.2
+computeReal: real2 is null, using op2 value:-0.2
+
+FADD
+computeReal update shadow stack::11
+updateError: computedVal:-5.55112e-17 insIndex:10
+
+The shadow value is -.555111512312578e-17, but -5.551115e-17 was computed.
+0.000000 bits error (0 ulps)
+
+
+computeReal: newRegIdx:11
+fInit inserted at::8
+x: -5.551115e-17:
+y: 3.800000e+00:
+computeReal starts**
+computeR: newRegIdx:13
+computeReal op1Idx:0 op1:3.8
+computeReal op2Idx:0 op2:0.2
+computeReal: real1 is null, using op1 value:3.8
+computeReal: real2 is null, using op2 value:0.2
+
+FADD
+computeReal insert shadow stack::13
+updateError: computedVal:4 insIndex:6
+
+The shadow value is 4.00000000000000e0, but 4.000000 was computed.
+0.000000 bits error (0 ulps)
+
+
+computeReal: newRegIdx:13
+checkBranch fcmpFlag:10
+checkBranch op1Idx:0 op1:-5.55112e-17
+checkBranch op2Idx:0 op2:0
+checkBranch: real1 is null, using op1 value:-5.55112e-17
+checkBranch: real2 is null, using op2 value:0
+checkBranch: realRes:0 computedRes:0
+later x: -5.551115e-17:
+later y: 3.800000e+00:
+computeReal starts**
+computeR: newRegIdx:11
+computeReal op1Idx:11 op1:3.8
+computeReal op2Idx:11 op2:-5.55112e-17
+FSUB
+computeReal update shadow stack::11
+updateError: computedVal:3.8 insIndex:15
+
+The shadow value is -.000000000000000e-1, but 3.800000 was computed.
+62.001267 bits error (4615739258092021352 ulps)
+
+
+computeReal: newRegIdx:11
+sub: 3.800000e+00:
+later x: 2.000000e-01:
+later y: 3.600000e+00:
+computeReal starts**
+computeR: newRegIdx:19
+computeReal op1Idx:9 op1:3.6
+computeReal op2Idx:9 op2:0.2
+FSUB
+computeReal insert shadow stack::19
+updateError: computedVal:3.4 insIndex:15
+
+The shadow value is -.000000000000000e-1, but 3.400000 was computed.
+62.000986 bits error (4614838538166547252 ulps)
+
+
+computeReal: newRegIdx:19
+sub: 3.400000e+00:
+later x: 4.000000e-01:
+later y: 3.400000e+00:
+computeReal starts**
+computeR: newRegIdx:19
+computeReal op1Idx:5 op1:3.4
+computeReal op2Idx:5 op2:0.4
+FSUB
+computeReal update shadow stack::19
+updateError: computedVal:3 insIndex:15
+
+The shadow value is -.000000000000000e-1, but 3.000000 was computed.
+62.000704 bits error (4613937818241073153 ulps)
+
+
+computeReal: newRegIdx:19
+sub: 3.000000e+00:
+z: 3.000000e+00:
+alloced:0
+freed:0
+list:mpfrInit:32
+mpfrClear:27
+totalCompute:10
+cycles spent in each handler****
+time spent in each handler*****
+addFunArg:7e-06
+funcInit:3.7e-05
+getAddrTT:1.8e-05
+funcExit:4e-06
+computeReal:0.000354
+checkBranch:4.8e-05
+getRealFunArg:8e-06
+finish:0.000106
