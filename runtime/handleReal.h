@@ -21,48 +21,58 @@ struct ErrorAggregate {
   double total_error;
   long long int num_evals;
 };
-
 struct BrError {
   bool corrRes;
   bool incorrRes;
+	size_t lineNo;
   long long int num_evals;
 };
+
 struct Real{
   mpfr_t mpfr_val;
 };
+
 struct MyShadow{
 	size_t key;
 	struct Real * real;
 };
-size_t stackIdx = 0;
+size_t argCount = 0;
+size_t count = 0;
+int frameIdx = 0;
+int slotIdx = -1;
+int returnIdx = -1;
+size_t newRegIdx = 0;
 bool recurFlag = false;
 size_t mpfrClear = 0;
 size_t mpfrInit = 0;
+size_t mpfrClearMap = 0;
+size_t mpfrInitMap = 0;
 int varCount = 0;
 int opCount = 0;
 size_t funcCount = 0;
-size_t currentFunc = 0;
-double regIndex = 200; //assuming there are 200 constants in the program
 std::map<size_t, struct ErrorAggregate*>errorMap;
 std::map<size_t, struct BrError*>errBrMap;
 //this will link ins index to index of result in shadow mem
 //std::list<struct MyShadow*> varTrack;
 struct MyShadow *varTrack;
+mpfr_t *shadowStack;
+mpfr_t *shadowMap;
+size_t *insMap;
+size_t *frameCur;
 std::stack<size_t> retTrack;
 std::map<size_t, size_t>funRetMap;
 
 std::map<std::map<size_t, size_t>, size_t> shadowFunArgMap; // thi will link function argument to shadowMap
-std::map<size_t, struct Real*> shadowMap;
 
 double getDouble(Real *real);
 unsigned long ulpd(double x, double y);
 void handleOp(size_t opCode, mpfr_t *res, mpfr_t *op1, mpfr_t *op2);
 int isNaN(Real *real);
 void initializeBrError(BrError *err);
-double updateError(Real *realVal, double computedVal, size_t insIndex);
-void updateBranchError(bool realRes, bool computedRes, size_t insIndex);
+double updateError(mpfr_t mpfr_val, double computedVal, size_t insIndex);
+void updateBranchError(bool realRes, bool computedRes, size_t insIndex, size_t lineNo);
 void initializeErrorAggregate(ErrorAggregate *eagg);
-void printReal(Real *real);
+void printReal(mpfr_t mpfr_val);
 /*
 When we compute any floating point operation on real, we save the result in shadow map with its value 
 and return the address of this saved value to LLVM Pass. LLVM pass creates the mapping of real result and 

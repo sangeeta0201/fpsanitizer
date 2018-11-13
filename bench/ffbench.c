@@ -140,8 +140,8 @@
 
 //#define Asize	 256		   /* Array edge size */
 //#define Passes	 63		   /* Number of FFT/Inverse passes */
-#define Asize	 256		   /* Array edge size */
-#define Passes	 63		   /* Number of FFT/Inverse passes */
+#define Asize	 8		   /* Array edge size */
+#define Passes	 1		   /* Number of FFT/Inverse passes */
 
 #define max(a,b) ((a)>(b)?(a):(b))
 #define min(a,b) ((a)<=(b)?(a):(b))

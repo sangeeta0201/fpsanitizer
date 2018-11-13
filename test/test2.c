@@ -1,13 +1,13 @@
 #include<stdio.h>
 #include<stdlib.h>
 
-double foo(double *a, double *b, int count){
+double foo(double a, double b, int count){
 
   double temp = 0.0;
 
   for(int i = 0; i < count; i++){
     
-    temp = *a + *b * 0.1;
+    temp = a + b * 0.1;
   }
 
   return temp;
@@ -32,9 +32,9 @@ int main(int argc, char** argv){
 	printf("count:%d", count);
   for(int i = 0; i < count; i++){
 
-    sum = sum + foo(&a, &sum, count);
+    sum = sum + foo(a, sum, count);
    	sum = 0; 
-    sum = sum + foo(&a, &sum, count);
+    sum = sum + foo(a, sum, count);
   }
 	int sum1 = 1;
   for(int i = 0; i < count; i++){

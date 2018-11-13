@@ -14,10 +14,10 @@ int main(int argc, char** argv){
   volatile double x, y, z, t;
   x = 1.0;
   y = 1.0e16;
-  z = foo(x);
-  t = foo(y);
-  printf("z = %e\n", z);
-  printf("t = %e\n", t);
+//  z = foo(x);
+//  t = foo(y);
+//  printf("z = %e\n", z);
+//  printf("t = %e\n", t);
   volatile double a, b;
   a = bar(y, 8);
   b = bar(x, 9);

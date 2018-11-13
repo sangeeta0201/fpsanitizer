@@ -2,17 +2,13 @@ CFLAGS=-O1 -fno-slp-vectorize -g -std=c11 -L$(FPROOT)/obj -lfpsanitizer -lmpfr -
 #CFLAGS=-O1 -fno-slp-vectorize -g -std=c11 -L$(FPROOT)/obj -lfpsanitizer -lmpfr -lm ../SoftPosit/build/Linux-x86_64-GCC/softposit.a  -I../SoftPosit/source/include 
 CAMLFLAGs=
 CSRC = $(wildcard *.c)
-COUT = $(patsubst %.c,%.c.out,$(CSRC))
+COUT = $(patsubst %.c,%.o,$(CSRC))
 
 CC = clang -Xclang -load -Xclang /home/sangeeta/fpsanitizer/build/lib/LLVMFPInstrument.so
 
 all: $(COUT) $(CAMLOUT)
 
-testprog.c.out: testprog.c
-	$(CC) -o $@ $< $(CFLAGS) -lmpfr
-	chmod u+x $@
-
-%.c.out: %.c
+%.o: %.c
 	$(CC) -o $@ $< $(CFLAGS)
 	chmod u+x $@
 
@@ -25,4 +21,4 @@ testprog.c.out: testprog.c
 
 
 clean:
-	rm -rf *.out *.sout *.dSYM
+	rm -rf *.o *.sout *.dSYM

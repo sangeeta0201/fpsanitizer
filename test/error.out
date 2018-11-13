@@ -1,9 +1,95 @@
-4.191770 bits average error
-5.977280 max  error
+0.000000 bits average error
+0.000000 max  error
+
+62.016025 bits average error
+62.016025 max  error
+
+62.006486 bits average error
+62.006486 max  error
+
+57.724179 bits average error
+62.013672 max  error
+
+58.630279 bits average error
+62.028791 max  error
+
+0.000000 bits average error
+0.000000 max  error
+
+0.000000 bits average error
+0.000000 max  error
+
+0.000000 bits average error
+0.000000 max  error
+
+0.000000 bits average error
+0.000000 max  error
+
+0.250000 bits average error
+1.000000 max  error
+
+0.000000 bits average error
+0.000000 max  error
+
+0.000000 bits average error
+0.000000 max  error
+
+0.000000 bits average error
+0.000000 max  error
+
+0.000000 bits average error
+0.000000 max  error
+
+0.000000 bits average error
+0.000000 max  error
+
+0.000000 bits average error
+0.000000 max  error
+
+0.000000 bits average error
+0.000000 max  error
+
+0.000000 bits average error
+0.000000 max  error
+
+0.000000 bits average error
+0.000000 max  error
+
+0.000000 bits average error
+0.000000 max  error
+
+0.000000 bits average error
+0.000000 max  error
+
+27.959048 bits average error
+62.954955 max  error
+
+27.478081 bits average error
+53.500000 max  error
+
+28.159072 bits average error
+62.993726 max  error
+
+34.970839 bits average error
+62.960273 max  error
+
+27.654804 bits average error
+53.441339 max  error
+
+39.527333 bits average error
+62.961679 max  error
+
+39.147234 bits average error
+62.995646 max  error
+
+38.976057 bits average error
+57.629357 max  error
 
 compare
-branch flipped 1 times out of 1 compare
+branch flipped 1 times out of 128 compare @ 239
+
 
 compare
-branch flipped 1 times out of 500 compare
+branch flipped 0 times out of 128 compare @ 240
+
 

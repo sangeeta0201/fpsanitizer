@@ -42,7 +42,7 @@ public:
   //it fillis new phi node
   void handleNewPhi(Function &F);
   //its called for CallInst to handle functions other than math functions
-  void handleFunc(Instruction *I, CallInst *CI, Function &F);
+  void handleCallInst(Instruction *I, CallInst *CI, Function &F);
   //Its called for every BinaryOperator in floating point instruction
   //void handleOp(Instruction *I, BinaryOperator* BO, Function &F);
   void handleOp(Instruction *I, BasicBlock *BB, BinaryOperator* BO, Function &F);
@@ -64,7 +64,7 @@ public:
   void handleFuncReturn(Instruction *I, ReturnInst *RI, Function &F);
   //this function looks one instruction ahead and return it
   Instruction* getNextInstruction(Instruction *I, BasicBlock *BB);
-  void handleFuncExit(Instruction *I, BasicBlock *BB, Function &F);  
+  void handleFuncExit(Instruction *I, ReturnInst *RI, Function &F);  
   void handleFuncInit(Function &F);  
   void handleAlloca(Instruction *I, BasicBlock *BB, AllocaInst *A, Function &F);  void handleCleanup(Instruction *I, ReturnInst *RI, Function &F); 
   void handleSelect(Instruction *I, SelectInst *SI, Function &F);
@@ -72,6 +72,7 @@ public:
 	void instrumentAllFunctions(std::string FN);
 	void handleExtractValue(Instruction *I, ExtractValueInst *EVI, Function &F);
 	void handleLLVMMemcpy(Instruction *I, CallInst *CI, Function &F);
+	void handleMalloc(Instruction *I,  BasicBlock *BB, CallInst *CI, Function &F);
   static char ID; // Pass identification, replacement for typeid
 private:
   SmallVector<Function*, 8> AllFuncList;
@@ -89,6 +90,7 @@ private:
   std::map<Value*, size_t> ConsMap;
   //this is used to track index of every instruction
   std::map<Instruction*, size_t> InsMap;
+  std::map<Function*, size_t> FunMap;
   //this is used to save mapping of old phi node and new phi node
   std::map<Instruction*, Instruction*> NewPhiMap;
   //this is used to give unique index to every argument of the function. Since we won't know address
