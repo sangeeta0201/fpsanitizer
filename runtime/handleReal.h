@@ -29,17 +29,13 @@ struct BrError {
 };
 
 struct Real{
+	int initFlag;
   mpfr_t mpfr_val;
 };
 
-struct MyShadow{
-	size_t key;
-	struct Real * real;
-};
-size_t argCount = 0;
+bool initFlag = false;
 size_t count = 0;
 int frameIdx = 0;
-int slotIdx = -1;
 int returnIdx = -1;
 size_t newRegIdx = 0;
 bool recurFlag = false;
@@ -55,15 +51,18 @@ std::map<size_t, struct BrError*>errBrMap;
 //this will link ins index to index of result in shadow mem
 //std::list<struct MyShadow*> varTrack;
 struct MyShadow *varTrack;
-mpfr_t *shadowStack;
-mpfr_t *shadowMap;
+Real *shadowStack;
+Real *shadowMap;
 size_t *insMap;
 size_t *frameCur;
+size_t *argCount;
+size_t *slotIdx;
 std::stack<size_t> retTrack;
 std::map<size_t, size_t>funRetMap;
 
 std::map<std::map<size_t, size_t>, size_t> shadowFunArgMap; // thi will link function argument to shadowMap
-
+extern "C"  void init();
+extern "C"  void finish();
 double getDouble(Real *real);
 unsigned long ulpd(double x, double y);
 void handleOp(size_t opCode, mpfr_t *res, mpfr_t *op1, mpfr_t *op2);

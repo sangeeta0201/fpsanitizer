@@ -67,8 +67,8 @@ public:
   void handleFuncExit(Instruction *I, ReturnInst *RI, Function &F);  
   void handleFuncInit(Function &F);  
   void handleAlloca(Instruction *I, BasicBlock *BB, AllocaInst *A, Function &F);  void handleCleanup(Instruction *I, ReturnInst *RI, Function &F); 
-  void handleSelect(Instruction *I, SelectInst *SI, Function &F);
-  void handleLoad(Instruction *I, LoadInst *LI, Function &F);
+  void handleSelect(Instruction *I, BasicBlock *BB, SelectInst *SI, Function &F);
+  void handleLoad(Instruction *I, LoadInst *LI, BasicBlock *BB, Function &F);
 	void instrumentAllFunctions(std::string FN);
 	void handleExtractValue(Instruction *I, ExtractValueInst *EVI, Function &F);
 	void handleLLVMMemcpy(Instruction *I, CallInst *CI, Function &F);
@@ -76,6 +76,7 @@ public:
   static char ID; // Pass identification, replacement for typeid
 private:
   SmallVector<Function*, 8> AllFuncList;
+  SmallVector<User*, 8> AllBrList;
   SmallVector<ReturnInst*, 8> AllReturn;
   std::map<Instruction*, Instruction*> TrackIToFCast;
   //this is used to track address of a variable loaded from memory 
