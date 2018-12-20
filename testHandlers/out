@@ -1,0 +1,279 @@
+init called
+funcInit:0
+frameCur[frameIdx]:0 slotIdx[frameIdx]:0
+addReturnAddr: Idx:0 return addr: 139834022952960
+addReturnAddr: Idx:0
+addFunArg: add arg to idx:1
+addFunArg: arg copied from: 0 stackTop:1
+addFunArg: addr:139834022953000 set to:0
+funcInit:2
+***random_anti_hermitian starts***
+frameCur[frameIdx]:2 slotIdx[frameIdx]:0
+addReturnAddr: Idx:2 return addr: 139834022953040
+addReturnAddr: Idx:2
+addFunArg: add arg to idx:3
+addFunArg: arg copied from: 0 stackTop:3
+addFunArg: addr:139834022953080 set to:0
+funcInit:4
+gaussian_rand_no starts****
+computeReal: insIndex:4
+computeReal: real1 is null, using op1 value:1.80429e+09
+computeReal: real2 is null, using op2 value:2
+insIndex:4 frameIdx:3**
+slotIdx[frameIdx]:0
+insMap:0 slotIdx[frameIdx]:0 
+getRegRes newRegIdx:0 frameCur[frameIdx]:4 
+computeReal: op1:1.80429e+09 op2:2
+computeReal: op1Addr:0 op1:1.80428938300000e9
+computeReal: op2Addr:0 op2:2.00000000000000
+FMUL
+res:
+computeReal: stackTop:4 addr:139834022953120
+computeReal:4
+
+The shadow value is 3.60857876600000e9
+, but 3.60858e9 was computed.
+updateError: computedVal:3.60858e+09 insIndex:4
+0 bits error (0 ulps)
+****************
+
+prn_pt:4.940656e-324
+v1:8.469309e+08
+v2:3.608579e+09
+r:-5.487458e+303
+computeReal: insIndex:13
+computeReal: real2 is null, using op2 value:8.46931e+08
+insIndex:13 frameIdx:3**
+slotIdx[frameIdx]:1
+insMap:1 slotIdx[frameIdx]:1 
+getRegRes newRegIdx:1 frameCur[frameIdx]:4 
+computeReal: op1:3.60858e+09 op2:8.46931e+08
+computeReal: op1Addr:139834022953120 op1:3.60857876600000e9
+computeReal: op2Addr:0 op2:8.46930886000000e8
+
+FADD
+res:
+computeReal: stackTop:5 addr:139834022953160
+computeReal:5
+
+The shadow value is 4.45550965200000e9
+, but 4.45551e9 was computed.
+updateError: computedVal:4.45551e+09 insIndex:13
+0 bits error (0 ulps)
+****************
+
+funcExit: return copied from:139834022953160 to stackTop:2 addr:139834022953040
+funcExit:2
+computeReal: insIndex:35
+computeReal: real2 is null, using op2 value:0.57735
+insIndex:35 frameIdx:2**
+slotIdx[frameIdx]:1
+insMap:1 slotIdx[frameIdx]:1 
+getRegRes newRegIdx:1 frameCur[frameIdx]:2 
+computeReal: op1:4.45551e+09 op2:0.57735
+computeReal: op1Addr:139834022953040 op1:4.45550965200000e9
+computeReal: op2Addr:0 op2:5.77350269189626e-1
+FMUL
+res:
+computeReal: stackTop:3 addr:139834022953080
+computeReal:3
+
+The shadow value is 2.57238969695918e9
+, but 2.57239e9 was computed.
+updateError: computedVal:2.57239e+09 insIndex:35
+0 bits error (0 ulps)
+****************
+
+handleMathFunc: op1Addr:139834022953080 funcCode:1 computed op:2.57239e+09
+insIndex:37 frameIdx:2**
+slotIdx[frameIdx]:2
+insMap:2 slotIdx[frameIdx]:2 
+getRegRes newRegIdx:2 frameCur[frameIdx]:2 
+handleMathFunc: stackTop:4 addr:139834022953120
+handleMathFunc: idx:4
+
+The shadow value is 5.07187312238701e4
+, but 5.07187e4 was computed.
+updateError: computedVal:50718.7 insIndex:37
+0 bits error (0 ulps)
+****************
+
+sqrt_third:5.773503e-01
+****test r3:5.071873e+04
+frameCur[frameIdx]:2 slotIdx[frameIdx]:3
+addReturnAddr: Idx:5 return addr: 139834022953160
+addReturnAddr: Idx:5
+addFunArg: add arg to idx:6
+addFunArg: arg copied from: 0 stackTop:6
+addFunArg: addr:139834022953200 set to:3.22526053605166e-319
+funcInit:7
+gaussian_rand_no starts****
+computeReal: insIndex:4
+computeReal: real1 is null, using op1 value:1.68169e+09
+computeReal: real2 is null, using op2 value:2
+insIndex:4 frameIdx:3**
+slotIdx[frameIdx]:0
+insMap:0 slotIdx[frameIdx]:0 
+getRegRes newRegIdx:0 frameCur[frameIdx]:7 
+computeReal: op1:1.68169e+09 op2:2
+computeReal: op1Addr:0 op1:1.68169277700000e9
+computeReal: op2Addr:0 op2:2.00000000000000
+FMUL
+res:
+computeReal: stackTop:7 addr:139834022953240
+computeReal:7
+
+The shadow value is 3.36338555400000e9
+, but 3.36339e9 was computed.
+updateError: computedVal:3.36339e+09 insIndex:4
+0 bits error (0 ulps)
+****************
+
+prn_pt:4.940656e-324
+v1:1.714637e+09
+v2:3.363386e+09
+r:-5.487458e+303
+computeReal: insIndex:13
+computeReal: real2 is null, using op2 value:1.71464e+09
+insIndex:13 frameIdx:3**
+insMap:1 slotIdx[frameIdx]:1 
+getRegRes newRegIdx:1 frameCur[frameIdx]:7 
+computeReal: op1:3.36339e+09 op2:1.71464e+09
+computeReal: op1Addr:139834022953240 op1:3.36338555400000e9
+computeReal: op2Addr:0 op2:1.71463691500000e9
+
+FADD
+res:
+computeReal: stackTop:8 addr:139834022953280
+computeReal:8
+
+The shadow value is 5.07802246900000e9
+, but 5.07802e9 was computed.
+updateError: computedVal:5.07802e+09 insIndex:13
+0 bits error (0 ulps)
+****************
+
+funcExit: return copied from:139834022953280 to stackTop:5 addr:139834022953160
+funcExit:5
+frameCur[frameIdx]:2 slotIdx[frameIdx]:4
+addReturnAddr: Idx:6 return addr: 139834022953200
+addReturnAddr: Idx:6
+addFunArg: add arg to idx:7
+addFunArg: arg copied from: 0 stackTop:7
+addFunArg: addr:139834022953240 set to:5.07802246900000e9
+funcInit:8
+gaussian_rand_no starts****
+computeReal: insIndex:4
+computeReal: real1 is null, using op1 value:1.95775e+09
+computeReal: real2 is null, using op2 value:2
+insIndex:4 frameIdx:3**
+slotIdx[frameIdx]:0
+insMap:0 slotIdx[frameIdx]:0 
+getRegRes newRegIdx:0 frameCur[frameIdx]:8 
+computeReal: op1:1.95775e+09 op2:2
+computeReal: op1Addr:0 op1:1.95774779300000e9
+computeReal: op2Addr:0 op2:2.00000000000000
+FMUL
+res:
+computeReal: stackTop:8 addr:139834022953280
+computeReal:8
+
+The shadow value is 3.91549558600000e9
+, but 3.9155e9 was computed.
+updateError: computedVal:3.9155e+09 insIndex:4
+0 bits error (0 ulps)
+****************
+
+prn_pt:4.940656e-324
+v1:4.242383e+08
+v2:3.915496e+09
+r:-5.487458e+303
+computeReal: insIndex:13
+computeReal: real2 is null, using op2 value:4.24238e+08
+insIndex:13 frameIdx:3**
+insMap:1 slotIdx[frameIdx]:1 
+getRegRes newRegIdx:1 frameCur[frameIdx]:8 
+computeReal: op1:3.9155e+09 op2:4.24238e+08
+computeReal: op1Addr:139834022953280 op1:3.91549558600000e9
+computeReal: op2Addr:0 op2:4.24238335000000e8
+
+FADD
+res:
+computeReal: stackTop:9 addr:139834022953320
+computeReal:9
+
+The shadow value is 4.33973392100000e9
+, but 4.33973e9 was computed.
+updateError: computedVal:4.33973e+09 insIndex:13
+0 bits error (0 ulps)
+****************
+
+funcExit: return copied from:139834022953320 to stackTop:6 addr:139834022953200
+funcExit:6
+****test r8:5.078022e+09
+computeReal: insIndex:46
+insIndex:46 frameIdx:2**
+slotIdx[frameIdx]:5
+insMap:5 slotIdx[frameIdx]:5 
+getRegRes newRegIdx:5 frameCur[frameIdx]:2 
+computeReal: op1:50718.7 op2:4.33973e+09
+computeReal: op1Addr:139834022953120 op1:5.07187312238701e4
+computeReal: op2Addr:139834022953200 op2:4.33973392100000e9
+FMUL
+res:
+computeReal: stackTop:7 addr:139834022953240
+computeReal:7
+
+The shadow value is 2.20105798322311e14
+, but 2.20106e14 was computed.
+updateError: computedVal:2.20106e+14 insIndex:46
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:47
+computeReal: real2 is null, using op2 value:0.57735
+insIndex:47 frameIdx:2**
+slotIdx[frameIdx]:6
+insMap:6 slotIdx[frameIdx]:6 
+getRegRes newRegIdx:6 frameCur[frameIdx]:2 
+computeReal: op1:5.07802e+09 op2:0.57735
+computeReal: op1Addr:139834022953160 op1:5.07802246900000e9
+computeReal: op2Addr:0 op2:5.77350269189626e-1
+FMUL
+res:
+computeReal: stackTop:8 addr:139834022953280
+computeReal:8
+
+The shadow value is 2.93179763942812e9
+, but 2.9318e9 was computed.
+updateError: computedVal:2.9318e+09 insIndex:47
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:48
+insIndex:48 frameIdx:2**
+slotIdx[frameIdx]:7
+insMap:7 slotIdx[frameIdx]:7 
+getRegRes newRegIdx:7 frameCur[frameIdx]:2 
+computeReal: op1:2.9318e+09 op2:2.20106e+14
+computeReal: op1Addr:139834022953280 op1:2.93179763942812e9
+computeReal: op2Addr:139834022953240 op2:2.20105798322311e14
+
+FADD
+res:
+computeReal: stackTop:9 addr:139834022953320
+computeReal:9
+
+The shadow value is 2.20108730119950e14
+, but 2.20109e14 was computed.
+updateError: computedVal:2.20109e+14 insIndex:48
+0 bits error (0 ulps)
+****************
+
+funcExit: return copied from:139834022953320 to stackTop:0 addr:139834022952960
+funcExit:0
+finish called
+mpfrInit:12
+mpfrClear:11
+mpfrInitMap:0
+mpfrClearMap:0
