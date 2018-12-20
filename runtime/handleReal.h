@@ -36,7 +36,6 @@ struct Real{
 bool initFlag = false;
 size_t count = 0;
 int frameIdx = 0;
-int returnIdx = -1;
 size_t newRegIdx = 0;
 bool recurFlag = false;
 size_t mpfrClear = 0;
@@ -53,10 +52,12 @@ std::map<size_t, struct BrError*>errBrMap;
 struct MyShadow *varTrack;
 Real *shadowStack;
 Real *shadowMap;
+//size_t (*insMap)[100];
 size_t *insMap;
 size_t *frameCur;
 size_t *argCount;
 size_t *slotIdx;
+size_t *returnIdx;
 std::stack<size_t> retTrack;
 std::map<size_t, size_t>funRetMap;
 

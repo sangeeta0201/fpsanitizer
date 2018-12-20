@@ -49,7 +49,7 @@ public:
   //this is called inside from handleOp to handle each operand, it it could be constant, temp or loaded from memory
   void handleOperand(Instruction *I, Instruction **Index, Value* OP, Function &F, bool *IsConstant, bool *IsReg);
   //it gives unique index to every instruction
-  void handleIns(Instruction *I);
+  void handleIns();
   //its called for every FCmpInst
   void handleFcmp(Instruction *I, BasicBlock *BB, FCmpInst *FCI, Function &F);
   //its called for every math library functions with one argument
@@ -76,6 +76,7 @@ public:
   static char ID; // Pass identification, replacement for typeid
 private:
   SmallVector<Function*, 8> AllFuncList;
+  SmallVector<Instruction*, 8> AllInsList;
   SmallVector<User*, 8> AllBrList;
   SmallVector<ReturnInst*, 8> AllReturn;
   std::map<Instruction*, Instruction*> TrackIToFCast;

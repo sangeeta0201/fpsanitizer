@@ -15,9 +15,8 @@
 #define debugCR 1
 #define MPFRINIT 100000000 //for spec
 //#define MPFRINIT 100
-std::ofstream report;
-//std::outstream report;
 FILE *pFile = fopen ("error.log","w");
+FILE *eFile = fopen ("branch.log","w");
 /*
 void print_trace (void)
 {
@@ -52,23 +51,52 @@ void print_trace (void)
 
   for (i = 0; i < size; i++)
 		std::cout<<strings[i]<<"\n"; 
-		//fprintf (pFile, "%s\n", strings[i]); 
+		//fprintf (eFile, "%s\n", strings[i]); 
 
   free (strings);
 }
-
+/*
+size_t getRegRes(size_t insIndex){
+	assert(newRegIdx + frameCur[frameIdx] < MPFRINIT);
+	assert(frameIdx < MAX_SIZE);
+  if(insMap[insIndex] != 0){ 
+    newRegIdx = insMap[insIndex] + slotIdx[frameIdx];
+		std::cout<<"insMap[insIndex]:"<<insMap[insIndex]<<"\n";
+//  	slotIdx[frameIdx] = newRegIdx;
+  	slotIdx[frameIdx] = newRegIdx + 1;
+	}
+	else{
+		newRegIdx = slotIdx[frameIdx];
+		std::cout<<"slotIdx[frameIdx]:"<<slotIdx[frameIdx]<<"\n";
+  	insMap[insIndex] = slotIdx[frameIdx];
+  	slotIdx[frameIdx] += 1;
+	}
+	if(debug){
+		std::cout<<"getRegRes newRegIdx:"<<newRegIdx<<" frameCur[frameIdx]:"<<frameCur[frameIdx]<<"\n";
+	}
+	return newRegIdx + frameCur[frameIdx];
+}
+*/
 size_t getRegRes(size_t insIndex){
 	assert(newRegIdx + frameCur[frameIdx] < MPFRINIT);
 	assert(frameIdx < MAX_SIZE);
   if(insMap[insIndex] != 0){ 
     newRegIdx = insMap[insIndex];
+		std::cout<<"insMap:"<<insMap[insIndex]<<" slotIdx[frameIdx]:"<<slotIdx[frameIdx]<<" \n";
+		if(newRegIdx > slotIdx[frameIdx])
+			slotIdx[frameIdx] = newRegIdx + 1;
 	}
 	else{
 		newRegIdx = slotIdx[frameIdx];
+		std::cout<<"slotIdx[frameIdx]:"<<slotIdx[frameIdx]<<"\n";
   	insMap[insIndex] = slotIdx[frameIdx];
+		std::cout<<"insMap:"<<insMap[insIndex]<<" slotIdx[frameIdx]:"<<slotIdx[frameIdx]<<" \n";
   	slotIdx[frameIdx] += 1;
 	}
-	return newRegIdx + frameCur[frameIdx];
+	if(debug){
+		std::cout<<"getRegRes newRegIdx:"<<newRegIdx<<" frameCur[frameIdx]:"<<frameCur[frameIdx]<<" \n";
+	}
+	return newRegIdx + frameCur[frameIdx] ;
 }
 
 extern "C" size_t getAddr(void *Addr){
@@ -76,14 +104,22 @@ extern "C" size_t getAddr(void *Addr){
  // return AddrInt;
 }
 
-extern "C" void addReturnAddr(){
+extern "C" void* addReturnAddr(){
+	std::cout<<"frameCur[frameIdx]:"<<frameCur[frameIdx]<<" slotIdx[frameIdx]:"<<slotIdx[frameIdx]<<"\n";
+	returnIdx[frameIdx] = frameCur[frameIdx] + slotIdx[frameIdx];
+	size_t retAddr = returnIdx[frameIdx];
 	slotIdx[frameIdx]++;
+	if(debug)
+		std::cout<<"addReturnAddr: Idx:"<<retAddr<<" return addr: "<<(size_t)&shadowStack[retAddr]<<"\n";
+	std::cout<<"addReturnAddr: Idx:"<<retAddr<<"\n";
+	return &shadowStack[retAddr];
 }
 
 extern "C" void addFunArg(size_t argNo, size_t argAddrInt, double op){
 	argCount[frameIdx+1] = argCount[frameIdx+1] + 1;
 	
 	size_t stackTop = frameCur[frameIdx]+slotIdx[frameIdx];
+	std::cout<<"addFunArg: add arg to idx:"<<stackTop<<"\n";
 	if(argAddrInt != 0){
 		Real *real1 = (Real *)argAddrInt;
 		mpfr_set(shadowStack[stackTop].mpfr_val, real1->mpfr_val, MPFR_RNDN);
@@ -105,26 +141,26 @@ extern "C" void funcInit(void *fName){
 		init();
 		initFlag = true;
 	}
-//	if(debug)
-//	std::cout<<"******funcInit*****\n";
 	frameIdx++;
+	memset(insMap, 0, 2048 * sizeof(size_t));
 	frameCur[frameIdx] = frameCur[frameIdx-1]+slotIdx[frameIdx-1] /*return index*/ ;
 	slotIdx[frameIdx] = 0;
-	if(debug)
-		std::cout<<"funcInit current frame point to stack index:"<<frameCur[frameIdx]<<" slotIdx:"<<slotIdx[frameIdx]<<"\n";
+//	if(debug)
+		std::cout<<"funcInit:"<<frameCur[frameIdx]<<"\n";
 }
 
 extern "C" void funcExit(size_t returnIndex){
 
   size_t var;
-	returnIdx = (frameCur[frameIdx] - argCount[frameIdx] );
+  size_t retAddr = returnIdx[frameIdx - 1];
 	if(returnIndex != 0){
 		if(debug)
-			std::cout<<"funcExit: return copied from:"<<returnIndex<<" to stackTop:"<<returnIdx <<" addr:"<<(size_t)&shadowStack[returnIdx]<<"\n";
+			std::cout<<"funcExit: return copied from:"<<returnIndex<<" to stackTop:"<<retAddr <<" addr:"<<(size_t)&shadowStack[retAddr]<<"\n";
 		Real *returnReal = (Real *)returnIndex;
-		mpfr_set(shadowStack[returnIdx].mpfr_val, returnReal->mpfr_val, MPFR_RNDN);
-		shadowStack[returnIdx].initFlag = 1;
+		mpfr_set(shadowStack[retAddr].mpfr_val, returnReal->mpfr_val, MPFR_RNDN);
+		shadowStack[retAddr].initFlag = 1;
 	}	
+	std::cout<<"funcExit:"<<retAddr<<"\n";
 	frameIdx--;
 	slotIdx[frameIdx] = slotIdx[frameIdx] - argCount[frameIdx+1];
 	argCount[frameIdx + 1] = 0;
@@ -205,6 +241,7 @@ extern "C" void* handleMathFunc(size_t funcCode, double op1, size_t op1Int,
 	
   if(debug)
 		std::cout<<"handleMathFunc: stackTop:"<<newRegIdx<<" addr:"<<(size_t)&shadowStack[newRegIdx]<<"\n";
+	std::cout<<"handleMathFunc: idx:"<<newRegIdx<<"\n";
   if(mpfrFlag1){
     mpfr_clear(real1->mpfr_val);
     mpfrClear++;
@@ -371,9 +408,10 @@ extern "C" void* fpSanLoadFromShadowMem(void *Addr, size_t insIndex, double op){
 	if(shadowMap[offset].initFlag == 0){
 		mpfr_set_d(shadowStack[newRegIdx].mpfr_val, op, MPFR_RNDN);
 		if(debug){
+			size_t addr = (size_t) &shadowStack[newRegIdx];
 			std::cout<<"fpSanLoadFromShadowMem: set value:";
 			printReal( shadowStack[newRegIdx].mpfr_val);
-			std::cout<<" in shadowStack at:"<<newRegIdx<<" from op:"<<op<<"\n";
+			std::cout<<" in shadowStack at:"<<newRegIdx<<" for addr:"<<addr<<" from op:"<<op<<"\n";
 		}
 	}
 	else{
@@ -385,12 +423,14 @@ extern "C" void* fpSanLoadFromShadowMem(void *Addr, size_t insIndex, double op){
 			std::cout<<" in shadowStack at:"<<newRegIdx<<" for addr:"<<addr<<" from offset:"<<offset<<"\n";
 		}
 	}
+	std::cout<<"fpSanLoadFromShadowMem:"<<newRegIdx<<"\n";
 	shadowStack[newRegIdx].initFlag = 1;
 	return &shadowStack[newRegIdx];
 }
 
 extern "C" void* computeReal(size_t opCode, size_t op1Addr, size_t op2Addr, double op1, double op2, 
-                                    double computedRes, int insIndex){
+                                    double computedRes, size_t insIndex){
+  std::cout<<"computeReal: insIndex:"<<insIndex<<"\n";
   bool mpfrFlag1 = false;
   bool mpfrFlag2 = false;
   Real *real1;
@@ -466,6 +506,7 @@ extern "C" void* computeReal(size_t opCode, size_t op1Addr, size_t op2Addr, doub
   }
 	if(debugCR)
 		std::cout<<"computeReal: stackTop:"<<newRegIdx<<" addr:"<<(size_t)&shadowStack[newRegIdx]<<"\n";
+	std::cout<<"computeReal:"<<newRegIdx<<"\n";
   //printReal(shadowStack[newRegIdx]);
   updateError(shadowStack[newRegIdx].mpfr_val, computedRes, insIndex);
   return &shadowStack[newRegIdx];
@@ -481,7 +522,7 @@ int handleCmp(mpfr_t *op1, mpfr_t *op2){
 }
 
 extern "C" bool checkBranch(double op1, size_t op1Int, double op2, size_t op2Int, 
-                            int fcmpFlag, bool computedRes, size_t insIndex, size_t lineNo){
+                            size_t fcmpFlag, bool computedRes, size_t insIndex, size_t lineNo){
   Real *real1;
   Real *real2;
   Real r1;
@@ -620,10 +661,11 @@ extern "C" bool checkBranch(double op1, size_t op1Int, double op2, size_t op2Int
 			break;
 	}
 	if(realRes != computedRes){
-    fprintf (pFile, " compare branch flipped @ %lld", lineNo);
-    fprintf (pFile, "\n\n\n");
+		std::cout<<" compare branch flipped @"<< lineNo<<"\n\n";
+		fprintf (eFile, " compare branch flipped @ %lld", lineNo);
+    fprintf (eFile, "\n\n\n");
 		print_trace ();
-    fprintf (pFile, "\n\n\n");
+    fprintf (eFile, "\n\n\n");
 	}
 	if(debug){
 	if(realRes != computedRes){
@@ -671,9 +713,15 @@ extern "C" size_t setRealReg(size_t index, double value){
 }
 */
 extern "C" void* getRealFunArg(size_t index){
+	std::cout<<"getRealFunArg argCount[frameIdx]:"<<argCount[frameIdx]<<"\n";
+	if(argCount[frameIdx] == 0)
+		return 0;
 	if(debug){
-	std::cout<<"getRealFunArg: addr:"<<(size_t)&shadowStack[frameCur[frameIdx] - index - 1]<<"\n";
+		std::cout<<"getRealFunArg: addr:"<<(size_t)&shadowStack[frameCur[frameIdx] - index - 1]<<"\n";
+		//Real *real = &shadowStack[frameCur[frameIdx] - index - 1];
+		//printReal(real->mpfr_val);
 	}
+	std::cout<<"getRealFunArg: get from idx:"<<frameCur[frameIdx] - index - 1<<"\n";
 	return &shadowStack[frameCur[frameIdx] - index - 1];
 }
 
@@ -690,16 +738,6 @@ extern "C" void setRealFunArg(size_t index, size_t funAddrInt, size_t toAddrInt,
 		std::cout<<" to addr offset:"<<offset<<"\n";
 	}
 }
-
-extern "C" void* getRealReturn(size_t insIndex){
-	if(debug){
-	std::cout<<"getRealReturn: return is saved at index:"<<returnIdx<<"\n";
-	std::cout<<"getRealReturn: addr of return:"<<(size_t)&shadowStack[returnIdx].mpfr_val<<"\n";
-	}
-	return &shadowStack[returnIdx];
-	
-}
-
 extern "C" void setRealReturn(size_t toAddrInt){
 /*
   if(!retTrack.empty()){
@@ -768,12 +806,13 @@ void printReal(mpfr_t mpfr_val){
   char* shadowValStr;
   mpfr_exp_t shadowValExpt;
 
-  shadowValStr = mpfr_get_str(NULL, &shadowValExpt, 10, 15, mpfr_val, MPFR_RNDN);
+ // shadowValStr = mpfr_get_str(NULL, &shadowValExpt, 10, 0, mpfr_val, MPFR_RNDN);
 //  printf("%c.%se%ld", shadowValStr[0], shadowValStr+1, shadowValExpt-1);
-	std::cout<<shadowValStr[0]<<"."<<shadowValStr+1<<"e"<<shadowValExpt-1;
-  mpfr_free_str(shadowValStr);
+//	std::cout<<shadowValStr[0]<<"."<<shadowValStr+1<<"e"<<shadowValExpt-1;
+//  mpfr_free_str(shadowValStr);
+  //mpfr_out_str (stdout, 10, 0, mpfr_val, MPFR_RNDN);
+  mpfr_out_str (stdout, 10, 15, mpfr_val, MPFR_RNDN);
 	std::cout<<"\n";
-//  mpfr_out_str (stdout, 10, 0, real->mpfr_val, MPFR_RNDN);
 } 
 
 void ppFloat(double val){                                                                                                         
@@ -876,7 +915,6 @@ double updateError(mpfr_t realVal, double computedVal, size_t insIndex){
     printReal(realVal);
 //  	mpfr_out_str (stdout, 10, 0, realVal, MPFR_RNDN);
     if (computedVal != computedVal){
-			print_trace();
       std::cout<<", but NaN was computed.\n";
     } else {
       std::cout<<", but ";
@@ -887,10 +925,12 @@ double updateError(mpfr_t realVal, double computedVal, size_t insIndex){
 //    printf("%f bits error (%llu ulps)\n",
   //              bitsError, ulpsError);
 		std::cout<<bitsError<<" bits error ("<<ulpsError<<" ulps)\n";
-		if(ulpsError>0)
-			print_trace ();
   	std::cout<<"****************\n\n"; 
   }
+		if(bitsError>30){
+			print_trace ();
+			exit(0);
+		}
 //    printf("%f bits error (%llu ulps)\n",
  //               bitsError, ulpsError);
   std::map<size_t, struct ErrorAggregate*>::iterator it = errorMap.find(insIndex); 
@@ -934,16 +974,18 @@ void initializeErrorAggregate(ErrorAggregate *eagg){
 extern "C" void init(){
 	if(!initFlag){
 		initFlag = true;
-		report.open("trace.log");  
 		std::cout<<"init called\n";
     size_t length = MAX_STACK_SIZE * sizeof(struct Real);
     size_t len = MAX_SIZE * sizeof(size_t);
+    //size_t len = 128 * sizeof(size_t);
     shadowStack = (Real *) mmap(0, length, PROT_READ|PROT_WRITE, MMAP_FLAGS, -1, 0);
     shadowMap = (Real *) mmap(0, length, PROT_READ|PROT_WRITE, MMAP_FLAGS, -1, 0);
-    insMap = (size_t*) mmap(0, len, PROT_READ|PROT_WRITE, MMAP_FLAGS, -1, 0);
+    //insMap = (size_t(*)[100]) mmap(0, len * 100, PROT_READ|PROT_WRITE, MMAP_FLAGS, -1, 0);
+    insMap = (size_t*)mmap(0, 2048*sizeof(size_t), PROT_READ|PROT_WRITE, MMAP_FLAGS, -1, 0);
     frameCur = (size_t*) mmap(0, len, PROT_READ|PROT_WRITE, MMAP_FLAGS, -1, 0);
     argCount = (size_t*) mmap(0, len, PROT_READ|PROT_WRITE, MMAP_FLAGS, -1, 0);
     slotIdx = (size_t*) mmap(0, len, PROT_READ|PROT_WRITE, MMAP_FLAGS, -1, 0);
+    returnIdx = (size_t*) mmap(0, len, PROT_READ|PROT_WRITE, MMAP_FLAGS, -1, 0);
     assert (insMap != (void*)-1);
     assert (varTrack != (void*)-1);
 		for(int i = 0; i <= MPFRINIT; i++)
@@ -989,6 +1031,5 @@ extern "C" void finish(){
     }
 */
 //  fclose (pFile);
-	report.close();
 }
 
