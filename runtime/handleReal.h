@@ -51,7 +51,7 @@ std::map<size_t, struct BrError*>errBrMap;
 //std::list<struct MyShadow*> varTrack;
 struct MyShadow *varTrack;
 Real *shadowStack;
-Real *shadowMap;
+Real **shadowMap;
 //size_t (*insMap)[100];
 size_t *insMap;
 size_t *frameCur;
@@ -73,6 +73,7 @@ double updateError(mpfr_t mpfr_val, double computedVal, size_t insIndex);
 void updateBranchError(bool realRes, bool computedRes, size_t insIndex, size_t lineNo);
 void initializeErrorAggregate(ErrorAggregate *eagg);
 void printReal(mpfr_t mpfr_val);
+struct Real* getAddrIndex(size_t addr);
 /*
 When we compute any floating point operation on real, we save the result in shadow map with its value 
 and return the address of this saved value to LLVM Pass. LLVM pass creates the mapping of real result and 

@@ -72,6 +72,7 @@ public:
 	void instrumentAllFunctions(std::string FN);
 	void handleExtractValue(Instruction *I, ExtractValueInst *EVI, Function &F);
 	void handleLLVMMemcpy(Instruction *I, CallInst *CI, Function &F);
+	void handleLLVMMemset(Instruction *I, CallInst *CI, Function &F);
 	void handleMalloc(Instruction *I,  BasicBlock *BB, CallInst *CI, Function &F);
   static char ID; // Pass identification, replacement for typeid
 private:
