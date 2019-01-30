@@ -1,0 +1,4628 @@
+init called
+funcInit:0
+computeReal: insIndex:149
+computeReal: real1 is null, using op1 value:0
+computeReal: real2 is null, using op2 value:0.34
+slotIdx[frameIdx]:0
+insMap:0 slotIdx[frameIdx]:0 
+getRegRes newRegIdx:0 frameCur[frameIdx]:0 
+computeReal: op1:0 op2:0.34
+computeReal: op1Addr:0 op1:0
+computeReal: op2Addr:0 op2:3.40000000000000e-1
+FMUL
+res:
+computeReal: stackTop:0 addr:139951292121088
+computeReal:0
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:149
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:150
+computeReal: real1 is null, using op1 value:0
+computeReal: real2 is null, using op2 value:0.123
+slotIdx[frameIdx]:1
+insMap:1 slotIdx[frameIdx]:1 
+getRegRes newRegIdx:1 frameCur[frameIdx]:0 
+computeReal: op1:0 op2:0.123
+computeReal: op1Addr:0 op1:0
+computeReal: op2Addr:0 op2:1.23000000000000e-1
+FMUL
+res:
+computeReal: stackTop:1 addr:139951292121128
+computeReal:1
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:150
+0 bits error (0 ulps)
+****************
+
+setRealTemp: set:0
+ from:139951292121088 to addr offset:884776
+setRealTemp: set:0
+ from:139951292121128 to addr offset:14622240
+setRealTemp: set:0
+ from:139951292121088 to addr offset:14622240
+setRealTemp: set:0
+ from:139951292121128 to addr offset:14622240
+setRealTemp: set:0
+ from:139951292121088 to addr offset:14622240
+setRealTemp: set:0
+ from:139951292121128 to addr offset:14622240
+computeReal: insIndex:149
+computeReal: real1 is null, using op1 value:1
+computeReal: real2 is null, using op2 value:0.34
+slotIdx[frameIdx]:2
+insMap:2 slotIdx[frameIdx]:2 
+getRegRes newRegIdx:2 frameCur[frameIdx]:0 
+computeReal: op1:1 op2:0.34
+computeReal: op1Addr:0 op1:1.00000000000000
+computeReal: op2Addr:0 op2:3.40000000000000e-1
+FMUL
+res:
+computeReal: stackTop:2 addr:139951292121168
+computeReal:2
+
+The shadow value is 3.40000000000000e-1
+, but 3.4e-1 was computed.
+updateError: computedVal:0.34 insIndex:149
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:150
+computeReal: real1 is null, using op1 value:1
+computeReal: real2 is null, using op2 value:0.123
+insMap:1 slotIdx[frameIdx]:3 
+getRegRes newRegIdx:1 frameCur[frameIdx]:0 
+computeReal: op1:1 op2:0.123
+computeReal: op1Addr:0 op1:1.00000000000000
+computeReal: op2Addr:0 op2:1.23000000000000e-1
+FMUL
+res:
+computeReal: stackTop:1 addr:139951292121128
+computeReal:1
+
+The shadow value is 1.23000000000000e-1
+, but 1.23e-1 was computed.
+updateError: computedVal:0.123 insIndex:150
+0 bits error (0 ulps)
+****************
+
+setRealTemp: set:3.40000000000000e-1
+ from:139951292121168 to addr offset:884776
+setRealTemp: set:1.23000000000000e-1
+ from:139951292121128 to addr offset:14622240
+setRealTemp: set:3.40000000000000e-1
+ from:139951292121168 to addr offset:14622240
+setRealTemp: set:1.23000000000000e-1
+ from:139951292121128 to addr offset:14622240
+setRealTemp: set:3.40000000000000e-1
+ from:139951292121168 to addr offset:14622240
+setRealTemp: set:1.23000000000000e-1
+ from:139951292121128 to addr offset:14622240
+computeReal: insIndex:149
+computeReal: real1 is null, using op1 value:2
+computeReal: real2 is null, using op2 value:0.34
+insMap:2 slotIdx[frameIdx]:3 
+getRegRes newRegIdx:2 frameCur[frameIdx]:0 
+computeReal: op1:2 op2:0.34
+computeReal: op1Addr:0 op1:2.00000000000000
+computeReal: op2Addr:0 op2:3.40000000000000e-1
+FMUL
+res:
+computeReal: stackTop:2 addr:139951292121168
+computeReal:2
+
+The shadow value is 6.80000000000000e-1
+, but 6.8e-1 was computed.
+updateError: computedVal:0.68 insIndex:149
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:150
+computeReal: real1 is null, using op1 value:2
+computeReal: real2 is null, using op2 value:0.123
+insMap:1 slotIdx[frameIdx]:3 
+getRegRes newRegIdx:1 frameCur[frameIdx]:0 
+computeReal: op1:2 op2:0.123
+computeReal: op1Addr:0 op1:2.00000000000000
+computeReal: op2Addr:0 op2:1.23000000000000e-1
+FMUL
+res:
+computeReal: stackTop:1 addr:139951292121128
+computeReal:1
+
+The shadow value is 2.46000000000000e-1
+, but 2.46e-1 was computed.
+updateError: computedVal:0.246 insIndex:150
+0 bits error (0 ulps)
+****************
+
+setRealTemp: set:6.80000000000000e-1
+ from:139951292121168 to addr offset:884776
+setRealTemp: set:2.46000000000000e-1
+ from:139951292121128 to addr offset:14622240
+setRealTemp: set:6.80000000000000e-1
+ from:139951292121168 to addr offset:14622240
+setRealTemp: set:2.46000000000000e-1
+ from:139951292121128 to addr offset:14622240
+setRealTemp: set:6.80000000000000e-1
+ from:139951292121168 to addr offset:14622240
+setRealTemp: set:2.46000000000000e-1
+ from:139951292121128 to addr offset:14622240
+frameCur[frameIdx]:0 slotIdx[frameIdx]:3
+addReturnAddr: Idx:3 return addr: 139951292121208
+addReturnAddr: Idx:3
+addFunArg: add arg to idx:4
+addFunArg: arg copied from: 0 stackTop:4
+addFunArg: addr:139951292121248 set to:2.46000000000000e-1
+addFunArg: add arg to idx:5
+addFunArg: arg copied from: 0 stackTop:5
+addFunArg: addr:139951292121288 set to:1.38523893491006e-309
+addFunArg: add arg to idx:6
+addFunArg: arg copied from: 0 stackTop:6
+addFunArg: addr:139951292121328 set to:1.38523893491006e-309
+funcInit:7
+mult_su3_nn starts
+slotIdx[frameIdx]:0
+insMap:0 slotIdx[frameIdx]:0 
+getRegRes newRegIdx:0 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:7.12709672559706e-314
+ in shadowStack at:7 for addr:139951292121368 from op:7.1271e-314
+fpSanLoadFromShadowMem:7
+slotIdx[frameIdx]:1
+insMap:1 slotIdx[frameIdx]:1 
+getRegRes newRegIdx:1 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:7.12709680464756e-314
+ in shadowStack at:8 for addr:139951292121408 from op:7.1271e-314
+fpSanLoadFromShadowMem:8
+computeReal: insIndex:26
+slotIdx[frameIdx]:2
+insMap:2 slotIdx[frameIdx]:2 
+getRegRes newRegIdx:2 frameCur[frameIdx]:7 
+computeReal: op1:7.1271e-314 op2:7.1271e-314
+computeReal: op1Addr:139951292121368 op1:7.12709672559706e-314
+computeReal: op2Addr:139951292121408 op2:7.12709680464756e-314
+FMUL
+res:
+computeReal: stackTop:9 addr:139951292121448
+computeReal:9
+
+The shadow value is 5.07955082994169e-627
+, but 0 was computed.
+updateError: computedVal:0 insIndex:26
+0 bits error (0 ulps)
+****************
+
+slotIdx[frameIdx]:3
+insMap:3 slotIdx[frameIdx]:3 
+getRegRes newRegIdx:3 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:10 for addr:139951292121488 from op:0
+fpSanLoadFromShadowMem:10
+slotIdx[frameIdx]:4
+insMap:4 slotIdx[frameIdx]:4 
+getRegRes newRegIdx:4 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:7.12709672559706e-314
+ in shadowStack at:11 for addr:139951292121528 from op:7.1271e-314
+fpSanLoadFromShadowMem:11
+computeReal: insIndex:31
+slotIdx[frameIdx]:5
+insMap:5 slotIdx[frameIdx]:5 
+getRegRes newRegIdx:5 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:7.1271e-314
+computeReal: op1Addr:139951292121488 op1:0
+computeReal: op2Addr:139951292121528 op2:7.12709672559706e-314
+FMUL
+res:
+computeReal: stackTop:12 addr:139951292121568
+computeReal:12
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:31
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:32
+slotIdx[frameIdx]:6
+insMap:6 slotIdx[frameIdx]:6 
+getRegRes newRegIdx:6 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121448 op1:5.07955082994169e-627
+computeReal: op2Addr:139951292121568 op2:0
+FSUB
+res:
+computeReal: stackTop:13 addr:139951292121608
+computeReal:13
+
+The shadow value is 5.07955082994169e-627
+, but 0 was computed.
+updateError: computedVal:0 insIndex:32
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:34
+slotIdx[frameIdx]:7
+insMap:7 slotIdx[frameIdx]:7 
+getRegRes newRegIdx:7 frameCur[frameIdx]:7 
+computeReal: op1:7.1271e-314 op2:7.1271e-314
+computeReal: op1Addr:139951292121368 op1:7.12709672559706e-314
+computeReal: op2Addr:139951292121528 op2:7.12709672559706e-314
+FMUL
+res:
+computeReal: stackTop:14 addr:139951292121648
+computeReal:14
+
+The shadow value is 5.07955077360163e-627
+, but 0 was computed.
+updateError: computedVal:0 insIndex:34
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:35
+slotIdx[frameIdx]:8
+insMap:8 slotIdx[frameIdx]:8 
+getRegRes newRegIdx:8 frameCur[frameIdx]:7 
+computeReal: op1:7.1271e-314 op2:0
+computeReal: op1Addr:139951292121408 op1:7.12709680464756e-314
+computeReal: op2Addr:139951292121488 op2:0
+FMUL
+res:
+computeReal: stackTop:15 addr:139951292121688
+computeReal:15
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:35
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:36
+slotIdx[frameIdx]:9
+insMap:9 slotIdx[frameIdx]:9 
+getRegRes newRegIdx:9 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121688 op1:0
+computeReal: op2Addr:139951292121648 op2:5.07955077360163e-627
+
+FADD
+res:
+computeReal: stackTop:16 addr:139951292121728
+computeReal:16
+
+The shadow value is 5.07955077360163e-627
+, but 0 was computed.
+updateError: computedVal:0 insIndex:36
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:38
+computeReal: real1 is null, using op1 value:0
+slotIdx[frameIdx]:10
+insMap:10 slotIdx[frameIdx]:10 
+getRegRes newRegIdx:10 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:0 op1:0
+computeReal: op2Addr:139951292121608 op2:5.07955082994169e-627
+
+FADD
+res:
+computeReal: stackTop:17 addr:139951292121768
+computeReal:17
+
+The shadow value is 5.07955082994169e-627
+, but 0 was computed.
+updateError: computedVal:0 insIndex:38
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:39
+computeReal: real1 is null, using op1 value:0
+slotIdx[frameIdx]:11
+insMap:11 slotIdx[frameIdx]:11 
+getRegRes newRegIdx:11 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:0 op1:0
+computeReal: op2Addr:139951292121728 op2:5.07955077360163e-627
+
+FADD
+res:
+computeReal: stackTop:18 addr:139951292121808
+computeReal:18
+
+The shadow value is 5.07955077360163e-627
+, but 0 was computed.
+updateError: computedVal:0 insIndex:39
+0 bits error (0 ulps)
+****************
+
+slotIdx[frameIdx]:12
+insMap:12 slotIdx[frameIdx]:12 
+getRegRes newRegIdx:12 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:19 for addr:139951292121848 from op:0
+fpSanLoadFromShadowMem:19
+insMap:1 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:1 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:8 for addr:139951292121408 from op:0
+fpSanLoadFromShadowMem:8
+computeReal: insIndex:26
+insMap:2 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:2 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121408 op2:0
+FMUL
+res:
+computeReal: stackTop:9 addr:139951292121448
+computeReal:9
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:26
+0 bits error (0 ulps)
+****************
+
+insMap:3 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:3 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:10 for addr:139951292121488 from op:0
+fpSanLoadFromShadowMem:10
+insMap:4 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:4 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:11 for addr:139951292121528 from op:0
+fpSanLoadFromShadowMem:11
+computeReal: insIndex:31
+insMap:5 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:5 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121488 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:12 addr:139951292121568
+computeReal:12
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:31
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:32
+insMap:6 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:6 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121448 op1:0
+computeReal: op2Addr:139951292121568 op2:0
+FSUB
+res:
+computeReal: stackTop:13 addr:139951292121608
+computeReal:13
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:32
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:34
+insMap:7 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:7 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:14 addr:139951292121648
+computeReal:14
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:34
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:35
+insMap:8 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:8 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121408 op1:0
+computeReal: op2Addr:139951292121488 op2:0
+FMUL
+res:
+computeReal: stackTop:15 addr:139951292121688
+computeReal:15
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:35
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:36
+insMap:9 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:9 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121688 op1:0
+computeReal: op2Addr:139951292121648 op2:0
+
+FADD
+res:
+computeReal: stackTop:16 addr:139951292121728
+computeReal:16
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:36
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:38
+insMap:10 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:10 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121768 op1:5.07955082994169e-627
+computeReal: op2Addr:139951292121608 op2:0
+
+FADD
+res:
+computeReal: stackTop:17 addr:139951292121768
+computeReal:17
+
+The shadow value is 5.07955082994169e-627
+, but 0 was computed.
+updateError: computedVal:0 insIndex:38
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:39
+insMap:11 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:11 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121808 op1:5.07955077360163e-627
+computeReal: op2Addr:139951292121728 op2:0
+
+FADD
+res:
+computeReal: stackTop:18 addr:139951292121808
+computeReal:18
+
+The shadow value is 5.07955077360163e-627
+, but 0 was computed.
+updateError: computedVal:0 insIndex:39
+0 bits error (0 ulps)
+****************
+
+insMap:12 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:12 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:19 for addr:139951292121848 from op:0
+fpSanLoadFromShadowMem:19
+insMap:1 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:1 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:8 for addr:139951292121408 from op:0
+fpSanLoadFromShadowMem:8
+computeReal: insIndex:26
+insMap:2 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:2 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121408 op2:0
+FMUL
+res:
+computeReal: stackTop:9 addr:139951292121448
+computeReal:9
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:26
+0 bits error (0 ulps)
+****************
+
+insMap:3 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:3 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:10 for addr:139951292121488 from op:0
+fpSanLoadFromShadowMem:10
+insMap:4 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:4 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:1.38523885234213e-309
+ in shadowStack at:11 for addr:139951292121528 from op:1.38524e-309
+fpSanLoadFromShadowMem:11
+computeReal: insIndex:31
+insMap:5 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:5 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:1.38524e-309
+computeReal: op1Addr:139951292121488 op1:0
+computeReal: op2Addr:139951292121528 op2:1.38523885234213e-309
+FMUL
+res:
+computeReal: stackTop:12 addr:139951292121568
+computeReal:12
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:31
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:32
+insMap:6 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:6 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121448 op1:0
+computeReal: op2Addr:139951292121568 op2:0
+FSUB
+res:
+computeReal: stackTop:13 addr:139951292121608
+computeReal:13
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:32
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:34
+insMap:7 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:7 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:1.38524e-309
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121528 op2:1.38523885234213e-309
+FMUL
+res:
+computeReal: stackTop:14 addr:139951292121648
+computeReal:14
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:34
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:35
+insMap:8 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:8 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121408 op1:0
+computeReal: op2Addr:139951292121488 op2:0
+FMUL
+res:
+computeReal: stackTop:15 addr:139951292121688
+computeReal:15
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:35
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:36
+insMap:9 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:9 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121688 op1:0
+computeReal: op2Addr:139951292121648 op2:0
+
+FADD
+res:
+computeReal: stackTop:16 addr:139951292121728
+computeReal:16
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:36
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:38
+insMap:10 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:10 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121768 op1:5.07955082994169e-627
+computeReal: op2Addr:139951292121608 op2:0
+
+FADD
+res:
+computeReal: stackTop:17 addr:139951292121768
+computeReal:17
+
+The shadow value is 5.07955082994169e-627
+, but 0 was computed.
+updateError: computedVal:0 insIndex:38
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:39
+insMap:11 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:11 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121808 op1:5.07955077360163e-627
+computeReal: op2Addr:139951292121728 op2:0
+
+FADD
+res:
+computeReal: stackTop:18 addr:139951292121808
+computeReal:18
+
+The shadow value is 5.07955077360163e-627
+, but 0 was computed.
+updateError: computedVal:0 insIndex:39
+0 bits error (0 ulps)
+****************
+
+setRealTemp: set:5.07955082994169e-627
+ from:139951292121768 to addr offset:0
+setRealTemp: set:5.07955077360163e-627
+ from:139951292121808 to addr offset:14622240
+insMap:12 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:12 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:7.12709672559706e-314
+ in shadowStack at:19 for addr:139951292121848 from op:7.1271e-314
+fpSanLoadFromShadowMem:19
+insMap:1 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:1 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:8 for addr:139951292121408 from op:0
+fpSanLoadFromShadowMem:8
+computeReal: insIndex:26
+insMap:2 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:2 frameCur[frameIdx]:7 
+computeReal: op1:7.1271e-314 op2:0
+computeReal: op1Addr:139951292121848 op1:7.12709672559706e-314
+computeReal: op2Addr:139951292121408 op2:0
+FMUL
+res:
+computeReal: stackTop:9 addr:139951292121448
+computeReal:9
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:26
+0 bits error (0 ulps)
+****************
+
+insMap:3 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:3 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:10 for addr:139951292121488 from op:0
+fpSanLoadFromShadowMem:10
+insMap:4 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:4 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:11 for addr:139951292121528 from op:0
+fpSanLoadFromShadowMem:11
+computeReal: insIndex:31
+insMap:5 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:5 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121488 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:12 addr:139951292121568
+computeReal:12
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:31
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:32
+insMap:6 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:6 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121448 op1:0
+computeReal: op2Addr:139951292121568 op2:0
+FSUB
+res:
+computeReal: stackTop:13 addr:139951292121608
+computeReal:13
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:32
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:34
+insMap:7 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:7 frameCur[frameIdx]:7 
+computeReal: op1:7.1271e-314 op2:0
+computeReal: op1Addr:139951292121848 op1:7.12709672559706e-314
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:14 addr:139951292121648
+computeReal:14
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:34
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:35
+insMap:8 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:8 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121408 op1:0
+computeReal: op2Addr:139951292121488 op2:0
+FMUL
+res:
+computeReal: stackTop:15 addr:139951292121688
+computeReal:15
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:35
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:36
+insMap:9 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:9 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121688 op1:0
+computeReal: op2Addr:139951292121648 op2:0
+
+FADD
+res:
+computeReal: stackTop:16 addr:139951292121728
+computeReal:16
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:36
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:38
+computeReal: real1 is null, using op1 value:0
+insMap:10 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:10 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:0 op1:0
+computeReal: op2Addr:139951292121608 op2:0
+
+FADD
+res:
+computeReal: stackTop:17 addr:139951292121768
+computeReal:17
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:38
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:39
+computeReal: real1 is null, using op1 value:0
+insMap:11 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:11 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:0 op1:0
+computeReal: op2Addr:139951292121728 op2:0
+
+FADD
+res:
+computeReal: stackTop:18 addr:139951292121808
+computeReal:18
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:39
+0 bits error (0 ulps)
+****************
+
+insMap:12 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:12 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:19 for addr:139951292121848 from op:0
+fpSanLoadFromShadowMem:19
+insMap:1 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:1 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:8 for addr:139951292121408 from op:0
+fpSanLoadFromShadowMem:8
+computeReal: insIndex:26
+insMap:2 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:2 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121408 op2:0
+FMUL
+res:
+computeReal: stackTop:9 addr:139951292121448
+computeReal:9
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:26
+0 bits error (0 ulps)
+****************
+
+insMap:3 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:3 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:10 for addr:139951292121488 from op:0
+fpSanLoadFromShadowMem:10
+insMap:4 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:4 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:11 for addr:139951292121528 from op:0
+fpSanLoadFromShadowMem:11
+computeReal: insIndex:31
+insMap:5 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:5 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121488 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:12 addr:139951292121568
+computeReal:12
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:31
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:32
+insMap:6 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:6 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121448 op1:0
+computeReal: op2Addr:139951292121568 op2:0
+FSUB
+res:
+computeReal: stackTop:13 addr:139951292121608
+computeReal:13
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:32
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:34
+insMap:7 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:7 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:14 addr:139951292121648
+computeReal:14
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:34
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:35
+insMap:8 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:8 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121408 op1:0
+computeReal: op2Addr:139951292121488 op2:0
+FMUL
+res:
+computeReal: stackTop:15 addr:139951292121688
+computeReal:15
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:35
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:36
+insMap:9 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:9 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121688 op1:0
+computeReal: op2Addr:139951292121648 op2:0
+
+FADD
+res:
+computeReal: stackTop:16 addr:139951292121728
+computeReal:16
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:36
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:38
+insMap:10 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:10 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121768 op1:0
+computeReal: op2Addr:139951292121608 op2:0
+
+FADD
+res:
+computeReal: stackTop:17 addr:139951292121768
+computeReal:17
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:38
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:39
+insMap:11 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:11 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121808 op1:0
+computeReal: op2Addr:139951292121728 op2:0
+
+FADD
+res:
+computeReal: stackTop:18 addr:139951292121808
+computeReal:18
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:39
+0 bits error (0 ulps)
+****************
+
+insMap:12 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:12 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:19 for addr:139951292121848 from op:0
+fpSanLoadFromShadowMem:19
+insMap:1 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:1 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:5.43222633441051e-312
+ in shadowStack at:8 for addr:139951292121408 from op:5.43223e-312
+fpSanLoadFromShadowMem:8
+computeReal: insIndex:26
+insMap:2 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:2 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:5.43223e-312
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121408 op2:5.43222633441051e-312
+FMUL
+res:
+computeReal: stackTop:9 addr:139951292121448
+computeReal:9
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:26
+0 bits error (0 ulps)
+****************
+
+insMap:3 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:3 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:10 for addr:139951292121488 from op:0
+fpSanLoadFromShadowMem:10
+insMap:4 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:4 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:11 for addr:139951292121528 from op:0
+fpSanLoadFromShadowMem:11
+computeReal: insIndex:31
+insMap:5 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:5 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121488 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:12 addr:139951292121568
+computeReal:12
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:31
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:32
+insMap:6 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:6 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121448 op1:0
+computeReal: op2Addr:139951292121568 op2:0
+FSUB
+res:
+computeReal: stackTop:13 addr:139951292121608
+computeReal:13
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:32
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:34
+insMap:7 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:7 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:14 addr:139951292121648
+computeReal:14
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:34
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:35
+insMap:8 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:8 frameCur[frameIdx]:7 
+computeReal: op1:5.43223e-312 op2:0
+computeReal: op1Addr:139951292121408 op1:5.43222633441051e-312
+computeReal: op2Addr:139951292121488 op2:0
+FMUL
+res:
+computeReal: stackTop:15 addr:139951292121688
+computeReal:15
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:35
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:36
+insMap:9 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:9 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121688 op1:0
+computeReal: op2Addr:139951292121648 op2:0
+
+FADD
+res:
+computeReal: stackTop:16 addr:139951292121728
+computeReal:16
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:36
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:38
+insMap:10 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:10 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121768 op1:0
+computeReal: op2Addr:139951292121608 op2:0
+
+FADD
+res:
+computeReal: stackTop:17 addr:139951292121768
+computeReal:17
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:38
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:39
+insMap:11 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:11 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121808 op1:0
+computeReal: op2Addr:139951292121728 op2:0
+
+FADD
+res:
+computeReal: stackTop:18 addr:139951292121808
+computeReal:18
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:39
+0 bits error (0 ulps)
+****************
+
+setRealTemp: set:0
+ from:139951292121768 to addr offset:0
+setRealTemp: set:0
+ from:139951292121808 to addr offset:14622240
+insMap:12 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:12 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:7.12709672559706e-314
+ in shadowStack at:19 for addr:139951292121848 from op:7.1271e-314
+fpSanLoadFromShadowMem:19
+insMap:1 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:1 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:8 for addr:139951292121408 from op:0
+fpSanLoadFromShadowMem:8
+computeReal: insIndex:26
+insMap:2 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:2 frameCur[frameIdx]:7 
+computeReal: op1:7.1271e-314 op2:0
+computeReal: op1Addr:139951292121848 op1:7.12709672559706e-314
+computeReal: op2Addr:139951292121408 op2:0
+FMUL
+res:
+computeReal: stackTop:9 addr:139951292121448
+computeReal:9
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:26
+0 bits error (0 ulps)
+****************
+
+insMap:3 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:3 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:10 for addr:139951292121488 from op:0
+fpSanLoadFromShadowMem:10
+insMap:4 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:4 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:11 for addr:139951292121528 from op:0
+fpSanLoadFromShadowMem:11
+computeReal: insIndex:31
+insMap:5 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:5 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121488 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:12 addr:139951292121568
+computeReal:12
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:31
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:32
+insMap:6 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:6 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121448 op1:0
+computeReal: op2Addr:139951292121568 op2:0
+FSUB
+res:
+computeReal: stackTop:13 addr:139951292121608
+computeReal:13
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:32
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:34
+insMap:7 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:7 frameCur[frameIdx]:7 
+computeReal: op1:7.1271e-314 op2:0
+computeReal: op1Addr:139951292121848 op1:7.12709672559706e-314
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:14 addr:139951292121648
+computeReal:14
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:34
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:35
+insMap:8 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:8 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121408 op1:0
+computeReal: op2Addr:139951292121488 op2:0
+FMUL
+res:
+computeReal: stackTop:15 addr:139951292121688
+computeReal:15
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:35
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:36
+insMap:9 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:9 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121688 op1:0
+computeReal: op2Addr:139951292121648 op2:0
+
+FADD
+res:
+computeReal: stackTop:16 addr:139951292121728
+computeReal:16
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:36
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:38
+computeReal: real1 is null, using op1 value:0
+insMap:10 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:10 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:0 op1:0
+computeReal: op2Addr:139951292121608 op2:0
+
+FADD
+res:
+computeReal: stackTop:17 addr:139951292121768
+computeReal:17
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:38
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:39
+computeReal: real1 is null, using op1 value:0
+insMap:11 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:11 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:0 op1:0
+computeReal: op2Addr:139951292121728 op2:0
+
+FADD
+res:
+computeReal: stackTop:18 addr:139951292121808
+computeReal:18
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:39
+0 bits error (0 ulps)
+****************
+
+insMap:12 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:12 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:19 for addr:139951292121848 from op:0
+fpSanLoadFromShadowMem:19
+insMap:1 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:1 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:8 for addr:139951292121408 from op:0
+fpSanLoadFromShadowMem:8
+computeReal: insIndex:26
+insMap:2 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:2 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121408 op2:0
+FMUL
+res:
+computeReal: stackTop:9 addr:139951292121448
+computeReal:9
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:26
+0 bits error (0 ulps)
+****************
+
+insMap:3 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:3 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:10 for addr:139951292121488 from op:0
+fpSanLoadFromShadowMem:10
+insMap:4 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:4 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:11 for addr:139951292121528 from op:0
+fpSanLoadFromShadowMem:11
+computeReal: insIndex:31
+insMap:5 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:5 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121488 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:12 addr:139951292121568
+computeReal:12
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:31
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:32
+insMap:6 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:6 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121448 op1:0
+computeReal: op2Addr:139951292121568 op2:0
+FSUB
+res:
+computeReal: stackTop:13 addr:139951292121608
+computeReal:13
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:32
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:34
+insMap:7 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:7 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:14 addr:139951292121648
+computeReal:14
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:34
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:35
+insMap:8 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:8 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121408 op1:0
+computeReal: op2Addr:139951292121488 op2:0
+FMUL
+res:
+computeReal: stackTop:15 addr:139951292121688
+computeReal:15
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:35
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:36
+insMap:9 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:9 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121688 op1:0
+computeReal: op2Addr:139951292121648 op2:0
+
+FADD
+res:
+computeReal: stackTop:16 addr:139951292121728
+computeReal:16
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:36
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:38
+insMap:10 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:10 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121768 op1:0
+computeReal: op2Addr:139951292121608 op2:0
+
+FADD
+res:
+computeReal: stackTop:17 addr:139951292121768
+computeReal:17
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:38
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:39
+insMap:11 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:11 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121808 op1:0
+computeReal: op2Addr:139951292121728 op2:0
+
+FADD
+res:
+computeReal: stackTop:18 addr:139951292121808
+computeReal:18
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:39
+0 bits error (0 ulps)
+****************
+
+insMap:12 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:12 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:19 for addr:139951292121848 from op:0
+fpSanLoadFromShadowMem:19
+insMap:1 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:1 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:8 for addr:139951292121408 from op:0
+fpSanLoadFromShadowMem:8
+computeReal: insIndex:26
+insMap:2 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:2 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121408 op2:0
+FMUL
+res:
+computeReal: stackTop:9 addr:139951292121448
+computeReal:9
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:26
+0 bits error (0 ulps)
+****************
+
+insMap:3 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:3 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:10 for addr:139951292121488 from op:0
+fpSanLoadFromShadowMem:10
+insMap:4 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:4 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:4.94065645841247e-324
+ in shadowStack at:11 for addr:139951292121528 from op:4.94066e-324
+fpSanLoadFromShadowMem:11
+computeReal: insIndex:31
+insMap:5 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:5 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:4.94066e-324
+computeReal: op1Addr:139951292121488 op1:0
+computeReal: op2Addr:139951292121528 op2:4.94065645841247e-324
+FMUL
+res:
+computeReal: stackTop:12 addr:139951292121568
+computeReal:12
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:31
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:32
+insMap:6 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:6 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121448 op1:0
+computeReal: op2Addr:139951292121568 op2:0
+FSUB
+res:
+computeReal: stackTop:13 addr:139951292121608
+computeReal:13
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:32
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:34
+insMap:7 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:7 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:4.94066e-324
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121528 op2:4.94065645841247e-324
+FMUL
+res:
+computeReal: stackTop:14 addr:139951292121648
+computeReal:14
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:34
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:35
+insMap:8 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:8 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121408 op1:0
+computeReal: op2Addr:139951292121488 op2:0
+FMUL
+res:
+computeReal: stackTop:15 addr:139951292121688
+computeReal:15
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:35
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:36
+insMap:9 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:9 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121688 op1:0
+computeReal: op2Addr:139951292121648 op2:0
+
+FADD
+res:
+computeReal: stackTop:16 addr:139951292121728
+computeReal:16
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:36
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:38
+insMap:10 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:10 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121768 op1:0
+computeReal: op2Addr:139951292121608 op2:0
+
+FADD
+res:
+computeReal: stackTop:17 addr:139951292121768
+computeReal:17
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:38
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:39
+insMap:11 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:11 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121808 op1:0
+computeReal: op2Addr:139951292121728 op2:0
+
+FADD
+res:
+computeReal: stackTop:18 addr:139951292121808
+computeReal:18
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:39
+0 bits error (0 ulps)
+****************
+
+setRealTemp: set:0
+ from:139951292121768 to addr offset:0
+setRealTemp: set:0
+ from:139951292121808 to addr offset:14622240
+insMap:12 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:12 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:19 for addr:139951292121848 from op:0
+fpSanLoadFromShadowMem:19
+insMap:1 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:1 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:7.12709680464756e-314
+ in shadowStack at:8 for addr:139951292121408 from op:7.1271e-314
+fpSanLoadFromShadowMem:8
+computeReal: insIndex:26
+insMap:2 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:2 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:7.1271e-314
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121408 op2:7.12709680464756e-314
+FMUL
+res:
+computeReal: stackTop:9 addr:139951292121448
+computeReal:9
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:26
+0 bits error (0 ulps)
+****************
+
+insMap:3 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:3 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:10 for addr:139951292121488 from op:0
+fpSanLoadFromShadowMem:10
+insMap:4 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:4 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:7.12709672559706e-314
+ in shadowStack at:11 for addr:139951292121528 from op:7.1271e-314
+fpSanLoadFromShadowMem:11
+computeReal: insIndex:31
+insMap:5 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:5 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:7.1271e-314
+computeReal: op1Addr:139951292121488 op1:0
+computeReal: op2Addr:139951292121528 op2:7.12709672559706e-314
+FMUL
+res:
+computeReal: stackTop:12 addr:139951292121568
+computeReal:12
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:31
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:32
+insMap:6 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:6 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121448 op1:0
+computeReal: op2Addr:139951292121568 op2:0
+FSUB
+res:
+computeReal: stackTop:13 addr:139951292121608
+computeReal:13
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:32
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:34
+insMap:7 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:7 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:7.1271e-314
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121528 op2:7.12709672559706e-314
+FMUL
+res:
+computeReal: stackTop:14 addr:139951292121648
+computeReal:14
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:34
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:35
+insMap:8 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:8 frameCur[frameIdx]:7 
+computeReal: op1:7.1271e-314 op2:0
+computeReal: op1Addr:139951292121408 op1:7.12709680464756e-314
+computeReal: op2Addr:139951292121488 op2:0
+FMUL
+res:
+computeReal: stackTop:15 addr:139951292121688
+computeReal:15
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:35
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:36
+insMap:9 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:9 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121688 op1:0
+computeReal: op2Addr:139951292121648 op2:0
+
+FADD
+res:
+computeReal: stackTop:16 addr:139951292121728
+computeReal:16
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:36
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:38
+computeReal: real1 is null, using op1 value:0
+insMap:10 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:10 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:0 op1:0
+computeReal: op2Addr:139951292121608 op2:0
+
+FADD
+res:
+computeReal: stackTop:17 addr:139951292121768
+computeReal:17
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:38
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:39
+computeReal: real1 is null, using op1 value:0
+insMap:11 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:11 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:0 op1:0
+computeReal: op2Addr:139951292121728 op2:0
+
+FADD
+res:
+computeReal: stackTop:18 addr:139951292121808
+computeReal:18
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:39
+0 bits error (0 ulps)
+****************
+
+insMap:12 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:12 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:19 for addr:139951292121848 from op:0
+fpSanLoadFromShadowMem:19
+insMap:1 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:1 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:8 for addr:139951292121408 from op:0
+fpSanLoadFromShadowMem:8
+computeReal: insIndex:26
+insMap:2 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:2 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121408 op2:0
+FMUL
+res:
+computeReal: stackTop:9 addr:139951292121448
+computeReal:9
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:26
+0 bits error (0 ulps)
+****************
+
+insMap:3 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:3 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:10 for addr:139951292121488 from op:0
+fpSanLoadFromShadowMem:10
+insMap:4 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:4 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:11 for addr:139951292121528 from op:0
+fpSanLoadFromShadowMem:11
+computeReal: insIndex:31
+insMap:5 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:5 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121488 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:12 addr:139951292121568
+computeReal:12
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:31
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:32
+insMap:6 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:6 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121448 op1:0
+computeReal: op2Addr:139951292121568 op2:0
+FSUB
+res:
+computeReal: stackTop:13 addr:139951292121608
+computeReal:13
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:32
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:34
+insMap:7 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:7 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:14 addr:139951292121648
+computeReal:14
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:34
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:35
+insMap:8 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:8 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121408 op1:0
+computeReal: op2Addr:139951292121488 op2:0
+FMUL
+res:
+computeReal: stackTop:15 addr:139951292121688
+computeReal:15
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:35
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:36
+insMap:9 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:9 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121688 op1:0
+computeReal: op2Addr:139951292121648 op2:0
+
+FADD
+res:
+computeReal: stackTop:16 addr:139951292121728
+computeReal:16
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:36
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:38
+insMap:10 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:10 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121768 op1:0
+computeReal: op2Addr:139951292121608 op2:0
+
+FADD
+res:
+computeReal: stackTop:17 addr:139951292121768
+computeReal:17
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:38
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:39
+insMap:11 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:11 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121808 op1:0
+computeReal: op2Addr:139951292121728 op2:0
+
+FADD
+res:
+computeReal: stackTop:18 addr:139951292121808
+computeReal:18
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:39
+0 bits error (0 ulps)
+****************
+
+insMap:12 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:12 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:19 for addr:139951292121848 from op:0
+fpSanLoadFromShadowMem:19
+insMap:1 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:1 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:8 for addr:139951292121408 from op:0
+fpSanLoadFromShadowMem:8
+computeReal: insIndex:26
+insMap:2 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:2 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121408 op2:0
+FMUL
+res:
+computeReal: stackTop:9 addr:139951292121448
+computeReal:9
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:26
+0 bits error (0 ulps)
+****************
+
+insMap:3 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:3 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:10 for addr:139951292121488 from op:0
+fpSanLoadFromShadowMem:10
+insMap:4 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:4 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:1.38523885234213e-309
+ in shadowStack at:11 for addr:139951292121528 from op:1.38524e-309
+fpSanLoadFromShadowMem:11
+computeReal: insIndex:31
+insMap:5 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:5 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:1.38524e-309
+computeReal: op1Addr:139951292121488 op1:0
+computeReal: op2Addr:139951292121528 op2:1.38523885234213e-309
+FMUL
+res:
+computeReal: stackTop:12 addr:139951292121568
+computeReal:12
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:31
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:32
+insMap:6 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:6 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121448 op1:0
+computeReal: op2Addr:139951292121568 op2:0
+FSUB
+res:
+computeReal: stackTop:13 addr:139951292121608
+computeReal:13
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:32
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:34
+insMap:7 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:7 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:1.38524e-309
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121528 op2:1.38523885234213e-309
+FMUL
+res:
+computeReal: stackTop:14 addr:139951292121648
+computeReal:14
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:34
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:35
+insMap:8 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:8 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121408 op1:0
+computeReal: op2Addr:139951292121488 op2:0
+FMUL
+res:
+computeReal: stackTop:15 addr:139951292121688
+computeReal:15
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:35
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:36
+insMap:9 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:9 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121688 op1:0
+computeReal: op2Addr:139951292121648 op2:0
+
+FADD
+res:
+computeReal: stackTop:16 addr:139951292121728
+computeReal:16
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:36
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:38
+insMap:10 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:10 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121768 op1:0
+computeReal: op2Addr:139951292121608 op2:0
+
+FADD
+res:
+computeReal: stackTop:17 addr:139951292121768
+computeReal:17
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:38
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:39
+insMap:11 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:11 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121808 op1:0
+computeReal: op2Addr:139951292121728 op2:0
+
+FADD
+res:
+computeReal: stackTop:18 addr:139951292121808
+computeReal:18
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:39
+0 bits error (0 ulps)
+****************
+
+setRealTemp: set:0
+ from:139951292121768 to addr offset:1
+setRealTemp: set:0
+ from:139951292121808 to addr offset:14622240
+insMap:12 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:12 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:19 for addr:139951292121848 from op:0
+fpSanLoadFromShadowMem:19
+insMap:1 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:1 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:8 for addr:139951292121408 from op:0
+fpSanLoadFromShadowMem:8
+computeReal: insIndex:26
+insMap:2 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:2 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121408 op2:0
+FMUL
+res:
+computeReal: stackTop:9 addr:139951292121448
+computeReal:9
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:26
+0 bits error (0 ulps)
+****************
+
+insMap:3 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:3 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:10 for addr:139951292121488 from op:0
+fpSanLoadFromShadowMem:10
+insMap:4 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:4 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:11 for addr:139951292121528 from op:0
+fpSanLoadFromShadowMem:11
+computeReal: insIndex:31
+insMap:5 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:5 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121488 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:12 addr:139951292121568
+computeReal:12
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:31
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:32
+insMap:6 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:6 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121448 op1:0
+computeReal: op2Addr:139951292121568 op2:0
+FSUB
+res:
+computeReal: stackTop:13 addr:139951292121608
+computeReal:13
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:32
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:34
+insMap:7 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:7 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:14 addr:139951292121648
+computeReal:14
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:34
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:35
+insMap:8 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:8 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121408 op1:0
+computeReal: op2Addr:139951292121488 op2:0
+FMUL
+res:
+computeReal: stackTop:15 addr:139951292121688
+computeReal:15
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:35
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:36
+insMap:9 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:9 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121688 op1:0
+computeReal: op2Addr:139951292121648 op2:0
+
+FADD
+res:
+computeReal: stackTop:16 addr:139951292121728
+computeReal:16
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:36
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:38
+computeReal: real1 is null, using op1 value:0
+insMap:10 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:10 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:0 op1:0
+computeReal: op2Addr:139951292121608 op2:0
+
+FADD
+res:
+computeReal: stackTop:17 addr:139951292121768
+computeReal:17
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:38
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:39
+computeReal: real1 is null, using op1 value:0
+insMap:11 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:11 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:0 op1:0
+computeReal: op2Addr:139951292121728 op2:0
+
+FADD
+res:
+computeReal: stackTop:18 addr:139951292121808
+computeReal:18
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:39
+0 bits error (0 ulps)
+****************
+
+insMap:12 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:12 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:19 for addr:139951292121848 from op:0
+fpSanLoadFromShadowMem:19
+insMap:1 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:1 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:8 for addr:139951292121408 from op:0
+fpSanLoadFromShadowMem:8
+computeReal: insIndex:26
+insMap:2 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:2 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121408 op2:0
+FMUL
+res:
+computeReal: stackTop:9 addr:139951292121448
+computeReal:9
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:26
+0 bits error (0 ulps)
+****************
+
+insMap:3 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:3 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:10 for addr:139951292121488 from op:0
+fpSanLoadFromShadowMem:10
+insMap:4 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:4 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:11 for addr:139951292121528 from op:0
+fpSanLoadFromShadowMem:11
+computeReal: insIndex:31
+insMap:5 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:5 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121488 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:12 addr:139951292121568
+computeReal:12
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:31
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:32
+insMap:6 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:6 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121448 op1:0
+computeReal: op2Addr:139951292121568 op2:0
+FSUB
+res:
+computeReal: stackTop:13 addr:139951292121608
+computeReal:13
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:32
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:34
+insMap:7 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:7 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:14 addr:139951292121648
+computeReal:14
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:34
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:35
+insMap:8 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:8 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121408 op1:0
+computeReal: op2Addr:139951292121488 op2:0
+FMUL
+res:
+computeReal: stackTop:15 addr:139951292121688
+computeReal:15
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:35
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:36
+insMap:9 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:9 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121688 op1:0
+computeReal: op2Addr:139951292121648 op2:0
+
+FADD
+res:
+computeReal: stackTop:16 addr:139951292121728
+computeReal:16
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:36
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:38
+insMap:10 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:10 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121768 op1:0
+computeReal: op2Addr:139951292121608 op2:0
+
+FADD
+res:
+computeReal: stackTop:17 addr:139951292121768
+computeReal:17
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:38
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:39
+insMap:11 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:11 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121808 op1:0
+computeReal: op2Addr:139951292121728 op2:0
+
+FADD
+res:
+computeReal: stackTop:18 addr:139951292121808
+computeReal:18
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:39
+0 bits error (0 ulps)
+****************
+
+insMap:12 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:12 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:19 for addr:139951292121848 from op:0
+fpSanLoadFromShadowMem:19
+insMap:1 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:1 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:5.43222633441051e-312
+ in shadowStack at:8 for addr:139951292121408 from op:5.43223e-312
+fpSanLoadFromShadowMem:8
+computeReal: insIndex:26
+insMap:2 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:2 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:5.43223e-312
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121408 op2:5.43222633441051e-312
+FMUL
+res:
+computeReal: stackTop:9 addr:139951292121448
+computeReal:9
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:26
+0 bits error (0 ulps)
+****************
+
+insMap:3 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:3 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:10 for addr:139951292121488 from op:0
+fpSanLoadFromShadowMem:10
+insMap:4 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:4 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:11 for addr:139951292121528 from op:0
+fpSanLoadFromShadowMem:11
+computeReal: insIndex:31
+insMap:5 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:5 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121488 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:12 addr:139951292121568
+computeReal:12
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:31
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:32
+insMap:6 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:6 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121448 op1:0
+computeReal: op2Addr:139951292121568 op2:0
+FSUB
+res:
+computeReal: stackTop:13 addr:139951292121608
+computeReal:13
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:32
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:34
+insMap:7 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:7 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:14 addr:139951292121648
+computeReal:14
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:34
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:35
+insMap:8 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:8 frameCur[frameIdx]:7 
+computeReal: op1:5.43223e-312 op2:0
+computeReal: op1Addr:139951292121408 op1:5.43222633441051e-312
+computeReal: op2Addr:139951292121488 op2:0
+FMUL
+res:
+computeReal: stackTop:15 addr:139951292121688
+computeReal:15
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:35
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:36
+insMap:9 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:9 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121688 op1:0
+computeReal: op2Addr:139951292121648 op2:0
+
+FADD
+res:
+computeReal: stackTop:16 addr:139951292121728
+computeReal:16
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:36
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:38
+insMap:10 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:10 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121768 op1:0
+computeReal: op2Addr:139951292121608 op2:0
+
+FADD
+res:
+computeReal: stackTop:17 addr:139951292121768
+computeReal:17
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:38
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:39
+insMap:11 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:11 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121808 op1:0
+computeReal: op2Addr:139951292121728 op2:0
+
+FADD
+res:
+computeReal: stackTop:18 addr:139951292121808
+computeReal:18
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:39
+0 bits error (0 ulps)
+****************
+
+setRealTemp: set:0
+ from:139951292121768 to addr offset:1
+setRealTemp: set:0
+ from:139951292121808 to addr offset:14622240
+insMap:12 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:12 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:19 for addr:139951292121848 from op:0
+fpSanLoadFromShadowMem:19
+insMap:1 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:1 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:8 for addr:139951292121408 from op:0
+fpSanLoadFromShadowMem:8
+computeReal: insIndex:26
+insMap:2 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:2 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121408 op2:0
+FMUL
+res:
+computeReal: stackTop:9 addr:139951292121448
+computeReal:9
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:26
+0 bits error (0 ulps)
+****************
+
+insMap:3 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:3 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:10 for addr:139951292121488 from op:0
+fpSanLoadFromShadowMem:10
+insMap:4 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:4 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:11 for addr:139951292121528 from op:0
+fpSanLoadFromShadowMem:11
+computeReal: insIndex:31
+insMap:5 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:5 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121488 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:12 addr:139951292121568
+computeReal:12
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:31
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:32
+insMap:6 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:6 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121448 op1:0
+computeReal: op2Addr:139951292121568 op2:0
+FSUB
+res:
+computeReal: stackTop:13 addr:139951292121608
+computeReal:13
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:32
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:34
+insMap:7 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:7 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:14 addr:139951292121648
+computeReal:14
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:34
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:35
+insMap:8 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:8 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121408 op1:0
+computeReal: op2Addr:139951292121488 op2:0
+FMUL
+res:
+computeReal: stackTop:15 addr:139951292121688
+computeReal:15
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:35
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:36
+insMap:9 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:9 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121688 op1:0
+computeReal: op2Addr:139951292121648 op2:0
+
+FADD
+res:
+computeReal: stackTop:16 addr:139951292121728
+computeReal:16
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:36
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:38
+computeReal: real1 is null, using op1 value:0
+insMap:10 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:10 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:0 op1:0
+computeReal: op2Addr:139951292121608 op2:0
+
+FADD
+res:
+computeReal: stackTop:17 addr:139951292121768
+computeReal:17
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:38
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:39
+computeReal: real1 is null, using op1 value:0
+insMap:11 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:11 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:0 op1:0
+computeReal: op2Addr:139951292121728 op2:0
+
+FADD
+res:
+computeReal: stackTop:18 addr:139951292121808
+computeReal:18
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:39
+0 bits error (0 ulps)
+****************
+
+insMap:12 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:12 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:19 for addr:139951292121848 from op:0
+fpSanLoadFromShadowMem:19
+insMap:1 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:1 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:8 for addr:139951292121408 from op:0
+fpSanLoadFromShadowMem:8
+computeReal: insIndex:26
+insMap:2 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:2 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121408 op2:0
+FMUL
+res:
+computeReal: stackTop:9 addr:139951292121448
+computeReal:9
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:26
+0 bits error (0 ulps)
+****************
+
+insMap:3 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:3 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:10 for addr:139951292121488 from op:0
+fpSanLoadFromShadowMem:10
+insMap:4 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:4 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:11 for addr:139951292121528 from op:0
+fpSanLoadFromShadowMem:11
+computeReal: insIndex:31
+insMap:5 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:5 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121488 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:12 addr:139951292121568
+computeReal:12
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:31
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:32
+insMap:6 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:6 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121448 op1:0
+computeReal: op2Addr:139951292121568 op2:0
+FSUB
+res:
+computeReal: stackTop:13 addr:139951292121608
+computeReal:13
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:32
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:34
+insMap:7 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:7 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:14 addr:139951292121648
+computeReal:14
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:34
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:35
+insMap:8 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:8 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121408 op1:0
+computeReal: op2Addr:139951292121488 op2:0
+FMUL
+res:
+computeReal: stackTop:15 addr:139951292121688
+computeReal:15
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:35
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:36
+insMap:9 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:9 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121688 op1:0
+computeReal: op2Addr:139951292121648 op2:0
+
+FADD
+res:
+computeReal: stackTop:16 addr:139951292121728
+computeReal:16
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:36
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:38
+insMap:10 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:10 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121768 op1:0
+computeReal: op2Addr:139951292121608 op2:0
+
+FADD
+res:
+computeReal: stackTop:17 addr:139951292121768
+computeReal:17
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:38
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:39
+insMap:11 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:11 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121808 op1:0
+computeReal: op2Addr:139951292121728 op2:0
+
+FADD
+res:
+computeReal: stackTop:18 addr:139951292121808
+computeReal:18
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:39
+0 bits error (0 ulps)
+****************
+
+insMap:12 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:12 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:19 for addr:139951292121848 from op:0
+fpSanLoadFromShadowMem:19
+insMap:1 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:1 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:8 for addr:139951292121408 from op:0
+fpSanLoadFromShadowMem:8
+computeReal: insIndex:26
+insMap:2 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:2 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121408 op2:0
+FMUL
+res:
+computeReal: stackTop:9 addr:139951292121448
+computeReal:9
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:26
+0 bits error (0 ulps)
+****************
+
+insMap:3 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:3 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:10 for addr:139951292121488 from op:0
+fpSanLoadFromShadowMem:10
+insMap:4 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:4 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:4.94065645841247e-324
+ in shadowStack at:11 for addr:139951292121528 from op:4.94066e-324
+fpSanLoadFromShadowMem:11
+computeReal: insIndex:31
+insMap:5 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:5 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:4.94066e-324
+computeReal: op1Addr:139951292121488 op1:0
+computeReal: op2Addr:139951292121528 op2:4.94065645841247e-324
+FMUL
+res:
+computeReal: stackTop:12 addr:139951292121568
+computeReal:12
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:31
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:32
+insMap:6 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:6 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121448 op1:0
+computeReal: op2Addr:139951292121568 op2:0
+FSUB
+res:
+computeReal: stackTop:13 addr:139951292121608
+computeReal:13
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:32
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:34
+insMap:7 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:7 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:4.94066e-324
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121528 op2:4.94065645841247e-324
+FMUL
+res:
+computeReal: stackTop:14 addr:139951292121648
+computeReal:14
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:34
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:35
+insMap:8 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:8 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121408 op1:0
+computeReal: op2Addr:139951292121488 op2:0
+FMUL
+res:
+computeReal: stackTop:15 addr:139951292121688
+computeReal:15
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:35
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:36
+insMap:9 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:9 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121688 op1:0
+computeReal: op2Addr:139951292121648 op2:0
+
+FADD
+res:
+computeReal: stackTop:16 addr:139951292121728
+computeReal:16
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:36
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:38
+insMap:10 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:10 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121768 op1:0
+computeReal: op2Addr:139951292121608 op2:0
+
+FADD
+res:
+computeReal: stackTop:17 addr:139951292121768
+computeReal:17
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:38
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:39
+insMap:11 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:11 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121808 op1:0
+computeReal: op2Addr:139951292121728 op2:0
+
+FADD
+res:
+computeReal: stackTop:18 addr:139951292121808
+computeReal:18
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:39
+0 bits error (0 ulps)
+****************
+
+setRealTemp: set:0
+ from:139951292121768 to addr offset:1
+setRealTemp: set:0
+ from:139951292121808 to addr offset:14622240
+insMap:12 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:12 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:19 for addr:139951292121848 from op:0
+fpSanLoadFromShadowMem:19
+insMap:1 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:1 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:7.12709680464756e-314
+ in shadowStack at:8 for addr:139951292121408 from op:7.1271e-314
+fpSanLoadFromShadowMem:8
+computeReal: insIndex:26
+insMap:2 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:2 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:7.1271e-314
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121408 op2:7.12709680464756e-314
+FMUL
+res:
+computeReal: stackTop:9 addr:139951292121448
+computeReal:9
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:26
+0 bits error (0 ulps)
+****************
+
+insMap:3 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:3 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:5.43222633441051e-312
+ in shadowStack at:10 for addr:139951292121488 from op:5.43223e-312
+fpSanLoadFromShadowMem:10
+insMap:4 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:4 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:7.12709672559706e-314
+ in shadowStack at:11 for addr:139951292121528 from op:7.1271e-314
+fpSanLoadFromShadowMem:11
+computeReal: insIndex:31
+insMap:5 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:5 frameCur[frameIdx]:7 
+computeReal: op1:5.43223e-312 op2:7.1271e-314
+computeReal: op1Addr:139951292121488 op1:5.43222633441051e-312
+computeReal: op2Addr:139951292121528 op2:7.12709672559706e-314
+FMUL
+res:
+computeReal: stackTop:12 addr:139951292121568
+computeReal:12
+
+The shadow value is 3.87160025206793e-625
+, but 0 was computed.
+updateError: computedVal:0 insIndex:31
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:32
+insMap:6 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:6 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121448 op1:0
+computeReal: op2Addr:139951292121568 op2:3.87160025206793e-625
+FSUB
+res:
+computeReal: stackTop:13 addr:139951292121608
+computeReal:13
+
+The shadow value is -3.87160025206793e-625
+, but 0 was computed.
+updateError: computedVal:0 insIndex:32
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:34
+insMap:7 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:7 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:7.1271e-314
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121528 op2:7.12709672559706e-314
+FMUL
+res:
+computeReal: stackTop:14 addr:139951292121648
+computeReal:14
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:34
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:35
+insMap:8 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:8 frameCur[frameIdx]:7 
+computeReal: op1:7.1271e-314 op2:5.43223e-312
+computeReal: op1Addr:139951292121408 op1:7.12709680464756e-314
+computeReal: op2Addr:139951292121488 op2:5.43222633441051e-312
+FMUL
+res:
+computeReal: stackTop:15 addr:139951292121688
+computeReal:15
+
+The shadow value is 3.87160029500995e-625
+, but 0 was computed.
+updateError: computedVal:0 insIndex:35
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:36
+insMap:9 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:9 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121688 op1:3.87160029500995e-625
+computeReal: op2Addr:139951292121648 op2:0
+
+FADD
+res:
+computeReal: stackTop:16 addr:139951292121728
+computeReal:16
+
+The shadow value is 3.87160029500995e-625
+, but 0 was computed.
+updateError: computedVal:0 insIndex:36
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:38
+computeReal: real1 is null, using op1 value:0
+insMap:10 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:10 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:0 op1:0
+computeReal: op2Addr:139951292121608 op2:-3.87160025206793e-625
+
+FADD
+res:
+computeReal: stackTop:17 addr:139951292121768
+computeReal:17
+
+The shadow value is -3.87160025206793e-625
+, but 0 was computed.
+updateError: computedVal:0 insIndex:38
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:39
+computeReal: real1 is null, using op1 value:0
+insMap:11 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:11 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:0 op1:0
+computeReal: op2Addr:139951292121728 op2:3.87160029500995e-625
+
+FADD
+res:
+computeReal: stackTop:18 addr:139951292121808
+computeReal:18
+
+The shadow value is 3.87160029500995e-625
+, but 0 was computed.
+updateError: computedVal:0 insIndex:39
+0 bits error (0 ulps)
+****************
+
+insMap:12 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:12 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:19 for addr:139951292121848 from op:0
+fpSanLoadFromShadowMem:19
+insMap:1 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:1 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:8 for addr:139951292121408 from op:0
+fpSanLoadFromShadowMem:8
+computeReal: insIndex:26
+insMap:2 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:2 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121408 op2:0
+FMUL
+res:
+computeReal: stackTop:9 addr:139951292121448
+computeReal:9
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:26
+0 bits error (0 ulps)
+****************
+
+insMap:3 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:3 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:10 for addr:139951292121488 from op:0
+fpSanLoadFromShadowMem:10
+insMap:4 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:4 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:11 for addr:139951292121528 from op:0
+fpSanLoadFromShadowMem:11
+computeReal: insIndex:31
+insMap:5 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:5 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121488 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:12 addr:139951292121568
+computeReal:12
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:31
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:32
+insMap:6 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:6 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121448 op1:0
+computeReal: op2Addr:139951292121568 op2:0
+FSUB
+res:
+computeReal: stackTop:13 addr:139951292121608
+computeReal:13
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:32
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:34
+insMap:7 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:7 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:14 addr:139951292121648
+computeReal:14
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:34
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:35
+insMap:8 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:8 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121408 op1:0
+computeReal: op2Addr:139951292121488 op2:0
+FMUL
+res:
+computeReal: stackTop:15 addr:139951292121688
+computeReal:15
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:35
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:36
+insMap:9 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:9 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121688 op1:0
+computeReal: op2Addr:139951292121648 op2:0
+
+FADD
+res:
+computeReal: stackTop:16 addr:139951292121728
+computeReal:16
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:36
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:38
+insMap:10 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:10 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121768 op1:-3.87160025206793e-625
+computeReal: op2Addr:139951292121608 op2:0
+
+FADD
+res:
+computeReal: stackTop:17 addr:139951292121768
+computeReal:17
+
+The shadow value is -3.87160025206793e-625
+, but 0 was computed.
+updateError: computedVal:0 insIndex:38
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:39
+insMap:11 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:11 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121808 op1:3.87160029500995e-625
+computeReal: op2Addr:139951292121728 op2:0
+
+FADD
+res:
+computeReal: stackTop:18 addr:139951292121808
+computeReal:18
+
+The shadow value is 3.87160029500995e-625
+, but 0 was computed.
+updateError: computedVal:0 insIndex:39
+0 bits error (0 ulps)
+****************
+
+insMap:12 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:12 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:4.94065645841247e-324
+ in shadowStack at:19 for addr:139951292121848 from op:4.94066e-324
+fpSanLoadFromShadowMem:19
+insMap:1 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:1 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:8 for addr:139951292121408 from op:0
+fpSanLoadFromShadowMem:8
+computeReal: insIndex:26
+insMap:2 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:2 frameCur[frameIdx]:7 
+computeReal: op1:4.94066e-324 op2:0
+computeReal: op1Addr:139951292121848 op1:4.94065645841247e-324
+computeReal: op2Addr:139951292121408 op2:0
+FMUL
+res:
+computeReal: stackTop:9 addr:139951292121448
+computeReal:9
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:26
+0 bits error (0 ulps)
+****************
+
+insMap:3 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:3 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:2.07433906065529e-317
+ in shadowStack at:10 for addr:139951292121488 from op:2.07434e-317
+fpSanLoadFromShadowMem:10
+insMap:4 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:4 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:11 for addr:139951292121528 from op:0
+fpSanLoadFromShadowMem:11
+computeReal: insIndex:31
+insMap:5 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:5 frameCur[frameIdx]:7 
+computeReal: op1:2.07434e-317 op2:0
+computeReal: op1Addr:139951292121488 op1:2.07433906065529e-317
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:12 addr:139951292121568
+computeReal:12
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:31
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:32
+insMap:6 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:6 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121448 op1:0
+computeReal: op2Addr:139951292121568 op2:0
+FSUB
+res:
+computeReal: stackTop:13 addr:139951292121608
+computeReal:13
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:32
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:34
+insMap:7 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:7 frameCur[frameIdx]:7 
+computeReal: op1:4.94066e-324 op2:0
+computeReal: op1Addr:139951292121848 op1:4.94065645841247e-324
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:14 addr:139951292121648
+computeReal:14
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:34
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:35
+insMap:8 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:8 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:2.07434e-317
+computeReal: op1Addr:139951292121408 op1:0
+computeReal: op2Addr:139951292121488 op2:2.07433906065529e-317
+FMUL
+res:
+computeReal: stackTop:15 addr:139951292121688
+computeReal:15
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:35
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:36
+insMap:9 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:9 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121688 op1:0
+computeReal: op2Addr:139951292121648 op2:0
+
+FADD
+res:
+computeReal: stackTop:16 addr:139951292121728
+computeReal:16
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:36
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:38
+insMap:10 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:10 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121768 op1:-3.87160025206793e-625
+computeReal: op2Addr:139951292121608 op2:0
+
+FADD
+res:
+computeReal: stackTop:17 addr:139951292121768
+computeReal:17
+
+The shadow value is -3.87160025206793e-625
+, but 0 was computed.
+updateError: computedVal:0 insIndex:38
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:39
+insMap:11 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:11 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121808 op1:3.87160029500995e-625
+computeReal: op2Addr:139951292121728 op2:0
+
+FADD
+res:
+computeReal: stackTop:18 addr:139951292121808
+computeReal:18
+
+The shadow value is 3.87160029500995e-625
+, but 0 was computed.
+updateError: computedVal:0 insIndex:39
+0 bits error (0 ulps)
+****************
+
+setRealTemp: set:-3.87160025206793e-625
+ from:139951292121768 to addr offset:2
+setRealTemp: set:3.87160029500995e-625
+ from:139951292121808 to addr offset:14622240
+insMap:12 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:12 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:19 for addr:139951292121848 from op:0
+fpSanLoadFromShadowMem:19
+insMap:1 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:1 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:8 for addr:139951292121408 from op:0
+fpSanLoadFromShadowMem:8
+computeReal: insIndex:26
+insMap:2 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:2 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121408 op2:0
+FMUL
+res:
+computeReal: stackTop:9 addr:139951292121448
+computeReal:9
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:26
+0 bits error (0 ulps)
+****************
+
+insMap:3 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:3 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:10 for addr:139951292121488 from op:0
+fpSanLoadFromShadowMem:10
+insMap:4 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:4 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:11 for addr:139951292121528 from op:0
+fpSanLoadFromShadowMem:11
+computeReal: insIndex:31
+insMap:5 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:5 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121488 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:12 addr:139951292121568
+computeReal:12
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:31
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:32
+insMap:6 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:6 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121448 op1:0
+computeReal: op2Addr:139951292121568 op2:0
+FSUB
+res:
+computeReal: stackTop:13 addr:139951292121608
+computeReal:13
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:32
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:34
+insMap:7 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:7 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:14 addr:139951292121648
+computeReal:14
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:34
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:35
+insMap:8 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:8 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121408 op1:0
+computeReal: op2Addr:139951292121488 op2:0
+FMUL
+res:
+computeReal: stackTop:15 addr:139951292121688
+computeReal:15
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:35
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:36
+insMap:9 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:9 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121688 op1:0
+computeReal: op2Addr:139951292121648 op2:0
+
+FADD
+res:
+computeReal: stackTop:16 addr:139951292121728
+computeReal:16
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:36
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:38
+computeReal: real1 is null, using op1 value:0
+insMap:10 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:10 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:0 op1:0
+computeReal: op2Addr:139951292121608 op2:0
+
+FADD
+res:
+computeReal: stackTop:17 addr:139951292121768
+computeReal:17
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:38
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:39
+computeReal: real1 is null, using op1 value:0
+insMap:11 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:11 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:0 op1:0
+computeReal: op2Addr:139951292121728 op2:0
+
+FADD
+res:
+computeReal: stackTop:18 addr:139951292121808
+computeReal:18
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:39
+0 bits error (0 ulps)
+****************
+
+insMap:12 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:12 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:19 for addr:139951292121848 from op:0
+fpSanLoadFromShadowMem:19
+insMap:1 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:1 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:8 for addr:139951292121408 from op:0
+fpSanLoadFromShadowMem:8
+computeReal: insIndex:26
+insMap:2 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:2 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121408 op2:0
+FMUL
+res:
+computeReal: stackTop:9 addr:139951292121448
+computeReal:9
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:26
+0 bits error (0 ulps)
+****************
+
+insMap:3 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:3 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:10 for addr:139951292121488 from op:0
+fpSanLoadFromShadowMem:10
+insMap:4 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:4 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:11 for addr:139951292121528 from op:0
+fpSanLoadFromShadowMem:11
+computeReal: insIndex:31
+insMap:5 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:5 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121488 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:12 addr:139951292121568
+computeReal:12
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:31
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:32
+insMap:6 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:6 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121448 op1:0
+computeReal: op2Addr:139951292121568 op2:0
+FSUB
+res:
+computeReal: stackTop:13 addr:139951292121608
+computeReal:13
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:32
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:34
+insMap:7 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:7 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:14 addr:139951292121648
+computeReal:14
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:34
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:35
+insMap:8 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:8 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121408 op1:0
+computeReal: op2Addr:139951292121488 op2:0
+FMUL
+res:
+computeReal: stackTop:15 addr:139951292121688
+computeReal:15
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:35
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:36
+insMap:9 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:9 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121688 op1:0
+computeReal: op2Addr:139951292121648 op2:0
+
+FADD
+res:
+computeReal: stackTop:16 addr:139951292121728
+computeReal:16
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:36
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:38
+insMap:10 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:10 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121768 op1:0
+computeReal: op2Addr:139951292121608 op2:0
+
+FADD
+res:
+computeReal: stackTop:17 addr:139951292121768
+computeReal:17
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:38
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:39
+insMap:11 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:11 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121808 op1:0
+computeReal: op2Addr:139951292121728 op2:0
+
+FADD
+res:
+computeReal: stackTop:18 addr:139951292121808
+computeReal:18
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:39
+0 bits error (0 ulps)
+****************
+
+insMap:12 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:12 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:4.94065645841247e-324
+ in shadowStack at:19 for addr:139951292121848 from op:4.94066e-324
+fpSanLoadFromShadowMem:19
+insMap:1 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:1 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:8 for addr:139951292121408 from op:0
+fpSanLoadFromShadowMem:8
+computeReal: insIndex:26
+insMap:2 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:2 frameCur[frameIdx]:7 
+computeReal: op1:4.94066e-324 op2:0
+computeReal: op1Addr:139951292121848 op1:4.94065645841247e-324
+computeReal: op2Addr:139951292121408 op2:0
+FMUL
+res:
+computeReal: stackTop:9 addr:139951292121448
+computeReal:9
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:26
+0 bits error (0 ulps)
+****************
+
+insMap:3 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:3 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:2.07433906065529e-317
+ in shadowStack at:10 for addr:139951292121488 from op:2.07434e-317
+fpSanLoadFromShadowMem:10
+insMap:4 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:4 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:11 for addr:139951292121528 from op:0
+fpSanLoadFromShadowMem:11
+computeReal: insIndex:31
+insMap:5 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:5 frameCur[frameIdx]:7 
+computeReal: op1:2.07434e-317 op2:0
+computeReal: op1Addr:139951292121488 op1:2.07433906065529e-317
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:12 addr:139951292121568
+computeReal:12
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:31
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:32
+insMap:6 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:6 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121448 op1:0
+computeReal: op2Addr:139951292121568 op2:0
+FSUB
+res:
+computeReal: stackTop:13 addr:139951292121608
+computeReal:13
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:32
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:34
+insMap:7 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:7 frameCur[frameIdx]:7 
+computeReal: op1:4.94066e-324 op2:0
+computeReal: op1Addr:139951292121848 op1:4.94065645841247e-324
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:14 addr:139951292121648
+computeReal:14
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:34
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:35
+insMap:8 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:8 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:2.07434e-317
+computeReal: op1Addr:139951292121408 op1:0
+computeReal: op2Addr:139951292121488 op2:2.07433906065529e-317
+FMUL
+res:
+computeReal: stackTop:15 addr:139951292121688
+computeReal:15
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:35
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:36
+insMap:9 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:9 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121688 op1:0
+computeReal: op2Addr:139951292121648 op2:0
+
+FADD
+res:
+computeReal: stackTop:16 addr:139951292121728
+computeReal:16
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:36
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:38
+insMap:10 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:10 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121768 op1:0
+computeReal: op2Addr:139951292121608 op2:0
+
+FADD
+res:
+computeReal: stackTop:17 addr:139951292121768
+computeReal:17
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:38
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:39
+insMap:11 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:11 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121808 op1:0
+computeReal: op2Addr:139951292121728 op2:0
+
+FADD
+res:
+computeReal: stackTop:18 addr:139951292121808
+computeReal:18
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:39
+0 bits error (0 ulps)
+****************
+
+setRealTemp: set:0
+ from:139951292121768 to addr offset:2
+setRealTemp: set:0
+ from:139951292121808 to addr offset:14622240
+insMap:12 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:12 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:19 for addr:139951292121848 from op:0
+fpSanLoadFromShadowMem:19
+insMap:1 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:1 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:8 for addr:139951292121408 from op:0
+fpSanLoadFromShadowMem:8
+computeReal: insIndex:26
+insMap:2 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:2 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121408 op2:0
+FMUL
+res:
+computeReal: stackTop:9 addr:139951292121448
+computeReal:9
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:26
+0 bits error (0 ulps)
+****************
+
+insMap:3 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:3 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:10 for addr:139951292121488 from op:0
+fpSanLoadFromShadowMem:10
+insMap:4 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:4 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:11 for addr:139951292121528 from op:0
+fpSanLoadFromShadowMem:11
+computeReal: insIndex:31
+insMap:5 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:5 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121488 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:12 addr:139951292121568
+computeReal:12
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:31
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:32
+insMap:6 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:6 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121448 op1:0
+computeReal: op2Addr:139951292121568 op2:0
+FSUB
+res:
+computeReal: stackTop:13 addr:139951292121608
+computeReal:13
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:32
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:34
+insMap:7 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:7 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:14 addr:139951292121648
+computeReal:14
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:34
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:35
+insMap:8 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:8 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121408 op1:0
+computeReal: op2Addr:139951292121488 op2:0
+FMUL
+res:
+computeReal: stackTop:15 addr:139951292121688
+computeReal:15
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:35
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:36
+insMap:9 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:9 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121688 op1:0
+computeReal: op2Addr:139951292121648 op2:0
+
+FADD
+res:
+computeReal: stackTop:16 addr:139951292121728
+computeReal:16
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:36
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:38
+computeReal: real1 is null, using op1 value:0
+insMap:10 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:10 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:0 op1:0
+computeReal: op2Addr:139951292121608 op2:0
+
+FADD
+res:
+computeReal: stackTop:17 addr:139951292121768
+computeReal:17
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:38
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:39
+computeReal: real1 is null, using op1 value:0
+insMap:11 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:11 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:0 op1:0
+computeReal: op2Addr:139951292121728 op2:0
+
+FADD
+res:
+computeReal: stackTop:18 addr:139951292121808
+computeReal:18
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:39
+0 bits error (0 ulps)
+****************
+
+insMap:12 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:12 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:19 for addr:139951292121848 from op:0
+fpSanLoadFromShadowMem:19
+insMap:1 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:1 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:8 for addr:139951292121408 from op:0
+fpSanLoadFromShadowMem:8
+computeReal: insIndex:26
+insMap:2 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:2 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121408 op2:0
+FMUL
+res:
+computeReal: stackTop:9 addr:139951292121448
+computeReal:9
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:26
+0 bits error (0 ulps)
+****************
+
+insMap:3 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:3 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:10 for addr:139951292121488 from op:0
+fpSanLoadFromShadowMem:10
+insMap:4 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:4 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:11 for addr:139951292121528 from op:0
+fpSanLoadFromShadowMem:11
+computeReal: insIndex:31
+insMap:5 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:5 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121488 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:12 addr:139951292121568
+computeReal:12
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:31
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:32
+insMap:6 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:6 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121448 op1:0
+computeReal: op2Addr:139951292121568 op2:0
+FSUB
+res:
+computeReal: stackTop:13 addr:139951292121608
+computeReal:13
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:32
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:34
+insMap:7 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:7 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:14 addr:139951292121648
+computeReal:14
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:34
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:35
+insMap:8 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:8 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121408 op1:0
+computeReal: op2Addr:139951292121488 op2:0
+FMUL
+res:
+computeReal: stackTop:15 addr:139951292121688
+computeReal:15
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:35
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:36
+insMap:9 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:9 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121688 op1:0
+computeReal: op2Addr:139951292121648 op2:0
+
+FADD
+res:
+computeReal: stackTop:16 addr:139951292121728
+computeReal:16
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:36
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:38
+insMap:10 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:10 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121768 op1:0
+computeReal: op2Addr:139951292121608 op2:0
+
+FADD
+res:
+computeReal: stackTop:17 addr:139951292121768
+computeReal:17
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:38
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:39
+insMap:11 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:11 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121808 op1:0
+computeReal: op2Addr:139951292121728 op2:0
+
+FADD
+res:
+computeReal: stackTop:18 addr:139951292121808
+computeReal:18
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:39
+0 bits error (0 ulps)
+****************
+
+insMap:12 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:12 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:19 for addr:139951292121848 from op:0
+fpSanLoadFromShadowMem:19
+insMap:1 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:1 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:8 for addr:139951292121408 from op:0
+fpSanLoadFromShadowMem:8
+computeReal: insIndex:26
+insMap:2 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:2 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121408 op2:0
+FMUL
+res:
+computeReal: stackTop:9 addr:139951292121448
+computeReal:9
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:26
+0 bits error (0 ulps)
+****************
+
+insMap:3 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:3 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:2.07433906065529e-317
+ in shadowStack at:10 for addr:139951292121488 from op:2.07434e-317
+fpSanLoadFromShadowMem:10
+insMap:4 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:4 frameCur[frameIdx]:7 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:11 for addr:139951292121528 from op:0
+fpSanLoadFromShadowMem:11
+computeReal: insIndex:31
+insMap:5 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:5 frameCur[frameIdx]:7 
+computeReal: op1:2.07434e-317 op2:0
+computeReal: op1Addr:139951292121488 op1:2.07433906065529e-317
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:12 addr:139951292121568
+computeReal:12
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:31
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:32
+insMap:6 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:6 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121448 op1:0
+computeReal: op2Addr:139951292121568 op2:0
+FSUB
+res:
+computeReal: stackTop:13 addr:139951292121608
+computeReal:13
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:32
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:34
+insMap:7 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:7 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121848 op1:0
+computeReal: op2Addr:139951292121528 op2:0
+FMUL
+res:
+computeReal: stackTop:14 addr:139951292121648
+computeReal:14
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:34
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:35
+insMap:8 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:8 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:2.07434e-317
+computeReal: op1Addr:139951292121408 op1:0
+computeReal: op2Addr:139951292121488 op2:2.07433906065529e-317
+FMUL
+res:
+computeReal: stackTop:15 addr:139951292121688
+computeReal:15
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:35
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:36
+insMap:9 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:9 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121688 op1:0
+computeReal: op2Addr:139951292121648 op2:0
+
+FADD
+res:
+computeReal: stackTop:16 addr:139951292121728
+computeReal:16
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:36
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:38
+insMap:10 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:10 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121768 op1:0
+computeReal: op2Addr:139951292121608 op2:0
+
+FADD
+res:
+computeReal: stackTop:17 addr:139951292121768
+computeReal:17
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:38
+0 bits error (0 ulps)
+****************
+
+computeReal: insIndex:39
+insMap:11 slotIdx[frameIdx]:13 
+getRegRes newRegIdx:11 frameCur[frameIdx]:7 
+computeReal: op1:0 op2:0
+computeReal: op1Addr:139951292121808 op1:0
+computeReal: op2Addr:139951292121728 op2:0
+
+FADD
+res:
+computeReal: stackTop:18 addr:139951292121808
+computeReal:18
+
+The shadow value is 0
+, but 0 was computed.
+updateError: computedVal:0 insIndex:39
+0 bits error (0 ulps)
+****************
+
+setRealTemp: set:0
+ from:139951292121768 to addr offset:2
+setRealTemp: set:0
+ from:139951292121808 to addr offset:14622240
+mult_su3_nn ends
+funcExit:3
+slotIdx[frameIdx]:4
+insMap:4 slotIdx[frameIdx]:4 
+getRegRes newRegIdx:4 frameCur[frameIdx]:0 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:4 for addr:139951292121248 from op:0
+fpSanLoadFromShadowMem:4
+real:0.000000e+00slotIdx[frameIdx]:5
+insMap:5 slotIdx[frameIdx]:5 
+getRegRes newRegIdx:5 frameCur[frameIdx]:0 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:5 for addr:139951292121288 from op:0
+fpSanLoadFromShadowMem:5
+imag:0.000000e+00insMap:4 slotIdx[frameIdx]:6 
+getRegRes newRegIdx:4 frameCur[frameIdx]:0 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:4 for addr:139951292121248 from op:0
+fpSanLoadFromShadowMem:4
+real:0.000000e+00insMap:5 slotIdx[frameIdx]:6 
+getRegRes newRegIdx:5 frameCur[frameIdx]:0 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:5 for addr:139951292121288 from op:0
+fpSanLoadFromShadowMem:5
+imag:0.000000e+00insMap:4 slotIdx[frameIdx]:6 
+getRegRes newRegIdx:4 frameCur[frameIdx]:0 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:4 for addr:139951292121248 from op:0
+fpSanLoadFromShadowMem:4
+real:0.000000e+00insMap:5 slotIdx[frameIdx]:6 
+getRegRes newRegIdx:5 frameCur[frameIdx]:0 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:5 for addr:139951292121288 from op:0
+fpSanLoadFromShadowMem:5
+imag:0.000000e+00insMap:4 slotIdx[frameIdx]:6 
+getRegRes newRegIdx:4 frameCur[frameIdx]:0 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:4 for addr:139951292121248 from op:0
+fpSanLoadFromShadowMem:4
+real:0.000000e+00insMap:5 slotIdx[frameIdx]:6 
+getRegRes newRegIdx:5 frameCur[frameIdx]:0 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:5 for addr:139951292121288 from op:0
+fpSanLoadFromShadowMem:5
+imag:0.000000e+00insMap:4 slotIdx[frameIdx]:6 
+getRegRes newRegIdx:4 frameCur[frameIdx]:0 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:4 for addr:139951292121248 from op:0
+fpSanLoadFromShadowMem:4
+real:0.000000e+00insMap:5 slotIdx[frameIdx]:6 
+getRegRes newRegIdx:5 frameCur[frameIdx]:0 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:5 for addr:139951292121288 from op:0
+fpSanLoadFromShadowMem:5
+imag:0.000000e+00insMap:4 slotIdx[frameIdx]:6 
+getRegRes newRegIdx:4 frameCur[frameIdx]:0 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:4 for addr:139951292121248 from op:0
+fpSanLoadFromShadowMem:4
+real:0.000000e+00insMap:5 slotIdx[frameIdx]:6 
+getRegRes newRegIdx:5 frameCur[frameIdx]:0 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:5 for addr:139951292121288 from op:0
+fpSanLoadFromShadowMem:5
+imag:0.000000e+00insMap:4 slotIdx[frameIdx]:6 
+getRegRes newRegIdx:4 frameCur[frameIdx]:0 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:4 for addr:139951292121248 from op:0
+fpSanLoadFromShadowMem:4
+real:0.000000e+00insMap:5 slotIdx[frameIdx]:6 
+getRegRes newRegIdx:5 frameCur[frameIdx]:0 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:5 for addr:139951292121288 from op:0
+fpSanLoadFromShadowMem:5
+imag:0.000000e+00insMap:4 slotIdx[frameIdx]:6 
+getRegRes newRegIdx:4 frameCur[frameIdx]:0 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:4 for addr:139951292121248 from op:0
+fpSanLoadFromShadowMem:4
+real:0.000000e+00insMap:5 slotIdx[frameIdx]:6 
+getRegRes newRegIdx:5 frameCur[frameIdx]:0 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:5 for addr:139951292121288 from op:0
+fpSanLoadFromShadowMem:5
+imag:0.000000e+00insMap:4 slotIdx[frameIdx]:6 
+getRegRes newRegIdx:4 frameCur[frameIdx]:0 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:4 for addr:139951292121248 from op:0
+fpSanLoadFromShadowMem:4
+real:0.000000e+00insMap:5 slotIdx[frameIdx]:6 
+getRegRes newRegIdx:5 frameCur[frameIdx]:0 
+fpSanLoadFromShadowMem: set value:0
+ in shadowStack at:5 for addr:139951292121288 from op:0
+fpSanLoadFromShadowMem:5
+imag:0.000000e+00finish called
+mpfrInit:30
+mpfrClear:30
+mpfrInitMap:36
+mpfrClearMap:0

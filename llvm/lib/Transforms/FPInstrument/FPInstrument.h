@@ -74,6 +74,9 @@ public:
 	void handleLLVMMemcpy(Instruction *I, CallInst *CI, Function &F);
 	void handleLLVMMemset(Instruction *I, CallInst *CI, Function &F);
 	void handleMalloc(Instruction *I,  BasicBlock *BB, CallInst *CI, Function &F);
+	void handleCalloc(Instruction *I,  BasicBlock *BB, CallInst *CI, Function &F);
+	void handleFread(Instruction *I,  BasicBlock *BB, CallInst *CI, Function &F);
+	void handleFloatToInt(Instruction *I, BasicBlock *BB, FPToSIInst *FSI, Function &F);
   static char ID; // Pass identification, replacement for typeid
 private:
   SmallVector<Function*, 8> AllFuncList;

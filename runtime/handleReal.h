@@ -30,9 +30,10 @@ struct BrError {
 
 struct Real{
 	int initFlag;
+	int initMPFRFlag;
   mpfr_t mpfr_val;
 };
-
+size_t funcCount = 0;
 bool initFlag = false;
 size_t count = 0;
 int frameIdx = 0;
@@ -44,7 +45,6 @@ size_t mpfrClearMap = 0;
 size_t mpfrInitMap = 0;
 int varCount = 0;
 int opCount = 0;
-size_t funcCount = 0;
 std::map<size_t, struct ErrorAggregate*>errorMap;
 std::map<size_t, struct BrError*>errBrMap;
 //this will link ins index to index of result in shadow mem
@@ -64,12 +64,15 @@ std::map<size_t, size_t>funRetMap;
 std::map<std::map<size_t, size_t>, size_t> shadowFunArgMap; // thi will link function argument to shadowMap
 extern "C"  void init();
 extern "C"  void finish();
+extern "C"  void printToFile(void* op1Addr, void* op2Addr, void* op3Addr);
 double getDouble(Real *real);
 unsigned long ulpd(double x, double y);
+unsigned long ulpf(float x, float y);
 void handleOp(size_t opCode, mpfr_t *res, mpfr_t *op1, mpfr_t *op2);
 int isNaN(Real *real);
 void initializeBrError(BrError *err);
 double updateError(mpfr_t mpfr_val, double computedVal, size_t insIndex);
+double updateErrorF(mpfr_t mpfr_val, float computedVal, size_t insIndex);
 void updateBranchError(bool realRes, bool computedRes, size_t insIndex, size_t lineNo);
 void initializeErrorAggregate(ErrorAggregate *eagg);
 void printReal(mpfr_t mpfr_val);
