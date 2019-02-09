@@ -9,7 +9,7 @@
 
 pthread_mutex_t the_mutex;
 pthread_cond_t condc, condp;
-pthread_t con, con1, con2;
+pthread_t con, con1, con2, con3, con4, con5, con6;
 
 struct Real* getAddrIndex(size_t addrInt){
 //	addrInt = addrInt >> 4;
@@ -135,7 +135,11 @@ extern "C" void __func_exit(size_t returnIndex){
 	frameIdx--;
 	slotIdx[frameIdx] = slotIdx[frameIdx] - argCount[frameIdx+1];
 	argCount[frameIdx + 1] = 0;
-	while(ready.unsafe_size() > 0);
+/*
+	while(worker.unsafe_size() > 0 || ready1.unsafe_size() > 0 || ready2.unsafe_size() > 0){
+		printf("__func_exit waiting\n");
+	}
+*/
 //	if(funcCount >= 11)
 	//	exit(0);
 }
@@ -736,6 +740,14 @@ void setOperandsDouble(size_t opCode, size_t newRegIdx, size_t op1Addr, size_t o
   Real r2;
   bool mpfrFlag1 = false;
   bool mpfrFlag2 = false;
+	if(op1Addr == 1){ //first argument of current func
+		std::cout<<"first argument of current func\n";
+		op1Addr = (size_t)__get_real_fun_arg(0);
+	}
+	if(op1Addr == 2){ //second argument of current func
+		std::cout<<"second argument of current func\n";
+		op1Addr = (size_t)__get_real_fun_arg(1);
+	}
 	if(op1Addr == 0){ //it is a constant
     if(debugCR)
       std::cout<<"computeReal: real1 is null, using op1 value:"<<op1d<<"\n";
@@ -758,6 +770,14 @@ void setOperandsDouble(size_t opCode, size_t newRegIdx, size_t op1Addr, size_t o
 		}
       //data might be set without store
   }
+	if(op2Addr == 1){ //first argument of current func
+		std::cout<<"first argument of current func\n";
+		op2Addr = (size_t)__get_real_fun_arg(0);
+	}
+	if(op2Addr == 2){ //second argument of current func
+		std::cout<<"second argument of current func\n";
+		op2Addr = (size_t)__get_real_fun_arg(1);
+	}
 	if(op2Addr == 0){
     if(debugCR)
       std::cout<<"computeReal: real2 is null, using op2 value:"<<op2d<<"\n";
@@ -821,7 +841,6 @@ extern "C" void* __compute_real_f(size_t opCode, size_t op1Addr, size_t op2Addr,
 	op->insIndex = insIndex;
 	op->newRegIdx = newRegIdx;
 	op->cmd = 1;
-	std::cout<<"__compute_real_d pushed op op1Addr:"<<op1Addr<<" op2Addr:"<<op2Addr<<"\n";
 	worker.push(op);	
 
 	return &shadowStack[newRegIdx];
@@ -831,6 +850,7 @@ extern "C" void* __compute_real_d(size_t opCode, size_t op1Addr, size_t op2Addr,
                       double op1d, double op2d, double computedResd, size_t insIndex){
   size_t newRegIdx = getRegRes(insIndex);
 
+#if 1
 	Compute *op = new Compute;
 	op->opCode = opCode;
 	op->op1Addr = op1Addr;
@@ -841,12 +861,28 @@ extern "C" void* __compute_real_d(size_t opCode, size_t op1Addr, size_t op2Addr,
 	op->insIndex = insIndex;
 	op->newRegIdx = newRegIdx;
 	op->cmd = 2;
-	std::cout<<"__compute_real_d pushed op op1Addr:"<<op1Addr<<" op2Addr:"<<op2Addr<<"\n";
-	worker.push(op);	
-
+	count++;
+	if(count == 1){
+		ready1.push(op);	
+	}
+	else if(count == 2)
+		ready2.push(op);	
+	else if(count == 3)
+		ready3.push(op);	
+//	else if(count == 4)
+//		ready4.push(op);	
+	if(count == 3)
+		count = 0;
+	
+#else
+		//		setOperandsDouble(op->opCode, op->newRegIdx, op->op1Addr, op->op2Addr, 
+			//									op->op1d, op->op2d, op->computedResd, op->insIndex);
+//		delete op;
+	setOperandsDouble(opCode, newRegIdx, op1Addr, op2Addr, 
+												op1d, op2d, computedResd, insIndex);
+#endif
   return &shadowStack[newRegIdx];
 }
-
 
 extern "C" bool __check_branch(double op1, size_t op1Int, double op2, size_t op2Int, 
                             size_t fcmpFlag, bool computedRes, size_t insIndex, size_t lineNo){
@@ -1188,7 +1224,7 @@ double updateError(mpfr_t realVal, double computedVal, size_t insIndex){
   }
   eagg->total_error += bitsError;
   eagg->num_evals += 1;
-   if (1){
+   if (debug){
     std::cout<<"\nThe shadow value is ";
     printReal(realVal);
 //  	mpfr_out_str (stdout, 10, 0, realVal, MPFR_RNDN);
@@ -1288,15 +1324,16 @@ extern "C" void __init(){
     argCount[0] = 0;
     slotIdx[0] = 0;
     __func_init();
-		pthread_mutex_init(&the_mutex, NULL); 
-  	pthread_cond_init(&condc, NULL);    /* Initialize consumer condition variable */
 
 		std::cout<<"init1\n";	
   	// Create the threads
   //	pthread_create(&rdy, NULL, ready, NULL);
-  	pthread_create(&con, NULL, consumer, NULL);
+//  	pthread_create(&con, NULL, consumer, NULL);
+
   	pthread_create(&con1, NULL, consumer1, NULL);
   	pthread_create(&con2, NULL, consumer2, NULL);
+  	pthread_create(&con3, NULL, consumer3, NULL);
+//  	pthread_create(&con4, NULL, consumer4, NULL);
 
   	std::cout<<"thread created\n";
 
@@ -1313,60 +1350,224 @@ void* consumer(void *ptr) {
 	Compute *op; 
 	bool op1 = false;
 	bool op2 = false;
-	std::cout<<"consumer queue size:"<<worker.unsafe_size()<<"\n";
 	while(!consumerFlag || worker.unsafe_size() > 0){
 			if(worker.try_pop(op) ) {
+				//count++;
 				Real *real1 = (Real *)op->op1Addr; 
 				Real *real2 = (Real *)op->op2Addr; 
-				if(op->op1Addr == 0){
+				if(op->op1Addr == 0 || op->op1Addr == 1 || op->op1Addr == 2){
 					op1 = true;
-					std::cout<<"consumer: op1Addr is 0\n";
 				}
 				else{
 					if(real1->initFlag){
 						op1 = true;
-						std::cout<<"consumer: op1 is ready\n";
 					}
 				}
-				if(op->op2Addr == 0){
+				if(op->op2Addr == 0|| op->op2Addr == 1 || op->op2Addr == 2){
 					op2 = true;
-					std::cout<<"consumer: op2Addr is 0\n";
 				}
 				else{
 					if(real2->initFlag){
 						op2 = true;
-						std::cout<<"consumer: op2 is ready\n";
 					}
 				}
 				if(op1 && op2){
-					ready.push(op);	
-					std::cout<<"consumer: readyQ is updated\n";
+					if(count%2)
+						ready1.push(op);	
+					else
+						ready2.push(op);	
 				}
-				else
+				else{
+					std::cout<<"pushing back to worker\n";
 					worker.push(op);	
+				}
 			}
 		}	
 }
 
 void* consumer1(void *ptr) {
-	computeReal();
-}
-void* consumer2(void *ptr) {
-	computeReal();
-}
-void computeReal(){
+	
 	Compute *op; 
-	while(!consumerFlag || ready.unsafe_size() > 0 || worker.unsafe_size() > 0){
-		if(ready.try_pop(op) ) {
+	while(!consumerFlag || ready1.unsafe_size() > 0){
+	if(ready1.try_pop(op)){
 			switch(op->cmd){
 				case 1:
 					setOperandsFloat(op->opCode, op->newRegIdx, op->op1Addr, op->op2Addr, 
 												op->op1f, op->op2f, op->computedResf, op->insIndex);
-					std::cout<<"consumer1 finished job\n";
 					break;
 				case 2:
 					setOperandsDouble(op->opCode, op->newRegIdx, op->op1Addr, op->op2Addr, 
 												op->op1d, op->op2d, op->computedResd, op->insIndex);
+					count1++;
+					delete op;
+					break;
+				case 3:
+					handle_math_d(op->opCode, op->op1d, op->op1Addr, 
+								op->computedResd, op->insIndex, op->newRegIdx);
+					break;
+				case 4:
+					handle_math_f(op->opCode, op->op1f, op->op1Addr, 
+								op->computedResf, op->insIndex, op->newRegIdx);
+					break;
+				case 5:
+					check_branch(op->op1d, op->op1Addr, op->op2d, op->op2Addr, 
+                     op->fcmpFlag, op->computedResd, op->insIndex, op->lineNo);
+					break;
+				default:
+					break;
+			}
+		}	
+	}
+}
+
+void* consumer2(void *ptr) {
+	Compute *op; 
+	while(!consumerFlag || ready2.unsafe_size() > 0){
+	if(ready2.try_pop(op)){
+			switch(op->cmd){
+				case 1:
+					setOperandsFloat(op->opCode, op->newRegIdx, op->op1Addr, op->op2Addr, 
+												op->op1f, op->op2f, op->computedResf, op->insIndex);
+					break;
+				case 2:
+					setOperandsDouble(op->opCode, op->newRegIdx, op->op1Addr, op->op2Addr, 
+												op->op1d, op->op2d, op->computedResd, op->insIndex);
+					count2++;
+					delete op;
+					break;
+				case 3:
+					handle_math_d(op->opCode, op->op1d, op->op1Addr, 
+								op->computedResd, op->insIndex, op->newRegIdx);
+					break;
+				case 4:
+					handle_math_f(op->opCode, op->op1f, op->op1Addr, 
+								op->computedResf, op->insIndex, op->newRegIdx);
+					break;
+				case 5:
+					check_branch(op->op1d, op->op1Addr, op->op2d, op->op2Addr, 
+                     op->fcmpFlag, op->computedResd, op->insIndex, op->lineNo);
+					break;
+				default:
+					break;
+			}
+		}	
+	}
+}
+void* consumer3(void *ptr) {
+	Compute *op; 
+	while(!consumerFlag || ready3.unsafe_size() > 0){
+	if(ready3.try_pop(op)){
+			switch(op->cmd){
+				case 1:
+					setOperandsFloat(op->opCode, op->newRegIdx, op->op1Addr, op->op2Addr, 
+												op->op1f, op->op2f, op->computedResf, op->insIndex);
+					break;
+				case 2:
+					setOperandsDouble(op->opCode, op->newRegIdx, op->op1Addr, op->op2Addr, 
+												op->op1d, op->op2d, op->computedResd, op->insIndex);
+					count3++;
+					delete op;
+					break;
+				case 3:
+					handle_math_d(op->opCode, op->op1d, op->op1Addr, 
+								op->computedResd, op->insIndex, op->newRegIdx);
+					break;
+				case 4:
+					handle_math_f(op->opCode, op->op1f, op->op1Addr, 
+								op->computedResf, op->insIndex, op->newRegIdx);
+					break;
+				case 5:
+					check_branch(op->op1d, op->op1Addr, op->op2d, op->op2Addr, 
+                     op->fcmpFlag, op->computedResd, op->insIndex, op->lineNo);
+					break;
+				default:
+					break;
+			}
+		}	
+	}
+}
+void* consumer4(void *ptr) {
+	Compute *op; 
+	while(!consumerFlag || ready4.unsafe_size() > 0){
+	if(ready4.try_pop(op)){
+			switch(op->cmd){
+				case 1:
+					setOperandsFloat(op->opCode, op->newRegIdx, op->op1Addr, op->op2Addr, 
+												op->op1f, op->op2f, op->computedResf, op->insIndex);
+					break;
+				case 2:
+					setOperandsDouble(op->opCode, op->newRegIdx, op->op1Addr, op->op2Addr, 
+												op->op1d, op->op2d, op->computedResd, op->insIndex);
+					count4++;
+					delete op;
+					break;
+				case 3:
+					handle_math_d(op->opCode, op->op1d, op->op1Addr, 
+								op->computedResd, op->insIndex, op->newRegIdx);
+					break;
+				case 4:
+					handle_math_f(op->opCode, op->op1f, op->op1Addr, 
+								op->computedResf, op->insIndex, op->newRegIdx);
+					break;
+				case 5:
+					check_branch(op->op1d, op->op1Addr, op->op2d, op->op2Addr, 
+                     op->fcmpFlag, op->computedResd, op->insIndex, op->lineNo);
+					break;
+				default:
+					break;
+			}
+		}	
+	}
+}
+void* consumer5(void *ptr) {
+	Compute *op; 
+//	while(!consumerFlag || ready2.unsafe_size() > 0 || worker.unsafe_size() > 0){
+	while(!consumerFlag){
+		if(ready5.try_pop(op) ) {
+			switch(op->cmd){
+				case 1:
+					setOperandsFloat(op->opCode, op->newRegIdx, op->op1Addr, op->op2Addr, 
+												op->op1f, op->op2f, op->computedResf, op->insIndex);
+					break;
+				case 2:
+					setOperandsDouble(op->opCode, op->newRegIdx, op->op1Addr, op->op2Addr, 
+												op->op1d, op->op2d, op->computedResd, op->insIndex);
+					count4++;
+					delete op;
+					break;
+				case 3:
+					handle_math_d(op->opCode, op->op1d, op->op1Addr, 
+								op->computedResd, op->insIndex, op->newRegIdx);
+					break;
+				case 4:
+					handle_math_f(op->opCode, op->op1f, op->op1Addr, 
+								op->computedResf, op->insIndex, op->newRegIdx);
+					break;
+				case 5:
+					check_branch(op->op1d, op->op1Addr, op->op2d, op->op2Addr, 
+                     op->fcmpFlag, op->computedResd, op->insIndex, op->lineNo);
+					break;
+				default:
+					break;
+			}
+		}	
+	}
+}
+void* consumer6(void *ptr) {
+	Compute *op; 
+//	while(!consumerFlag || ready2.unsafe_size() > 0 || worker.unsafe_size() > 0){
+		while(!consumerFlag || ready6.unsafe_size() > 0 ){
+		if(ready6.try_pop(op) ) {
+			switch(op->cmd){
+				case 1:
+					setOperandsFloat(op->opCode, op->newRegIdx, op->op1Addr, op->op2Addr, 
+												op->op1f, op->op2f, op->computedResf, op->insIndex);
+					break;
+				case 2:
+					setOperandsDouble(op->opCode, op->newRegIdx, op->op1Addr, op->op2Addr, 
+												op->op1d, op->op2d, op->computedResd, op->insIndex);
+					count4++;
+					delete op;
 					break;
 				case 3:
 					handle_math_d(op->opCode, op->op1d, op->op1Addr, 
@@ -1388,13 +1589,15 @@ void computeReal(){
 }
 
 extern "C" void __finish(){
-	std::cout<<"finish called\n";
 	consumerFlag = true;
-	pthread_join(con, NULL);
-	pthread_join(con1, NULL);
-	pthread_join(con2, NULL);
-
-	std::cout<<"finish called\n";
+	std::cout<<"waiting to finish\n";
+	std::cout<<"count:"<<count<<"\n";
+	std::cout<<"count1:"<<count1<<"\n";
+	std::cout<<"count2:"<<count2<<"\n";
+	std::cout<<"count3:"<<count3<<"\n";
+	std::cout<<"count4:"<<count4<<"\n";
+	std::cout<<"count5:"<<count5<<"\n";
+	std::cout<<"count6:"<<count6<<"\n";
   int n;
   char name [100];
   bool flag = false;

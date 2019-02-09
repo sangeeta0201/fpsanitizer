@@ -20,8 +20,8 @@
 #define MAX_STACK_SIZE 1000000000
 #define MAX_SIZE 100000000
 #define INSSIZE 1000000
-#define debug 1
-#define debugCR 1
+#define debug 0
+#define debugCR 0
 //#define MPFRINIT 100000000 //for spec
 #define MPFRINIT 100
 
@@ -75,7 +75,6 @@ struct Compute{
 bool consumerFlag = false;
 size_t funcCount = 0;
 bool initFlag = false;
-size_t count = 0;
 int frameIdx = 0;
 size_t newRegIdx = 0;
 bool recurFlag = false;
@@ -85,8 +84,21 @@ size_t mpfrClearMap = 0;
 size_t mpfrInitMap = 0;
 int varCount = 0;
 int opCount = 0;
+size_t count = 0;
+size_t count1 = 0;
+size_t count2 = 0;
+size_t count3 = 0;
+size_t count4 = 0;
+size_t count5 = 0;
+size_t count6 = 0;
+
 tbb::concurrent_queue<struct Compute*> worker;
-tbb::concurrent_queue<struct Compute*> ready;
+tbb::concurrent_queue<struct Compute*> ready1;
+tbb::concurrent_queue<struct Compute*> ready2;
+tbb::concurrent_queue<struct Compute*> ready3;
+tbb::concurrent_queue<struct Compute*> ready4;
+tbb::concurrent_queue<struct Compute*> ready5;
+tbb::concurrent_queue<struct Compute*> ready6;
 std::map<size_t, struct ErrorAggregate*>errorMap;
 std::map<size_t, struct BrError*>errBrMap;
 //this will link ins index to index of result in shadow mem
@@ -101,8 +113,13 @@ size_t *returnIdx;
 void* consumer(void *ptr);
 void* consumer1(void *ptr);
 void* consumer2(void *ptr);
+void* consumer3(void *ptr);
+void* consumer4(void *ptr);
+void* consumer5(void *ptr);
+void* consumer6(void *ptr);
 void computeReal();
 
+extern "C" void* __get_real_fun_arg(size_t index);
 extern "C" size_t __get_addr(void *Addr);
 extern "C"  void __init();
 extern "C"  void __finish();

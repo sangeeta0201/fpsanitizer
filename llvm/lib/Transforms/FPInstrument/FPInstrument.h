@@ -28,6 +28,8 @@ public:
   virtual bool runOnModule(Module &module);
 	void handleFuncMainInit(Function &F);
 	bool isFPArray(Type *type);
+	void initParallel(Function &F);
+	void exitParallel(Function &F);
 	void cleanGEP(StructType *ST,Instruction *I, BasicBlock *BB,  GetElementPtrInst *GEP, Function &F, size_t index);
   //it returns true if function is in the list of instrumented functions
   bool instrumentFunctions(StringRef FN);
@@ -50,6 +52,7 @@ public:
   void handleOperand(Instruction *I, Instruction **Index, Value* OP, Function &F, bool *IsConstant, bool *IsReg);
   //it gives unique index to every instruction
   void handleIns();
+  void handleCRIns();
   //its called for every FCmpInst
   void handleFcmp(Instruction *I, BasicBlock *BB, FCmpInst *FCI, Function &F);
   //its called for every math library functions with one argument
@@ -81,6 +84,7 @@ public:
 private:
   SmallVector<Function*, 8> AllFuncList;
   SmallVector<Instruction*, 8> AllInsList;
+  SmallVector<Instruction*, 8> AllCRList;
   SmallVector<User*, 8> AllBrList;
   SmallVector<ReturnInst*, 8> AllReturn;
   std::map<Instruction*, Instruction*> TrackIToFCast;
@@ -96,6 +100,7 @@ private:
   std::map<Value*, size_t> ConsMap;
   //this is used to track index of every instruction
   std::map<Instruction*, size_t> InsMap;
+  std::map<Instruction*, size_t> InsCRMap;
   std::map<Function*, size_t> FunMap;
   //this is used to save mapping of old phi node and new phi node
   std::map<Instruction*, Instruction*> NewPhiMap;
@@ -107,6 +112,7 @@ private:
   size_t ConsCount = 0;
   //this is index for instructions
   size_t InsCount = 0;
+  size_t InsCRCount = 0;
   //these are handlers for run time functions
   std::map<size_t, Instruction*> ComputeRealIns;
   Value* SetRealConstant;

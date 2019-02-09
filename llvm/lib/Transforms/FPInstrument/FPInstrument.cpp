@@ -127,7 +127,7 @@ bool FPInstrument::runOnModule(Module &M) {
     for (auto &BB : *F) {
       for (auto &I : BB) {
         if (LoadInst *Load = dyn_cast<LoadInst>(&I)){
-          	handleLoad(&I, Load, &BB, *F);
+          	//handleLoad(&I, Load, &BB, *F);
         }
         if (dyn_cast<FPTruncInst>(&I)){ // it means we have new fp
           //we don't have to stop real computation if fptruc cast from double to float
@@ -321,7 +321,15 @@ bool FPInstrument::runOnModule(Module &M) {
     NewPhiMap.clear(); 
   }
 	//M.dump();
-/*
+
+  for (Function *F : AllFuncList) {
+    for (auto &BB : *F) {
+      for (auto &I : BB) {
+				AllCRList.push_back(&I);
+      }
+    }
+    handleCRIns(); 
+  }
   for (Function *F : AllFuncList) {
     Function::iterator Fit = F->begin();
     for (Function::arg_iterator ait = F->arg_begin(), aend = F->arg_end();
@@ -341,14 +349,15 @@ bool FPInstrument::runOnModule(Module &M) {
             //TODO: find some better way to do it
             int FuncCode = 0;
             if(name == "__compute_real_d"){ 
-              FuncCode = 1;
-              handleMathFunc(&I, &BB, CI, *F, FuncCode);  //we handle math functions for fp
+  						size_t InsIndex;
+  						InsIndex = InsCRMap.at(&I);
+							errs()<<"__compute_real_d InsIndex:"<<InsIndex<<"\n";
             }
       		}
     		} 
 			}
 		}
-	}*/
+	}
 #endif
   return true;
 }
@@ -802,6 +811,40 @@ void FPInstrument::handleCallInst(Instruction *I, CallInst *CI, Function &F){
   }
 }
 
+void FPInstrument::initParallel(Function &F){
+  Function::iterator Fit = F.begin();
+  BasicBlock &BB = *Fit; 
+  BasicBlock::iterator BBit = BB.begin();
+  Instruction *First = &*BBit;
+
+  Module *M = F.getParent();
+  IRBuilder<> IRB(First);
+  Type* VoidTy = Type::getVoidTy(M->getContext());
+ 	
+	Constant *fname = ConstantDataArray::getString(M->getContext(),"hi", true);
+  Value *FBloc = new GlobalVariable(*M, fname->getType(), true, GlobalValue::InternalLinkage, fname, "fBloc");
+ 
+	FuncInit = M->getOrInsertFunction("__init__", VoidTy, FBloc->getType());
+	IRB.CreateCall(FuncInit, {FBloc});
+}
+
+void FPInstrument::exitParallel(Function &F){
+  Function::iterator Fit = F.begin();
+  BasicBlock &BB = *Fit; 
+  BasicBlock::iterator BBit = BB.begin();
+  Instruction *First = &*BBit;
+
+  Module *M = F.getParent();
+  IRBuilder<> IRB(First);
+  Type* VoidTy = Type::getVoidTy(M->getContext());
+ 	
+	Constant *fname = ConstantDataArray::getString(M->getContext(),"hi", true);
+  Value *FBloc = new GlobalVariable(*M, fname->getType(), true, GlobalValue::InternalLinkage, fname, "fBloc");
+ 
+	FuncInit = M->getOrInsertFunction("__exit__", VoidTy, FBloc->getType());
+	IRB.CreateCall(FuncInit, {FBloc});
+}
+
 void FPInstrument::handleFuncInit(Function &F){
   Function::iterator Fit = F.begin();
   BasicBlock &BB = *Fit; 
@@ -1222,13 +1265,6 @@ void FPInstrument::handleOperand(Instruction *I, Instruction **Index, Value* OP,
    	}
   }
 */ 
-  else if(isa<Argument>(OP) && (ArgMap.count(dyn_cast<Argument>(OP)) != 0)){
-    GetFunArg = M->getOrInsertFunction("__get_real_fun_arg", Int64Ty, Int64Ty);
-    size_t index =  ArgMap.at(dyn_cast<Argument>(OP));
-    Constant* argNo = ConstantInt::get(Type::getInt64Ty(M->getContext()), index); //TODO: Remove this
-  	*Index = IRB.CreateCall( GetFunArg, {argNo});
-   	*IsReg = true;  
-  }
   else if (dyn_cast<BitCastInst>(OP)){
     *IsConstant = true;
 	}
@@ -1241,6 +1277,14 @@ void FPInstrument::handleOperand(Instruction *I, Instruction **Index, Value* OP,
 /**
 It provides unique index to all instructions.
 **/
+void FPInstrument::handleCRIns(){
+	
+  for (Instruction *I : AllCRList) {
+  	InsCRMap.insert(std::pair<Instruction*, size_t>(I, InsCRCount));
+		errs()<<"I:"<<*I<<" InsCRCount:"<<InsCRCount<<"\n";
+  	InsCRCount++; 
+	}
+}
 void FPInstrument::handleIns(){
   for (Instruction *I : AllInsList) {
   	InsMap.insert(std::pair<Instruction*, size_t>(I, InsCount));
@@ -1525,7 +1569,30 @@ void FPInstrument::handleOp(Instruction *I, BasicBlock *BB, BinaryOperator* BO, 
   Instruction *Index2 = 0;
   handleOperand(I, &Index1, BO->getOperand(0), F, &IsConstantOp1, &IsRegOp1);
   handleOperand(I, &Index2, BO->getOperand(1), F, &IsConstantOp2, &IsRegOp2);
-  Constant* ConsIdx = ConstantInt::get(Type::getInt64Ty(M->getContext()), 0); 
+	Constant* ConsIdx1;
+	Constant* ConsIdx2;
+  if(isa<Argument>(BO->getOperand(0)) && (ArgMap.count(dyn_cast<Argument>(BO->getOperand(0))) != 0)){
+    size_t index =  ArgMap.at(dyn_cast<Argument>(BO->getOperand(0)));
+    ConsIdx1 = ConstantInt::get(Type::getInt64Ty(M->getContext()), index+1); //TODO: Remove this
+  }
+	else
+  	ConsIdx1 = ConstantInt::get(Type::getInt64Ty(M->getContext()), 0); 
+  if(isa<Argument>(BO->getOperand(1)) && (ArgMap.count(dyn_cast<Argument>(BO->getOperand(1))) != 0)){
+    size_t index =  ArgMap.at(dyn_cast<Argument>(BO->getOperand(1)));
+    ConsIdx2 = ConstantInt::get(Type::getInt64Ty(M->getContext()), index+1); //TODO: Remove this
+  }
+	else
+  	ConsIdx2 = ConstantInt::get(Type::getInt64Ty(M->getContext()), 0); 
+  if (LoadInst *LI = dyn_cast<LoadInst>(BO->getOperand(0))){
+  	Value *Addr = LI->getPointerOperand();
+  	BitCastInst* BCToAddr = new BitCastInst(Addr, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
+  	Instruction *Index1 = dyn_cast<Instruction>(BCToAddr);
+	}
+  if (LoadInst *LI = dyn_cast<LoadInst>(BO->getOperand(1))){
+  	Value *Addr = LI->getPointerOperand();
+  	BitCastInst* BCToAddr = new BitCastInst(Addr, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
+  	Instruction *Index2 = dyn_cast<Instruction>(BCToAddr);
+	}
 	if(BOType->getTypeID() == Type::FloatTyID){
   //both operands are constants, we are passing it as double value
   	if(IsConstantOp1 && IsConstantOp2){
@@ -1533,7 +1600,7 @@ void FPInstrument::handleOp(Instruction *I, BasicBlock *BB, BinaryOperator* BO, 
     //have to test case when constant is of type float
     	HandleOp = M->getOrInsertFunction("__compute_real_f", Int64Ty, Int64Ty, Int64Ty, Int64Ty, BOType, 
                                                       BOType, BOType, Int64Ty);
-    	NewIns = IRB.CreateCall(HandleOp, {OpCode, ConsIdx, ConsIdx, BO->getOperand(0), BO->getOperand(1), BO, ConsInsIndex});
+    	NewIns = IRB.CreateCall(HandleOp, {OpCode, ConsIdx1, ConsIdx2, BO->getOperand(0), BO->getOperand(1), BO, ConsInsIndex});
     	RegIdMap.insert(std::pair<Instruction*, Instruction*>(I, NewIns)); 
     	ComputeRealIns.insert(std::pair<size_t, Instruction*>(InsIndex, NewIns)); 
   	}
@@ -1548,14 +1615,14 @@ void FPInstrument::handleOp(Instruction *I, BasicBlock *BB, BinaryOperator* BO, 
   	else if(IsConstantOp1 && IsRegOp2){
     	HandleOp = M->getOrInsertFunction("__compute_real_f", Int64Ty, Int64Ty, Int64Ty, Int64Ty, BOType, 
                                                       BOType, BOType, Int64Ty);
-    	NewIns = IRB.CreateCall(HandleOp, {OpCode, ConsIdx, Index2, BO->getOperand(0), BO->getOperand(1), BO, ConsInsIndex});
+    	NewIns = IRB.CreateCall(HandleOp, {OpCode, ConsIdx1, Index2, BO->getOperand(0), BO->getOperand(1), BO, ConsInsIndex});
     	RegIdMap.insert(std::pair<Instruction*, Instruction*>(I, NewIns)); 
     	ComputeRealIns.insert(std::pair<size_t, Instruction*>(InsIndex, NewIns)); 
   	}
   	else if(IsRegOp1 && IsConstantOp2){
     	HandleOp = M->getOrInsertFunction("__compute_real_f", Int64Ty, Int64Ty, Int64Ty, Int64Ty, BOType, 
                                                      BOType, BOType, Int64Ty);
-    	NewIns = IRB.CreateCall(HandleOp, {OpCode, Index1, ConsIdx, BO->getOperand(0), BO->getOperand(1), BO, ConsInsIndex});
+    	NewIns = IRB.CreateCall(HandleOp, {OpCode, Index1, ConsIdx2, BO->getOperand(0), BO->getOperand(1), BO, ConsInsIndex});
     	RegIdMap.insert(std::pair<Instruction*, Instruction*>(I, NewIns)); 
     	ComputeRealIns.insert(std::pair<size_t, Instruction*>(InsIndex, NewIns)); 
   	} //TODO: have to do something here
@@ -1572,7 +1639,7 @@ void FPInstrument::handleOp(Instruction *I, BasicBlock *BB, BinaryOperator* BO, 
     //have to test case when constant is of type float
     	HandleOp = M->getOrInsertFunction("__compute_real_d", Int64Ty, Int64Ty, Int64Ty, Int64Ty, BOType, 
                                                       BOType, BOType, Int64Ty);
-    	NewIns = IRB.CreateCall(HandleOp, {OpCode, ConsIdx, ConsIdx, BO->getOperand(0), BO->getOperand(1), BO, ConsInsIndex});
+    	NewIns = IRB.CreateCall(HandleOp, {OpCode, ConsIdx1, ConsIdx2, BO->getOperand(0), BO->getOperand(1), BO, ConsInsIndex});
     	RegIdMap.insert(std::pair<Instruction*, Instruction*>(I, NewIns)); 
     	ComputeRealIns.insert(std::pair<size_t, Instruction*>(InsIndex, NewIns)); 
   	}
@@ -1587,14 +1654,14 @@ void FPInstrument::handleOp(Instruction *I, BasicBlock *BB, BinaryOperator* BO, 
   	else if(IsConstantOp1 && IsRegOp2){
     	HandleOp = M->getOrInsertFunction("__compute_real_d", Int64Ty, Int64Ty, Int64Ty, Int64Ty, BOType, 
                                                       BOType, BOType, Int64Ty);
-    	NewIns = IRB.CreateCall(HandleOp, {OpCode, ConsIdx, Index2, BO->getOperand(0), BO->getOperand(1), BO, ConsInsIndex});
+    	NewIns = IRB.CreateCall(HandleOp, {OpCode, ConsIdx1, Index2, BO->getOperand(0), BO->getOperand(1), BO, ConsInsIndex});
     	RegIdMap.insert(std::pair<Instruction*, Instruction*>(I, NewIns)); 
     	ComputeRealIns.insert(std::pair<size_t, Instruction*>(InsIndex, NewIns)); 
   	}
   	else if(IsRegOp1 && IsConstantOp2){
     	HandleOp = M->getOrInsertFunction("__compute_real_d", Int64Ty, Int64Ty, Int64Ty, Int64Ty, BOType, 
                                                      BOType, BOType, Int64Ty);
-    	NewIns = IRB.CreateCall(HandleOp, {OpCode, Index1, ConsIdx, BO->getOperand(0), BO->getOperand(1), BO, ConsInsIndex});
+    	NewIns = IRB.CreateCall(HandleOp, {OpCode, Index1, ConsIdx2, BO->getOperand(0), BO->getOperand(1), BO, ConsInsIndex});
     	RegIdMap.insert(std::pair<Instruction*, Instruction*>(I, NewIns)); 
     	ComputeRealIns.insert(std::pair<size_t, Instruction*>(InsIndex, NewIns)); 
   	} //TODO: have to do something here
