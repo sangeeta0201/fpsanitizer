@@ -1,6 +1,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <mpfr.h>
+//#include "perf.h"
 
 #define SIZE 10000000
 mpfr_t aa;
@@ -67,25 +68,34 @@ double foo_mpfr(){
 }
 #endif
 int main() {
+//	start_counter();
 	double a = 0;
 	double *x = (double *)malloc(SIZE*sizeof(double));
 	double *y = (double *)malloc(SIZE*sizeof(double));
 	double *z1 = (double *)malloc(SIZE*sizeof(double));
 	double *z2 = (double *)malloc(SIZE*sizeof(double));
 	double *z3 = (double *)malloc(SIZE*sizeof(double));
-
+	double max;
   for (int i = 0; i < SIZE; i++){
 		x[i] = i + 0.7;
 		y[i] = i + 0.3;
 	}
-  for (int i = 0; i < SIZE; i++){
+	printf("loop1 done\n");
+  for (int i = SIZE - 1; i >= 0; i--){
 		z1[i] = x[i] + y[i];
 		z2[i] = x[i] / y[i];
-		z3[i] = x[i] * y[i];
+		//z3[i] = x[i] * y[i];
+		z3[i] = z1[i] * z2[i];
+//		if(z3[i] > y[i])
+	//		max = z3[i];
+//		else
+	//		max = y[i];	
 	}
 	double xx = bar(z1, z2, z3);
+	printf("%e\n", max);
 	printf("%e\n", xx);
 	printf("******\n");
+//	stop();
 //	double b = foo_mpfr();
 //	printf("%e\n", b);
 }

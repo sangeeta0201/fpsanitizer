@@ -22,10 +22,10 @@ const size_t SS_SEC_TABLE_ENTRIES = ((size_t) 64*(size_t) 1024 * (size_t) 1024);
 2. Clean up shadow
 3. How to figure out memcpy of only double?
 */
-#define debug 1
+#define debug 0
 #define debugCR 0
 //#define MPFRINIT 100000000 //for spec
-#define MPFRINIT 100
+#define MPFRINIT 10000
 FILE *pFile = fopen ("error.log","w");
 FILE *eFile = fopen ("branch.log","w");
 FILE *lbmRef = fopen ("ref.log","w");
@@ -876,7 +876,7 @@ extern "C" bool checkBranch(double op1, size_t op1Int, double op2, size_t op2Int
 		fprintf (eFile, " compare branch flipped @ %lld\n", lineNo);
 		//print_trace ();
 	}
-	if(realRes != computedRes){
+	if(debug){
 //	if(realRes != computedRes){
 		std::cout<<"checkBranch: realRes:"<<realRes<<" computedRes:"<<computedRes<<"\n";
     std::cout<<"checkBranch: computed operands op1:"<<op1<<" op2:"<<op2<<"\n";
@@ -921,6 +921,9 @@ extern "C" size_t setRealReg(size_t index, double value){
   return index;
 }
 */
+extern "C" void* handleAlloca(size_t index){
+}
+
 extern "C" void* getRealFunArg(size_t index){
 	if(argCount[frameIdx] == 0)
 		return 0;

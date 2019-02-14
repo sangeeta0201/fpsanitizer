@@ -6,10 +6,61 @@
 #include <stdlib.h>
 #include <execinfo.h>
 #include <limits.h>
+#include <sys/time.h>
+#include <sys/ioctl.h>
+#include <linux/perf_event.h>
+
+#define MULTHITHREADED 0
+#define TIME 1
+#define debug 0                                                                  
+#define debugCR 0
 
 pthread_mutex_t the_mutex;
 pthread_cond_t condc, condp;
 pthread_t con, con1, con2, con3, con4, con5, con6;
+
+int fd;
+long
+perf_event_open(struct perf_event_attr *hw_event, pid_t pid,
+               int cpu, int group_fd, unsigned long flags)
+{
+   int ret;
+
+   ret = syscall(__NR_perf_event_open, hw_event, pid, cpu,
+                  group_fd, flags);
+   return ret;
+}
+
+void start_counter(){
+   struct perf_event_attr pe;
+
+   memset(&pe, 0, sizeof(struct perf_event_attr));
+   pe.type = PERF_TYPE_HARDWARE;
+   pe.size = sizeof(struct perf_event_attr);
+   pe.config = PERF_COUNT_HW_INSTRUCTIONS;
+//  pe.config = PERF_COUNT_HW_CPU_CYCLES;
+   pe.disabled = 1;
+   pe.exclude_kernel = 1;
+   pe.exclude_hv = 1;
+
+   fd = perf_event_open(&pe, 0, -1, -1, 0);
+   if (fd == -1) {
+      fprintf(stderr, "Error opening leader %llx\n", pe.config);
+      exit(EXIT_FAILURE);
+   }                                                                                         
+
+   ioctl(fd, PERF_EVENT_IOC_RESET, 0);
+   ioctl(fd, PERF_EVENT_IOC_ENABLE, 0);
+}
+
+void stop(){
+   long long count;
+   ioctl(fd, PERF_EVENT_IOC_DISABLE, 0);
+   read(fd, &count, sizeof(long long));
+
+   printf("Used %lld instructions\n", count);
+
+}
 
 struct Real* getAddrIndex(size_t addrInt){
 //	addrInt = addrInt >> 4;
@@ -52,12 +103,21 @@ void print_trace (void)
 }
 
 extern "C" void* __add_return_addr(){
+#if TIME
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
+#endif
   returnIdx[frameIdx] = frameCur[frameIdx] + slotIdx[frameIdx];                                                                 
   size_t retAddr = returnIdx[frameIdx];
   slotIdx[frameIdx]++;
   if(debug){
     printf(" return addr:%p\n", (void *)&shadowStack[retAddr]);
   }
+#if TIME
+	gettimeofday(&tv2, NULL);
+	addAddrTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec); 
+#endif
   return &shadowStack[retAddr];
 }
 
@@ -79,11 +139,24 @@ size_t getRegRes(size_t insIndex){
 }
 
 extern "C" size_t __get_addr(void *Addr){
+#if TIME
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
+#endif
   size_t AddrInt = (size_t) Addr;
+#if TIME
+	gettimeofday(&tv2, NULL);
+	getAddrTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec); 
+#endif
   return AddrInt;
 }
 
 extern "C" void __add_fun_arg(size_t argNo, size_t argAddrInt, double op){
+#if TIME
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
+#endif
 	argCount[frameIdx+1] = argCount[frameIdx+1] + 1;
 	
 	size_t stackTop = frameCur[frameIdx]+slotIdx[frameIdx];
@@ -101,9 +174,18 @@ extern "C" void __add_fun_arg(size_t argNo, size_t argAddrInt, double op){
 		printReal((&shadowStack[stackTop])->mpfr_val);
 	}
 	slotIdx[frameIdx]++;
+#if TIME
+	gettimeofday(&tv2, NULL);
+	addFunTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec); 
+#endif
 }
 
 extern "C" void __func_init(){
+#if TIME
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
+#endif
 	if(!initFlag){
 		__init();
 		initFlag = true;
@@ -114,15 +196,22 @@ extern "C" void __func_init(){
 	slotIdx[frameIdx] = 0;
 	if(debug)
 		std::cout<<"funcInit:"<<frameCur[frameIdx]<<"\n";
+#if TIME
+	gettimeofday(&tv2, NULL);
+	funcInitTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec); 
+#endif
 }
 
 extern "C" void __func_exit(size_t returnIndex){
-	funcCount++;
-  size_t var;
+#if TIME
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
+#endif
   size_t retAddr = returnIdx[frameIdx - 1];
 	if(returnIndex != 0){
 		if(debug){
-			printf("funcExit: return copied from::%p to stackTop:%d\n", (void *)returnIndex, retAddr);
+			printf("funcExit: return copied from::%p to stackTop:%lu\n", (void *)returnIndex, retAddr);
 			printf(" addr:%p\n", (void *)&shadowStack[retAddr]);
 		}
 		Real *returnReal = (Real *)returnIndex;
@@ -135,29 +224,42 @@ extern "C" void __func_exit(size_t returnIndex){
 	frameIdx--;
 	slotIdx[frameIdx] = slotIdx[frameIdx] - argCount[frameIdx+1];
 	argCount[frameIdx + 1] = 0;
+#if TIME
+	gettimeofday(&tv2, NULL);
+	funcExitTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec); 
+#endif
 /*
 	while(worker.unsafe_size() > 0 || ready1.unsafe_size() > 0 || ready2.unsafe_size() > 0){
 		printf("__func_exit waiting\n");
 	}
 */
-//	if(funcCount >= 11)
-	//	exit(0);
 }
 
 extern "C" void __handle_f_to_sint(size_t op1Int, long val, size_t lineNo){
+#if TIME
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
+#endif
 	Real *real1 = (Real *)op1Int;
 	long res = mpfr_get_si(real1->mpfr_val, MPFR_RNDN);
 	if(res != val){
 		print_trace();
-		fprintf (eFile, "convert mismatch @ %lld real: %d flaot: %d\n", lineNo, res, val);
+		fprintf (eFile, "convert mismatch %lu real: %ld float: %ld\n", lineNo, res, val);
 		std::cout<<"convert mismatch  real:"<<res<<" float: \n"<<val<<"\n";
 	}
+#if TIME
+	gettimeofday(&tv2, NULL);
+	fToITime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec); 
+#endif
 }
 
 void handle_math_f(size_t funcCode, float op1, size_t op1Int, 
                                 float computedRes, size_t insIndex, size_t newRegIdx){ 
-  Real real_res, r1;
   
+  Real r1;
+
   mpfrInit++;
   bool mpfrFlag1 = false; 
   Real *real1 = (Real *)op1Int;
@@ -169,7 +271,7 @@ void handle_math_f(size_t funcCode, float op1, size_t op1Int,
 		mpfrFlag1 = true; 
   }
 	if(debug){
-		printf("handleMathFuncF: op1Addr:%p funcCode:%d computed op1:%e real op1:\n", (void *)op1Int, funcCode, op1);
+		printf("handleMathFuncF: op1Addr:%p funcCode:%lu computed op1:%e real op1:\n", (void *)op1Int, funcCode, op1);
   	printReal(real1->mpfr_val);
  	}
   if(real1 != NULL){
@@ -235,8 +337,7 @@ void handle_math_f(size_t funcCode, float op1, size_t op1Int,
 
 void handle_math_d(size_t funcCode, double op1, size_t op1Int, 
                                 double computedRes, size_t insIndex, size_t newRegIdx){ 
-  Real real_res, r1;
-  
+  Real r1;
   mpfrInit++;
   bool mpfrFlag1 = false; 
   Real *real1 = (Real *)op1Int;
@@ -248,7 +349,7 @@ void handle_math_d(size_t funcCode, double op1, size_t op1Int,
 		mpfrFlag1 = true; 
   }
 	if(debug){
-		printf("handleMathFuncD: op1Addr:%p funcCode:%d computed op1:%e real op1:\n", (void *)op1Int, funcCode, op1);
+		printf("handleMathFuncD: op1Addr:%p funcCode:%lu computed op1:%e real op1:\n", (void *)op1Int, funcCode, op1);
   	printReal(real1->mpfr_val);
  	}
   if(real1 != NULL){
@@ -314,9 +415,13 @@ void handle_math_d(size_t funcCode, double op1, size_t op1Int,
 
 extern "C" void* __handle_math_f(size_t funcCode, float op1, size_t op1Int, 
                                 float computedRes, size_t insIndex){ 
-  Real real_res, r1;
+#if TIME
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
+#endif
  	size_t newRegIdx = getRegRes(insIndex);
 
+#if MULTHITHREADED
 	Compute *op = new Compute;
 	op->opCode = funcCode;
 	op->op1Addr = op1Int;
@@ -326,15 +431,28 @@ extern "C" void* __handle_math_f(size_t funcCode, float op1, size_t op1Int,
 	op->newRegIdx = newRegIdx;
 	op->cmd = 4;
 
-	worker.push(op);	
+	worker.push(op);
+#else
+	handle_math_f(funcCode, op1, op1Int, 
+								computedRes, insIndex, newRegIdx);
+#endif	
+#if TIME
+	gettimeofday(&tv2, NULL);
+	mathFTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec); 
+#endif
 	return &shadowStack[newRegIdx];
 }
 
 extern "C" void* __handle_math_d(size_t funcCode, double op1, size_t op1Int, 
                                 double computedRes, size_t insIndex){ 
-  Real real_res, r1;
+#if TIME
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
+#endif
  	size_t newRegIdx = getRegRes(insIndex);
 
+#if MULTHITHREADED
 	Compute *op = new Compute;
 	op->opCode = funcCode;
 	op->op1Addr = op1Int;
@@ -345,6 +463,15 @@ extern "C" void* __handle_math_d(size_t funcCode, double op1, size_t op1Int,
 	op->cmd = 3;
 
 	worker.push(op);	
+#else
+	handle_math_d(funcCode, op1, op1Int, 
+								computedRes, insIndex, newRegIdx);
+#endif	
+#if TIME
+	gettimeofday(&tv2, NULL);
+	mathDTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec); 
+#endif
 	return &shadowStack[newRegIdx];
 }
 
@@ -355,6 +482,7 @@ void handleOp(size_t opCode, mpfr_t *res, mpfr_t *op1, mpfr_t *op2){
       if(debug)
         std::cout<<"\nFADD\n";
       mpfr_add (*res, *op1, *op2, MPFR_RNDN);
+	
       break;
     case 14: //FSUB
       if(debug)
@@ -388,11 +516,9 @@ void handleOp(size_t opCode, mpfr_t *res, mpfr_t *op1, mpfr_t *op2){
   }
 }
 
-extern "C" void* __handle_select(void *Addr, size_t insIndex, double op){
-  size_t newRegIdx = getRegRes(insIndex);
-	size_t AddrInt = (size_t) Addr;
+void handle_select(size_t AddrInt, size_t insIndex, size_t newRegIdx, double op){
 	Real *real1;
-	real1 = (Real *)Addr;
+	real1 = (Real *)AddrInt;
 	if(AddrInt == 0 || real1->initFlag == 0){
 		mpfr_set_d(shadowStack[newRegIdx].mpfr_val, op, MPFR_RNDN);
 	}
@@ -402,11 +528,41 @@ extern "C" void* __handle_select(void *Addr, size_t insIndex, double op){
 		std::cout<<"handleSelect: set value in shadowStack at:"<<newRegIdx;
 		printf(" for addr:%p\n", (void *)AddrInt);
 	}
+}
+extern "C" void* __handle_select(void *Addr, size_t insIndex, double opd){
+#if TIME
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
+#endif
+  size_t newRegIdx = getRegRes(insIndex);
+	size_t AddrInt = (size_t) Addr;
+#if MULTHITHREADED
+	Compute *op = new Compute;
+	op->op1Addr = AddrInt;
+	op->op1d = opd;
+	op->insIndex = insIndex;
+	op->newRegIdx = newRegIdx;
+	op->cmd = 6;
+
+	worker.push(op);	
+#else
+	handle_select(AddrInt, insIndex, newRegIdx, opd);
+#endif
+#if TIME
+	gettimeofday(&tv2, NULL);
+	selectTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec); 
+#endif
 	return &shadowStack[newRegIdx];
 }
 
 extern "C" void* __load_f(void *Addr, size_t insIndex, float opf, 
-																						bool castFlag, size_t newRegIdx){
+																						bool castFlag){
+#if TIME
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
+#endif
+  size_t newRegIdx = getRegRes(insIndex);
 	size_t AddrInt = (size_t) Addr;
 	struct Real* dest = getAddrIndex(AddrInt);
 	if(debug){
@@ -439,11 +595,20 @@ extern "C" void* __load_f(void *Addr, size_t insIndex, float opf,
 		}
 	}
 	shadowStack[newRegIdx].initFlag = 1;
+#if TIME
+	gettimeofday(&tv2, NULL);
+	loadFTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec); 
+#endif
 	return &shadowStack[newRegIdx];
 }
 
 extern "C" void* __load_d(void *Addr, size_t insIndex, double opd, 
 																								bool castFlag){
+#if TIME
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
+#endif
 	size_t newRegIdx = getRegRes(insIndex);
 	size_t AddrInt = (size_t) Addr;
 	struct Real* dest = getAddrIndex(AddrInt);
@@ -477,6 +642,11 @@ extern "C" void* __load_d(void *Addr, size_t insIndex, double opd,
 		}
 	}
 	shadowStack[newRegIdx].initFlag = 1;
+#if TIME
+	gettimeofday(&tv2, NULL);
+	loadDTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec); 
+#endif
 	return &shadowStack[newRegIdx];
 }
 
@@ -624,10 +794,10 @@ void check_branch(double op1, size_t op1Int, double op2, size_t op2Int,
 	}
 	if(realRes != computedRes){
 //		std::cout<<" compare branch flipped @"<< lineNo<<"\n\n";
-		fprintf (eFile, " compare branch flipped @ %lld\n", lineNo);
+		//fprintf (eFile, " compare branch flipped @ %lu\n", lineNo);
 		//print_trace ();
 	}
-	if(realRes != computedRes){
+	if(debug){
 //	if(realRes != computedRes){
 		std::cout<<"checkBranch: realRes:"<<realRes<<" computedRes:"<<computedRes<<"\n";
     std::cout<<"checkBranch: computed operands op1:"<<op1<<" op2:"<<op2<<"\n";
@@ -730,7 +900,6 @@ void setOperandsFloat(size_t opCode, size_t newRegIdx, size_t op1Addr, size_t op
 	updateErrorF(shadowStack[newRegIdx].mpfr_val, computedResf, insIndex);
 }
 
-
 void setOperandsDouble(size_t opCode, size_t newRegIdx, size_t op1Addr, size_t op2Addr, 
 													double op1d, double op2d, double computedResd, 
 														size_t insIndex){
@@ -742,11 +911,11 @@ void setOperandsDouble(size_t opCode, size_t newRegIdx, size_t op1Addr, size_t o
   bool mpfrFlag2 = false;
 	if(op1Addr == 1){ //first argument of current func
 		std::cout<<"first argument of current func\n";
-		op1Addr = (size_t)__get_real_fun_arg(0);
+		op1Addr = (size_t)get_real_fun_arg(0);
 	}
 	if(op1Addr == 2){ //second argument of current func
 		std::cout<<"second argument of current func\n";
-		op1Addr = (size_t)__get_real_fun_arg(1);
+		op1Addr = (size_t)get_real_fun_arg(1);
 	}
 	if(op1Addr == 0){ //it is a constant
     if(debugCR)
@@ -772,11 +941,11 @@ void setOperandsDouble(size_t opCode, size_t newRegIdx, size_t op1Addr, size_t o
   }
 	if(op2Addr == 1){ //first argument of current func
 		std::cout<<"first argument of current func\n";
-		op2Addr = (size_t)__get_real_fun_arg(0);
+		op2Addr = (size_t)get_real_fun_arg(0);
 	}
 	if(op2Addr == 2){ //second argument of current func
 		std::cout<<"second argument of current func\n";
-		op2Addr = (size_t)__get_real_fun_arg(1);
+		op2Addr = (size_t)get_real_fun_arg(1);
 	}
 	if(op2Addr == 0){
     if(debugCR)
@@ -806,8 +975,13 @@ void setOperandsDouble(size_t opCode, size_t newRegIdx, size_t op1Addr, size_t o
 		printf("computeReal: op2Addr:: %p op2:", (void *)op2Addr);
   	printReal(real2->mpfr_val);
 	}
+	if(real1 == NULL || real2 == NULL)
+		std::cout<<"Error!!!!\n";
+		
   handleOp(opCode, &(shadowStack[newRegIdx].mpfr_val), &real1->mpfr_val, &real2->mpfr_val);
+
 	shadowStack[newRegIdx].initFlag = 1;
+
 	if(debugCR){
 		std::cout<<"computeReal: stackTop:"<<newRegIdx;;
 		printf(" addr %p:\n", (void *)&shadowStack[newRegIdx]);
@@ -829,8 +1003,13 @@ int isNaN(mpfr_t real){
 
 extern "C" void* __compute_real_f(size_t opCode, size_t op1Addr, size_t op2Addr,
                              float op1f, float op2f, float computedResf, size_t insIndex){
+#if TIME
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
+#endif
   size_t newRegIdx = getRegRes(insIndex);
 	
+#if MULTHITHREADED
 	Compute *op = new Compute;
 	op->opCode = opCode;
 	op->op1Addr = op1Addr;
@@ -842,15 +1021,28 @@ extern "C" void* __compute_real_f(size_t opCode, size_t op1Addr, size_t op2Addr,
 	op->newRegIdx = newRegIdx;
 	op->cmd = 1;
 	worker.push(op);	
-
+#else
+	setOperandsFloat(opCode, newRegIdx, op1Addr, op2Addr, 
+												op1f, op2f, computedResf, insIndex);
+	std::cout<<"not pushed  in worker\n";
+#endif
+#if TIME
+	gettimeofday(&tv2, NULL);
+	computeFTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec); 
+#endif
 	return &shadowStack[newRegIdx];
 }
 
 extern "C" void* __compute_real_d(size_t opCode, size_t op1Addr, size_t op2Addr, 
                       double op1d, double op2d, double computedResd, size_t insIndex){
+#if TIME
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
+#endif
   size_t newRegIdx = getRegRes(insIndex);
 
-#if 1
+#if MULTHITHREADED
 	Compute *op = new Compute;
 	op->opCode = opCode;
 	op->op1Addr = op1Addr;
@@ -861,31 +1053,37 @@ extern "C" void* __compute_real_d(size_t opCode, size_t op1Addr, size_t op2Addr,
 	op->insIndex = insIndex;
 	op->newRegIdx = newRegIdx;
 	op->cmd = 2;
-	count++;
-	if(count == 1){
-		ready1.push(op);	
-	}
-	else if(count == 2)
-		ready2.push(op);	
-	else if(count == 3)
-		ready3.push(op);	
+	worker.push(op);	
+
+//	else if(count == 2)
+//		ready2.push(op);	
+///	else if(count == 3)
+//		ready3.push(op);	
 //	else if(count == 4)
 //		ready4.push(op);	
-	if(count == 3)
-		count = 0;
+//	if(count == 3)
+//		count = 0;
 	
 #else
-		//		setOperandsDouble(op->opCode, op->newRegIdx, op->op1Addr, op->op2Addr, 
-			//									op->op1d, op->op2d, op->computedResd, op->insIndex);
-//		delete op;
 	setOperandsDouble(opCode, newRegIdx, op1Addr, op2Addr, 
 												op1d, op2d, computedResd, insIndex);
+
+#endif
+#if TIME
+	gettimeofday(&tv2, NULL);
+	computeTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec); 
 #endif
   return &shadowStack[newRegIdx];
 }
 
 extern "C" bool __check_branch(double op1, size_t op1Int, double op2, size_t op2Int, 
                             size_t fcmpFlag, bool computedRes, size_t insIndex, size_t lineNo){
+#if TIME
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
+#endif
+#if MULTHITHREADED
 	Compute *op = new Compute;
 	op->op1Addr = op1Int;
 	op->op2Addr = op2Int;
@@ -897,20 +1095,33 @@ extern "C" bool __check_branch(double op1, size_t op1Int, double op2, size_t op2
 	op->lineNo = lineNo;
 	op->cmd = 5;
 	worker.push(op);	
+#else
+	check_branch(op1, op1Int, op2, op2Int, 
+               fcmpFlag, computedRes, insIndex, lineNo);
+#endif
+#if TIME
+	gettimeofday(&tv2, NULL);
+	checkBrTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec); 
+#endif
 	return true;
 }
 
-extern "C" void* __get_real_fun_arg(size_t index){
+void* get_real_fun_arg(size_t index){
   if(argCount[frameIdx] == 0)
     return 0;
   if(debug){
-    std::cout<<"__get_real_fun_arg: addr:"<<(size_t)&shadowStack[frameCur[frameIdx] - index - 1]<<"\n";
-    std::cout<<"__get_real_fun_arg: get from idx:"<<frameCur[frameIdx] - index - 1<<"\n";
+    std::cout<<"get_real_fun_arg: addr:"<<(size_t)&shadowStack[frameCur[frameIdx] - index - 1]<<"\n";
+    std::cout<<"get_real_fun_arg: get from idx:"<<frameCur[frameIdx] - index - 1<<"\n";
   }
   return &shadowStack[frameCur[frameIdx] - index - 1];                                                                          
 }
 
 extern "C" void __set_real_fun_arg(size_t index, size_t funAddrInt, size_t toAddrInt, double op){
+#if TIME
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
+#endif
 	struct Real* dest = getAddrIndex(toAddrInt);
 	Real *real = &shadowStack[frameCur[frameIdx] - index - 1];
 	mpfr_set(dest->mpfr_val, real->mpfr_val, MPFR_RNDN);
@@ -920,30 +1131,18 @@ extern "C" void __set_real_fun_arg(size_t index, size_t funAddrInt, size_t toAdd
 		printReal(real->mpfr_val);
 		std::cout<<" to addr:"<<toAddrInt<<"\n";
 	}
-}
-//TODO test it
-
-extern "C" void __set_real_return(size_t toAddrInt){
-/*
-  if(!retTrack.empty()){
-    size_t idx = retTrack.top();
-    retTrack.pop();
-		MyShadow *shadow = existInStackOld(toAddrInt);
-		if(shadow != NULL){//just update the value in stack
-      mpfr_init2(toReal, PRECISION);
-      mpfrInit++;
-      mpfr_set(toReal->mpfr_val, shadow->real->mpfr_val, MPFR_RNDN);
-			//cleanup(idx);
-  		if(debug)
-    		std::cout<<"setRealReturn update shadow stack::"<<toAddrInt<<"\n";
-		}
-	}
-  else
-    std::cout<<"Error !!!! return value not found in stack\n";
-*/
+#if TIME
+	gettimeofday(&tv2, NULL);
+	setRealFArgTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec); 
+#endif
 }
 
 extern "C" void __set_real_cons_d(size_t toAddrInt, double value){
+#if TIME
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
+#endif
 	if(debug){
 		std::cout<<"setRealConstantD: set:"<<value;
 		printf(" to addr:%p\n", (void *)toAddrInt);
@@ -951,9 +1150,18 @@ extern "C" void __set_real_cons_d(size_t toAddrInt, double value){
 	struct Real* dest = getAddrIndex(toAddrInt);
 	mpfr_set_d(dest->mpfr_val, value, MPFR_RNDN);
 	dest->initFlag = 1;
+#if TIME
+	gettimeofday(&tv2, NULL);
+	setRealCDTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec); 
+#endif
 }
 
 extern "C" void __set_real_cons_f(size_t toAddrInt, float value){
+#if TIME
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
+#endif
 	struct Real* dest = getAddrIndex(toAddrInt);
 	mpfrInitMap++;
 	mpfr_set_flt(dest->mpfr_val, value, MPFR_RNDN);
@@ -963,25 +1171,57 @@ extern "C" void __set_real_cons_f(size_t toAddrInt, float value){
 		printf(" to addr:%p\n", (void *)toAddrInt);
 	}
 	dest->initFlag = 1;
+#if TIME
+	gettimeofday(&tv2, NULL);
+	setRealCFTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec); 
+#endif
 }
 
-extern "C" void __set_real(size_t toAddrInt, size_t fromAddrInt, double op){
-	struct Real* dest = getAddrIndex(toAddrInt);
-	Real *real = (Real *)fromAddrInt;
-	if(debug)
-		std::cout<<"setRealTemp op:"<<op<<"\n";
-	mpfrInitMap++;
-	mpfr_set(dest->mpfr_val, real->mpfr_val, MPFR_RNDN);
+extern "C" void set_real(size_t toAddrInt, size_t fromAddrInt, double op){
+	Real* dest = getAddrIndex(toAddrInt);
+	Real* real = (Real *)fromAddrInt;
+	if(real->initFlag == 0)
+		mpfr_set_d(dest->mpfr_val, op, MPFR_RNDN);
+	else
+		mpfr_set(dest->mpfr_val, real->mpfr_val, MPFR_RNDN);
 	dest->initFlag = 1;
 	if(debug){
-		std::cout<<"setRealTemp: set:";
-		printReal(real->mpfr_val);
+		std::cout<<"setRealTemp: dest->initFlag:"<<dest->initFlag<<"\n";
+		std::cout<<"setRealTemp: dest set to:";
+		printReal(dest->mpfr_val);
 		printf("from: %p", (void *)fromAddrInt);
 		printf(" to addr:%p\n", (void *)toAddrInt);
 	}
 }
 
+extern "C" void __set_real(size_t toAddrInt, size_t fromAddrInt, double op1){
+#if TIME
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
+#endif
+#if MULTHITHREADED
+	Compute *op = new Compute;
+	op->op1Addr = toAddrInt;
+	op->op2Addr = fromAddrInt;
+	op->op1d = op1;
+	op->cmd = 7;
+#else
+	set_real(toAddrInt, fromAddrInt, op1);
+#endif
+
+#if TIME
+	gettimeofday(&tv2, NULL);
+	setRealTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec); 
+#endif
+}
+
 extern "C" void __handle_calloc(size_t toAddrInt, size_t size1, size_t size2){
+#if TIME
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
+#endif
 	size_t size = size1 * size2;
 	size_t tmp = 0;
 	if(debug){
@@ -998,9 +1238,18 @@ extern "C" void __handle_calloc(size_t toAddrInt, size_t size1, size_t size2){
 		dest = getAddrIndex(toAddrInt);
 		tmp += 1;
 	}
+#if TIME
+	gettimeofday(&tv2, NULL);
+	callocTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec); 
+#endif
 }
 
 extern "C" void __handle_malloc(size_t toAddrInt, size_t size){
+#if TIME
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
+#endif
 	size_t tmp = 0;
 	if(debug){
 		std::cout<<"handleMalloc size:"<<size<<"\n";
@@ -1014,12 +1263,21 @@ extern "C" void __handle_malloc(size_t toAddrInt, size_t size){
 		dest = getAddrIndex(toAddrInt);
 		tmp += 1;
 	}
+#if TIME
+	gettimeofday(&tv2, NULL);
+	mallocTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec); 
+#endif
 }
 
 extern "C" void __handle_memset(size_t toAddrInt, size_t val, size_t size){
+#if TIME
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
+#endif
 	size_t tmp = 0;
 	if(debug){
-		printf("handleLLVMMemset to addr:%p val:%e\n", (void *)toAddrInt, val);
+		printf("handleLLVMMemset to addr:%p val:%lu\n", (void *)toAddrInt, val);
 		std::cout<<"handleLLVMMemset val:"<<val<<"\n";
 		std::cout<<"handleLLVMMemset size:"<<size<<"\n";
 	}
@@ -1032,9 +1290,18 @@ extern "C" void __handle_memset(size_t toAddrInt, size_t val, size_t size){
 		dest = getAddrIndex(toAddrInt);
 		tmp += 1;
 	}
+#if TIME
+	gettimeofday(&tv2, NULL);
+	memsetTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec); 
+#endif
 }
 
 extern "C" void __handle_memcpy(size_t toAddrInt, size_t fromAddrInt, size_t size){
+#if TIME
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
+#endif
 	size_t tmp = 0;
 	struct Real* dest, *src;
 	src = getAddrIndex(fromAddrInt);
@@ -1054,6 +1321,11 @@ extern "C" void __handle_memcpy(size_t toAddrInt, size_t fromAddrInt, size_t siz
 		src = getAddrIndex(fromAddrInt);
 		tmp += 1;
 	}
+#if TIME
+	gettimeofday(&tv2, NULL);
+	memcpyTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec); 
+#endif
 }
 
 float getFloat(mpfr_t mpfr_val){  
@@ -1068,14 +1340,16 @@ long double getLongDouble(Real *real){
   return mpfr_get_ld(real->mpfr_val, MPFR_RNDN);
 }
 void printReal(mpfr_t mpfr_val){
+/*
   char* shadowValStr;
   mpfr_exp_t shadowValExpt;
 
- // shadowValStr = mpfr_get_str(NULL, &shadowValExpt, 10, 0, mpfr_val, MPFR_RNDN);
-//  printf("%c.%se%ld", shadowValStr[0], shadowValStr+1, shadowValExpt-1);
-//	std::cout<<shadowValStr[0]<<"."<<shadowValStr+1<<"e"<<shadowValExpt-1;
-//  mpfr_free_str(shadowValStr);
-  //mpfr_out_str (stdout, 10, 0, mpfr_val, MPFR_RNDN);
+  shadowValStr = mpfr_get_str(NULL, &shadowValExpt, 10, 0, mpfr_val, MPFR_RNDN);
+  printf("%c.%se%ld", shadowValStr[0], shadowValStr+1, shadowValExpt-1);
+  std::cout<<shadowValStr[0]<<"."<<shadowValStr+1<<"e"<<shadowValExpt-1;
+  mpfr_free_str(shadowValStr);
+  mpfr_out_str (stdout, 10, 0, mpfr_val, MPFR_RNDN);
+*/
   mpfr_out_str (stdout, 10, 15, mpfr_val, MPFR_RNDN);
 	std::cout<<"\n";
 } 
@@ -1185,7 +1459,7 @@ double updateErrorF(mpfr_t realVal, float computedVal, size_t insIndex){
       std::cout<<computedVal<<" was computed.\n";
     std::cout<<"updateErrorF: computedVal:"<<computedVal<<" insIndex:"<<insIndex<<"\n";
     }
-   printf("%f bits error (%llu ulps)\n",
+   printf("%f bits error (%lu ulps)\n",
                bitsError, ulpsError);
 	//	std::cout<<bitsError<<" bits error ("<<ulpsError<<" ulps)\n";
   	std::cout<<"****************\n\n"; 
@@ -1206,6 +1480,10 @@ double updateErrorF(mpfr_t realVal, float computedVal, size_t insIndex){
 }
 
 double updateError(mpfr_t realVal, double computedVal, size_t insIndex){
+#if TIME
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
+#endif
   struct ErrorAggregate* eagg;
   if(errorMap.count(insIndex) != 0){ 
     eagg = errorMap.at(insIndex);
@@ -1236,7 +1514,7 @@ double updateError(mpfr_t realVal, double computedVal, size_t insIndex){
       std::cout<<" was computed.\n";
     std::cout<<"updateError: computedVal:"<<computedVal<<" insIndex:"<<insIndex<<"\n";
     }
-   printf("%f bits error (%llu ulps)\n",
+   printf("%f bits error (%lu ulps)\n",
                bitsError, ulpsError);
 	//	std::cout<<bitsError<<" bits error ("<<ulpsError<<" ulps)\n";
   	std::cout<<"****************\n\n"; 
@@ -1253,6 +1531,11 @@ double updateError(mpfr_t realVal, double computedVal, size_t insIndex){
   } 
   errorMap.insert(std::pair<size_t, struct ErrorAggregate*>(insIndex, eagg)); 
 
+#if TIME
+	gettimeofday(&tv2, NULL);
+	uErrorTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec); 
+#endif
   return bitsError;
 }
 
@@ -1299,6 +1582,10 @@ void initializeErrorAggregate(ErrorAggregate *eagg){
 }
 
 extern "C" void __init(){
+#if TIME
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
+#endif
   if(!initFlag){
     initFlag = true;
     std::cout<<"init called\n";
@@ -1330,9 +1617,9 @@ extern "C" void __init(){
   //	pthread_create(&rdy, NULL, ready, NULL);
 //  	pthread_create(&con, NULL, consumer, NULL);
 
-  	pthread_create(&con1, NULL, consumer1, NULL);
-  	pthread_create(&con2, NULL, consumer2, NULL);
-  	pthread_create(&con3, NULL, consumer3, NULL);
+ // 	pthread_create(&con1, NULL, consumer1, NULL);
+//  	pthread_create(&con2, NULL, consumer2, NULL);
+//  	pthread_create(&con3, NULL, consumer3, NULL);
 //  	pthread_create(&con4, NULL, consumer4, NULL);
 
   	std::cout<<"thread created\n";
@@ -1343,52 +1630,87 @@ extern "C" void __init(){
 //    report<<"thread created\n";
 //#endif
   }
+#if TIME
+	gettimeofday(&tv2, NULL);
+	initTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec); 
+#endif
 }
 
 void* consumer(void *ptr) {
-	std::cout<<"consumer thread enter\n";
 	Compute *op; 
 	bool op1 = false;
 	bool op2 = false;
 	while(!consumerFlag || worker.unsafe_size() > 0){
+				pthread_mutex_lock(&the_mutex);
 			if(worker.try_pop(op) ) {
-				//count++;
-				Real *real1 = (Real *)op->op1Addr; 
-				Real *real2 = (Real *)op->op2Addr; 
-				if(op->op1Addr == 0 || op->op1Addr == 1 || op->op1Addr == 2){
-					op1 = true;
-				}
-				else{
-					if(real1->initFlag){
+				count++;
+				if(op->cmd == 6 || op->cmd == 3 || op->cmd == 4){
+					Real *real1 = (Real *)op->op1Addr; 
+					if(op->op1Addr == 0 || op->op1Addr == 1 || op->op1Addr == 2){
 						op1 = true;
 					}
-				}
-				if(op->op2Addr == 0|| op->op2Addr == 1 || op->op2Addr == 2){
-					op2 = true;
-				}
-				else{
-					if(real2->initFlag){
-						op2 = true;
+			//		else{
+				//		if(real1->initFlag){
+					//		op1 = true;
+					//	}
+				//	}
+					if(op1){
+						if(count%2){
+							ready1.push(op);	
+						}
+						else{
+							ready2.push(op);	
+						}
+					}
+					else{
+						std::cout<<"pushing back to worker\n";
+						worker.push(op);	
 					}
 				}
-				if(op1 && op2){
-					if(count%2)
-						ready1.push(op);	
-					else
-						ready2.push(op);	
-				}
 				else{
-					std::cout<<"pushing back to worker\n";
-					worker.push(op);	
+					Real *real1 = (Real *)op->op1Addr; 
+					Real *real2 = (Real *)op->op2Addr; 
+					if(op->op1Addr == 0 || op->op1Addr == 1 || op->op1Addr == 2){
+						op1 = true;
+					}
+					else{
+						if(real1->initFlag){
+							op1 = true;
+						}
+					}
+					if(op->op2Addr == 0|| op->op2Addr == 1 || op->op2Addr == 2){
+						op2 = true;
+					}
+					else{
+						if(real2->initFlag){
+							op2 = true;
+						}
+					}
+					if(op1 && op2){
+						if(count%2){
+							ready1.push(op);	
+						}
+						else{
+							ready2.push(op);	
+						}
+					}
+					else{
+						std::cout<<"pushing back to worker\n";
+						worker.push(op);	
+					}
 				}
 			}
+				pthread_mutex_unlock(&the_mutex);
 		}	
+	return NULL;
 }
 
 void* consumer1(void *ptr) {
 	
 	Compute *op; 
 	while(!consumerFlag || ready1.unsafe_size() > 0){
+				pthread_mutex_lock(&the_mutex);
 	if(ready1.try_pop(op)){
 			switch(op->cmd){
 				case 1:
@@ -1399,7 +1721,6 @@ void* consumer1(void *ptr) {
 					setOperandsDouble(op->opCode, op->newRegIdx, op->op1Addr, op->op2Addr, 
 												op->op1d, op->op2d, op->computedResd, op->insIndex);
 					count1++;
-					delete op;
 					break;
 				case 3:
 					handle_math_d(op->opCode, op->op1d, op->op1Addr, 
@@ -1413,17 +1734,27 @@ void* consumer1(void *ptr) {
 					check_branch(op->op1d, op->op1Addr, op->op2d, op->op2Addr, 
                      op->fcmpFlag, op->computedResd, op->insIndex, op->lineNo);
 					break;
+				case 6:
+					handle_select(op->op1Addr, op->insIndex, op->newRegIdx, op->op1d);
+					break;
+				case 7:
+  				set_real(op->op1Addr, op->op2Addr, op->op1d);  
+					break;
 				default:
 					break;
+			delete op;
 			}
 		}	
+				pthread_mutex_unlock(&the_mutex);
 	}
+	return NULL;
 }
 
 void* consumer2(void *ptr) {
 	Compute *op; 
 	while(!consumerFlag || ready2.unsafe_size() > 0){
-	if(ready2.try_pop(op)){
+				pthread_mutex_lock(&the_mutex);
+		if(ready2.try_pop(op)){
 			switch(op->cmd){
 				case 1:
 					setOperandsFloat(op->opCode, op->newRegIdx, op->op1Addr, op->op2Addr, 
@@ -1433,7 +1764,6 @@ void* consumer2(void *ptr) {
 					setOperandsDouble(op->opCode, op->newRegIdx, op->op1Addr, op->op2Addr, 
 												op->op1d, op->op2d, op->computedResd, op->insIndex);
 					count2++;
-					delete op;
 					break;
 				case 3:
 					handle_math_d(op->opCode, op->op1d, op->op1Addr, 
@@ -1447,16 +1777,25 @@ void* consumer2(void *ptr) {
 					check_branch(op->op1d, op->op1Addr, op->op2d, op->op2Addr, 
                      op->fcmpFlag, op->computedResd, op->insIndex, op->lineNo);
 					break;
+				case 6:
+					handle_select(op->op1Addr, op->insIndex, op->newRegIdx, op->op1d);
+					break;
+				case 7:
+  				set_real(op->op1Addr, op->op2Addr, op->op1d);  
+					break;
 				default:
 					break;
+			delete op;
 			}
 		}	
+				pthread_mutex_unlock(&the_mutex);
 	}
+	return NULL;
 }
 void* consumer3(void *ptr) {
 	Compute *op; 
 	while(!consumerFlag || ready3.unsafe_size() > 0){
-	if(ready3.try_pop(op)){
+		if(ready3.try_pop(op)){
 			switch(op->cmd){
 				case 1:
 					setOperandsFloat(op->opCode, op->newRegIdx, op->op1Addr, op->op2Addr, 
@@ -1466,7 +1805,6 @@ void* consumer3(void *ptr) {
 					setOperandsDouble(op->opCode, op->newRegIdx, op->op1Addr, op->op2Addr, 
 												op->op1d, op->op2d, op->computedResd, op->insIndex);
 					count3++;
-					delete op;
 					break;
 				case 3:
 					handle_math_d(op->opCode, op->op1d, op->op1Addr, 
@@ -1480,11 +1818,19 @@ void* consumer3(void *ptr) {
 					check_branch(op->op1d, op->op1Addr, op->op2d, op->op2Addr, 
                      op->fcmpFlag, op->computedResd, op->insIndex, op->lineNo);
 					break;
+				case 6:
+					handle_select(op->op1Addr, op->insIndex, op->newRegIdx, op->op1d);
+					break;
+				case 7:
+  				set_real(op->op1Addr, op->op2Addr, op->op1d);  
+					break;
 				default:
 					break;
 			}
+			delete op;
 		}	
 	}
+	return NULL;
 }
 void* consumer4(void *ptr) {
 	Compute *op; 
@@ -1499,7 +1845,6 @@ void* consumer4(void *ptr) {
 					setOperandsDouble(op->opCode, op->newRegIdx, op->op1Addr, op->op2Addr, 
 												op->op1d, op->op2d, op->computedResd, op->insIndex);
 					count4++;
-					delete op;
 					break;
 				case 3:
 					handle_math_d(op->opCode, op->op1d, op->op1Addr, 
@@ -1513,12 +1858,21 @@ void* consumer4(void *ptr) {
 					check_branch(op->op1d, op->op1Addr, op->op2d, op->op2Addr, 
                      op->fcmpFlag, op->computedResd, op->insIndex, op->lineNo);
 					break;
+				case 6:
+					handle_select(op->op1Addr, op->insIndex, op->newRegIdx, op->op1d);
+					break;
+				case 7:
+  				set_real(op->op1Addr, op->op2Addr, op->op1d);  
+					break;
 				default:
 					break;
 			}
+			delete op;
 		}	
 	}
+	return NULL;
 }
+
 void* consumer5(void *ptr) {
 	Compute *op; 
 //	while(!consumerFlag || ready2.unsafe_size() > 0 || worker.unsafe_size() > 0){
@@ -1533,7 +1887,6 @@ void* consumer5(void *ptr) {
 					setOperandsDouble(op->opCode, op->newRegIdx, op->op1Addr, op->op2Addr, 
 												op->op1d, op->op2d, op->computedResd, op->insIndex);
 					count4++;
-					delete op;
 					break;
 				case 3:
 					handle_math_d(op->opCode, op->op1d, op->op1Addr, 
@@ -1547,12 +1900,20 @@ void* consumer5(void *ptr) {
 					check_branch(op->op1d, op->op1Addr, op->op2d, op->op2Addr, 
                      op->fcmpFlag, op->computedResd, op->insIndex, op->lineNo);
 					break;
+				case 6:
+					handle_select(op->op1Addr, op->insIndex, op->newRegIdx, op->op1d);
+					break;
+				case 7:
+  				set_real(op->op1Addr, op->op2Addr, op->op1d);  
+					break;
 				default:
 					break;
 			}
 		}	
 	}
+	return NULL;
 }
+
 void* consumer6(void *ptr) {
 	Compute *op; 
 //	while(!consumerFlag || ready2.unsafe_size() > 0 || worker.unsafe_size() > 0){
@@ -1567,7 +1928,6 @@ void* consumer6(void *ptr) {
 					setOperandsDouble(op->opCode, op->newRegIdx, op->op1Addr, op->op2Addr, 
 												op->op1d, op->op2d, op->computedResd, op->insIndex);
 					count4++;
-					delete op;
 					break;
 				case 3:
 					handle_math_d(op->opCode, op->op1d, op->op1Addr, 
@@ -1581,16 +1941,43 @@ void* consumer6(void *ptr) {
 					check_branch(op->op1d, op->op1Addr, op->op2d, op->op2Addr, 
                      op->fcmpFlag, op->computedResd, op->insIndex, op->lineNo);
 					break;
+				case 6:
+					handle_select(op->op1Addr, op->insIndex, op->newRegIdx, op->op1d);
+					break;
+				case 7:
+  				set_real(op->op1Addr, op->op2Addr, op->op1d);  
+					break;
 				default:
 					break;
 			}
 		}	
 	}
+	return NULL;
 }
 
 extern "C" void __finish(){
 	consumerFlag = true;
-	std::cout<<"waiting to finish\n";
+	std::cout<<"initTime:"<<initTime<<"\n";
+	std::cout<<"computeTime:"<<computeTime<<"\n";
+	std::cout<<"setRealTime:"<<setRealTime<<"\n";
+	std::cout<<"getAddrTime:"<<getAddrTime<<"\n";
+	std::cout<<"funcInitTime:"<<funcInitTime<<"\n";
+	std::cout<<"funcExitTime:"<<funcExitTime<<"\n";
+	std::cout<<"mallocTime:"<<mallocTime<<"\n";
+	std::cout<<"uErrorTime:"<<mallocTime<<"\n";
+/*
+	time_t begin = time(NULL);
+  	pthread_create(&con1, NULL, consumer1, NULL);
+  	pthread_create(&con2, NULL, consumer2, NULL);
+  	pthread_create(&con3, NULL, consumer3, NULL);
+  	pthread_join(con1, NULL);
+  	pthread_join(con2, NULL);
+  	pthread_join(con3, NULL);
+	time_t end = time(NULL);
+	double time_taken = double(end - begin); 
+    std::cout << "Time taken by program is : " << time_taken;
+    std::cout << " sec " << "\n"; 
+*/
 	std::cout<<"count:"<<count<<"\n";
 	std::cout<<"count1:"<<count1<<"\n";
 	std::cout<<"count2:"<<count2<<"\n";
@@ -1598,13 +1985,6 @@ extern "C" void __finish(){
 	std::cout<<"count4:"<<count4<<"\n";
 	std::cout<<"count5:"<<count5<<"\n";
 	std::cout<<"count6:"<<count6<<"\n";
-  int n;
-  char name [100];
-  bool flag = false;
-  //  mpfr_clear(it->second->mpfr_val);
-   // delete(it->second);
-  //  shadowMap.erase(it);
-  //  mpfrClear++;
 
   for (std::map<size_t, struct ErrorAggregate*>::iterator it=errorMap.begin(); it!=errorMap.end(); ++it){
     double avg = it->second->total_error/it->second->num_evals;

@@ -20,10 +20,8 @@
 #define MAX_STACK_SIZE 1000000000
 #define MAX_SIZE 100000000
 #define INSSIZE 1000000
-#define debug 0
-#define debugCR 0
 //#define MPFRINIT 100000000 //for spec
-#define MPFRINIT 100
+#define MPFRINIT 10000
 
 const size_t SS_PRIMARY_TABLE_ENTRIES = ((size_t) 4194304);//2^22
 const size_t SS_SEC_TABLE_ENTRIES = ((size_t) 64*(size_t) 1024 * (size_t) 1024); // 2^26
@@ -71,7 +69,30 @@ struct Compute{
 	size_t lineNo;
 	bool fcmpRes;
 };
-
+double initTime = 0;
+double computeTime = 0;
+double setRealTime = 0;
+double getAddrTime = 0;
+double funcInitTime = 0;
+double funcExitTime = 0;
+double mallocTime = 0;
+double uErrorTime = 0;
+double memcpyTime = 0;
+double memsetTime = 0;
+double callocTime = 0;
+double setRealCFTime = 0;
+double setRealCDTime = 0;
+double setRealFArgTime = 0;
+double checkBrTime = 0;
+double computeFTime = 0;
+double mathFTime = 0;
+double fToITime = 0;
+double addFunTime = 0;
+double addAddrTime = 0;
+double mathDTime = 0;
+double selectTime = 0;
+double loadFTime = 0;
+double loadDTime = 0;
 bool consumerFlag = false;
 size_t funcCount = 0;
 bool initFlag = false;
@@ -119,11 +140,11 @@ void* consumer5(void *ptr);
 void* consumer6(void *ptr);
 void computeReal();
 
-extern "C" void* __get_real_fun_arg(size_t index);
 extern "C" size_t __get_addr(void *Addr);
 extern "C"  void __init();
 extern "C"  void __finish();
 extern "C"  void printToFile(void* op1Addr, void* op2Addr, void* op3Addr);
+void* get_real_fun_arg(size_t index);
 unsigned long ulpd(double x, double y);
 unsigned long ulpf(float x, float y);
 void handleOp(size_t opCode, mpfr_t *res, mpfr_t *op1, mpfr_t *op2);
