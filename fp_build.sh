@@ -20,7 +20,7 @@ echo "***** Building fpsanitizer *****"
 export LD_LIBRARY_PATH=""
 cd $root_cwd
 echo $root_cwd
-cd runtime
+cd pRuntime
 make clean
 make
 source tdvars.sh
