@@ -11,9 +11,9 @@
 #include <linux/perf_event.h>
 
 #define MULTHITHREADED 0
-#define TIME 1
-#define debug 0                                                                  
-#define debugCR 0
+#define TIME 0
+#define debug 1 
+#define debugCR 1
 
 pthread_mutex_t the_mutex;
 pthread_cond_t condc, condp;
@@ -57,8 +57,10 @@ void stop(){
    long long count;
    ioctl(fd, PERF_EVENT_IOC_DISABLE, 0);
    read(fd, &count, sizeof(long long));
-
-   printf("Used %lld instructions\n", count);
+	 totalIns++;
+   sumIns += count;
+	 close(fd);	
+//   printf("Used %lld instructions\n", count);
 
 }
 
@@ -95,7 +97,7 @@ void print_trace (void)
   size = backtrace (array, 10);
   strings = backtrace_symbols (array, size);
 
-  for (i = 2; i < 3; i++)
+  for (i = 0; i < 4; i++)
 		std::cout<<strings[i]<<"\n"; 
 		//fprintf (eFile, "%s\n", strings[i]); 
 
@@ -122,19 +124,25 @@ extern "C" void* __add_return_addr(){
 }
 
 size_t getRegRes(size_t insIndex){
+	std::cout<<"getRegRes insIndex:"<<insIndex<<" insMap[insIndex]:"<<insMap[insIndex]<<"\n";	
 	assert(newRegIdx + frameCur[frameIdx] < MPFRINIT);
 	assert(frameIdx < MAX_SIZE)	;
 	assert(insIndex < INSSIZE);
   if(insMap[insIndex] != 0){ 
+		std::cout<<"getRegRes insMap[insIndex] != 0\n";
     newRegIdx = insMap[insIndex];
-		if(newRegIdx > slotIdx[frameIdx])
+		if(newRegIdx > slotIdx[frameIdx]){
+			std::cout<<"getRegRes newRegIdx > slotIdx[frameIdx]\n";
 			slotIdx[frameIdx] = newRegIdx + 1;
+		}
 	}
 	else{
+		std::cout<<"getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:"<<slotIdx[frameIdx]<<"\n";
 		newRegIdx = slotIdx[frameIdx];
   	insMap[insIndex] = slotIdx[frameIdx];
   	slotIdx[frameIdx] += 1;
 	}
+	std::cout<<"getRegRes newRegIdx:"<<newRegIdx<<" frameCur[frameIdx]:"<<frameCur[frameIdx]<<"\n";
 	return newRegIdx + frameCur[frameIdx] ;
 }
 
@@ -158,7 +166,6 @@ extern "C" void __add_fun_arg(size_t argNo, size_t argAddrInt, double op){
 	gettimeofday(&tv1, NULL);
 #endif
 	argCount[frameIdx+1] = argCount[frameIdx+1] + 1;
-	
 	size_t stackTop = frameCur[frameIdx]+slotIdx[frameIdx];
 	if(argAddrInt != 0){
 		Real *real1 = (Real *)argAddrInt;
@@ -174,6 +181,7 @@ extern "C" void __add_fun_arg(size_t argNo, size_t argAddrInt, double op){
 		printReal((&shadowStack[stackTop])->mpfr_val);
 	}
 	slotIdx[frameIdx]++;
+//TODO assert, as it might crash here
 #if TIME
 	gettimeofday(&tv2, NULL);
 	addFunTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
@@ -182,6 +190,7 @@ extern "C" void __add_fun_arg(size_t argNo, size_t argAddrInt, double op){
 }
 
 extern "C" void __func_init(){
+	std::cout<<"__func_init ******\n";
 #if TIME
 	struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
@@ -204,6 +213,7 @@ extern "C" void __func_init(){
 }
 
 extern "C" void __func_exit(size_t returnIndex){
+	std::cout<<"__func_exit ******\n";
 #if TIME
 	struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
@@ -244,7 +254,6 @@ extern "C" void __handle_f_to_sint(size_t op1Int, long val, size_t lineNo){
 	Real *real1 = (Real *)op1Int;
 	long res = mpfr_get_si(real1->mpfr_val, MPFR_RNDN);
 	if(res != val){
-		print_trace();
 		fprintf (eFile, "convert mismatch %lu real: %ld float: %ld\n", lineNo, res, val);
 		std::cout<<"convert mismatch  real:"<<res<<" float: \n"<<val<<"\n";
 	}
@@ -519,9 +528,11 @@ void handleOp(size_t opCode, mpfr_t *res, mpfr_t *op1, mpfr_t *op2){
 void handle_select(size_t AddrInt, size_t insIndex, size_t newRegIdx, double op){
 	Real *real1;
 	real1 = (Real *)AddrInt;
-	if(AddrInt == 0 || real1->initFlag == 0){
+	if(AddrInt == 0) {
 		mpfr_set_d(shadowStack[newRegIdx].mpfr_val, op, MPFR_RNDN);
 	}
+	else if(real1->initFlag == 0)
+		mpfr_set_d(shadowStack[newRegIdx].mpfr_val, op, MPFR_RNDN);
 	else
 		mpfr_set(shadowStack[newRegIdx].mpfr_val, real1->mpfr_val, MPFR_RNDN);
 	if(debug){
@@ -883,7 +894,9 @@ void setOperandsFloat(size_t opCode, size_t newRegIdx, size_t op1Addr, size_t op
 		printf("computeReal: op2Addr:: %p op2:", (void *)op2Addr);
   	printReal(real2->mpfr_val);
 	}
+	//start_counter();	
   handleOp(opCode, &(shadowStack[newRegIdx].mpfr_val), &real1->mpfr_val, &real2->mpfr_val);
+	//stop();
 	shadowStack[newRegIdx].initFlag = 1;
 	if(debugCR){
 		std::cout<<"computeReal: stackTop:"<<newRegIdx;;
@@ -909,14 +922,6 @@ void setOperandsDouble(size_t opCode, size_t newRegIdx, size_t op1Addr, size_t o
   Real r2;
   bool mpfrFlag1 = false;
   bool mpfrFlag2 = false;
-	if(op1Addr == 1){ //first argument of current func
-		std::cout<<"first argument of current func\n";
-		op1Addr = (size_t)get_real_fun_arg(0);
-	}
-	if(op1Addr == 2){ //second argument of current func
-		std::cout<<"second argument of current func\n";
-		op1Addr = (size_t)get_real_fun_arg(1);
-	}
 	if(op1Addr == 0){ //it is a constant
     if(debugCR)
       std::cout<<"computeReal: real1 is null, using op1 value:"<<op1d<<"\n";
@@ -939,14 +944,6 @@ void setOperandsDouble(size_t opCode, size_t newRegIdx, size_t op1Addr, size_t o
 		}
       //data might be set without store
   }
-	if(op2Addr == 1){ //first argument of current func
-		std::cout<<"first argument of current func\n";
-		op2Addr = (size_t)get_real_fun_arg(0);
-	}
-	if(op2Addr == 2){ //second argument of current func
-		std::cout<<"second argument of current func\n";
-		op2Addr = (size_t)get_real_fun_arg(1);
-	}
 	if(op2Addr == 0){
     if(debugCR)
       std::cout<<"computeReal: real2 is null, using op2 value:"<<op2d<<"\n";
@@ -978,7 +975,9 @@ void setOperandsDouble(size_t opCode, size_t newRegIdx, size_t op1Addr, size_t o
 	if(real1 == NULL || real2 == NULL)
 		std::cout<<"Error!!!!\n";
 		
+	//start_counter();	
   handleOp(opCode, &(shadowStack[newRegIdx].mpfr_val), &real1->mpfr_val, &real2->mpfr_val);
+	//stop();
 
 	shadowStack[newRegIdx].initFlag = 1;
 
@@ -1107,7 +1106,9 @@ extern "C" bool __check_branch(double op1, size_t op1Int, double op2, size_t op2
 	return true;
 }
 
-void* get_real_fun_arg(size_t index){
+extern "C" void* __handle_alloca(size_t index){
+}
+extern "C" void* __get_real_fun_arg(size_t index){
   if(argCount[frameIdx] == 0)
     return 0;
   if(debug){
@@ -1178,7 +1179,7 @@ extern "C" void __set_real_cons_f(size_t toAddrInt, float value){
 #endif
 }
 
-extern "C" void set_real(size_t toAddrInt, size_t fromAddrInt, double op){
+void set_real(size_t toAddrInt, size_t fromAddrInt, double op){
 	Real* dest = getAddrIndex(toAddrInt);
 	Real* real = (Real *)fromAddrInt;
 	if(real->initFlag == 0)
@@ -1194,6 +1195,27 @@ extern "C" void set_real(size_t toAddrInt, size_t fromAddrInt, double op){
 		printf(" to addr:%p\n", (void *)toAddrInt);
 	}
 }
+
+extern "C" void __set_real_return(size_t toAddrInt){
+/*
+  if(!retTrack.empty()){
+    size_t idx = retTrack.top();
+    retTrack.pop();
+		MyShadow *shadow = existInStackOld(toAddrInt);
+		if(shadow != NULL){//just update the value in stack
+      mpfr_init2(toReal, PRECISION);
+      mpfrInit++;
+      mpfr_set(toReal->mpfr_val, shadow->real->mpfr_val, MPFR_RNDN);
+			//cleanup(idx);
+  		if(debug)
+    		std::cout<<"setRealReturn update shadow stack::"<<toAddrInt<<"\n";
+		}
+	}
+  else
+    std::cout<<"Error !!!! return value not found in stack\n";
+*/
+}
+
 
 extern "C" void __set_real(size_t toAddrInt, size_t fromAddrInt, double op1){
 #if TIME
@@ -1295,6 +1317,9 @@ extern "C" void __handle_memset(size_t toAddrInt, size_t val, size_t size){
 	memsetTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
          (double) (tv2.tv_sec - tv1.tv_sec); 
 #endif
+}
+
+extern "C" void handleAlloca(size_t toAddrInt){
 }
 
 extern "C" void __handle_memcpy(size_t toAddrInt, size_t fromAddrInt, size_t size){
@@ -1465,7 +1490,7 @@ double updateErrorF(mpfr_t realVal, float computedVal, size_t insIndex){
   	std::cout<<"****************\n\n"; 
   }
 		if(bitsError>62){
-			print_trace ();
+			//print_trace ();
 			//exit(0);
 		}
 //    printf("%f bits error (%llu ulps)\n",
@@ -1520,7 +1545,7 @@ double updateError(mpfr_t realVal, double computedVal, size_t insIndex){
   	std::cout<<"****************\n\n"; 
   }
 		if(bitsError>62){
-			print_trace ();
+			//print_trace ();
 			//exit(0);
 		}
 //    printf("%f bits error (%llu ulps)\n",
@@ -1957,6 +1982,7 @@ void* consumer6(void *ptr) {
 
 extern "C" void __finish(){
 	consumerFlag = true;
+	std::cout<<"Avg Instructions:"<<(double)sumIns/totalIns<<"\n";
 	std::cout<<"initTime:"<<initTime<<"\n";
 	std::cout<<"computeTime:"<<computeTime<<"\n";
 	std::cout<<"setRealTime:"<<setRealTime<<"\n";
@@ -1964,7 +1990,23 @@ extern "C" void __finish(){
 	std::cout<<"funcInitTime:"<<funcInitTime<<"\n";
 	std::cout<<"funcExitTime:"<<funcExitTime<<"\n";
 	std::cout<<"mallocTime:"<<mallocTime<<"\n";
-	std::cout<<"uErrorTime:"<<mallocTime<<"\n";
+	std::cout<<"callocTime:"<<callocTime<<"\n";
+	std::cout<<"memsetTime:"<<memsetTime<<"\n";
+	std::cout<<"memcpyTime:"<<memcpyTime<<"\n";
+	std::cout<<"uErrorTime:"<<uErrorTime<<"\n";
+	std::cout<<"loadFTime:"<<loadFTime<<"\n";
+	std::cout<<"loadDTime:"<<loadDTime<<"\n";
+	std::cout<<"addAddrTime:"<<addAddrTime<<"\n";
+	std::cout<<"addFunTime:"<<addFunTime<<"\n";
+	std::cout<<"fToITime:"<<fToITime<<"\n";
+	std::cout<<"mathFTime:"<<mathFTime<<"\n";
+	std::cout<<"mathDTime:"<<mathDTime<<"\n";
+	std::cout<<"selectTime:"<<selectTime<<"\n";
+	std::cout<<"computeFTime:"<<computeFTime<<"\n";
+	std::cout<<"checkBrTime:"<<checkBrTime<<"\n";
+	std::cout<<"setRealFArgTime:"<<setRealFArgTime<<"\n";
+	std::cout<<"setRealCDTime:"<<setRealCDTime<<"\n";
+	std::cout<<"setRealCFTime:"<<setRealCFTime<<"\n";
 /*
 	time_t begin = time(NULL);
   	pthread_create(&con1, NULL, consumer1, NULL);

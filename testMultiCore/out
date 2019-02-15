@@ -1,15 +1,16 @@
 init called
-__func_init
+__func_init ******
 funcInit:0
 init1
 thread created
-handleMalloc size:800
-handleMalloc size:800
-handleMalloc size:800
-handleMalloc size:800
-handleMalloc size:800
-op1Addr:(nil)
-op2Addr:(nil)
+handleMalloc size:40
+handleMalloc size:40
+handleMalloc size:40
+handleMalloc size:40
+handleMalloc size:40
+getRegRes insIndex:105 insMap[insIndex]:0
+getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:0
+getRegRes newRegIdx:0 frameCur[frameIdx]:0
 computeReal: real1 is null, using op1 value:0
 computeReal: real2 is null, using op2 value:0.7
 computeReal: op1:0 op2:0.7
@@ -17,19 +18,20 @@ computeReal: op1Addr:: (nil) op1:0
 computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
 
 FADD
-computeReal: stackTop:0 addr 0x7f1b10644000:
+computeReal: stackTop:0 addr 0x7f748735a000:
 
 The shadow value is 7.00000000000000e-1
 , but 7.000000e-1 was computed.
-updateError: computedVal:0.7 insIndex:107
+updateError: computedVal:0.7 insIndex:105
 0.000000 bits error (0 ulps)
 ****************
 
-real->initFlag:1 op:0.7
+setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:7.00000000000000e-1
-from: 0x7f1b10644000 to addr:0x1f9e490
-op1Addr:(nil)
-op2Addr:(nil)
+from: 0x7f748735a000 to addr:0x1b89fa0
+getRegRes insIndex:108 insMap[insIndex]:0
+getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:1
+getRegRes newRegIdx:1 frameCur[frameIdx]:0
 computeReal: real1 is null, using op1 value:0
 computeReal: real2 is null, using op2 value:0.3
 computeReal: op1:0 op2:0.3
@@ -37,19 +39,20 @@ computeReal: op1Addr:: (nil) op1:0
 computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
 
 FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
+computeReal: stackTop:1 addr 0x7f748735a028:
 
 The shadow value is 3.00000000000000e-1
 , but 3.000000e-1 was computed.
-updateError: computedVal:0.3 insIndex:110
+updateError: computedVal:0.3 insIndex:108
 0.000000 bits error (0 ulps)
 ****************
 
-real->initFlag:1 op:0.3
+setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:3.00000000000000e-1
-from: 0x7f1b10644028 to addr:0x1f9e850
-op1Addr:(nil)
-op2Addr:(nil)
+from: 0x7f748735a028 to addr:0x1b8a060
+getRegRes insIndex:105 insMap[insIndex]:0
+getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:2
+getRegRes newRegIdx:2 frameCur[frameIdx]:0
 computeReal: real1 is null, using op1 value:1
 computeReal: real2 is null, using op2 value:0.7
 computeReal: op1:1 op2:0.7
@@ -57,19 +60,20 @@ computeReal: op1Addr:: (nil) op1:1.00000000000000
 computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
 
 FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
+computeReal: stackTop:2 addr 0x7f748735a050:
 
 The shadow value is 1.70000000000000
 , but 1.700000 was computed.
-updateError: computedVal:1.7 insIndex:107
+updateError: computedVal:1.7 insIndex:105
 0.000000 bits error (0 ulps)
 ****************
 
-real->initFlag:1 op:1.7
+setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:1.70000000000000
-from: 0x7f1b10644050 to addr:0x1f9e498
-op1Addr:(nil)
-op2Addr:(nil)
+from: 0x7f748735a050 to addr:0x1b89fa8
+getRegRes insIndex:108 insMap[insIndex]:1
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:1 frameCur[frameIdx]:0
 computeReal: real1 is null, using op1 value:1
 computeReal: real2 is null, using op2 value:0.3
 computeReal: op1:1 op2:0.3
@@ -77,19 +81,20 @@ computeReal: op1Addr:: (nil) op1:1.00000000000000
 computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
 
 FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
+computeReal: stackTop:1 addr 0x7f748735a028:
 
 The shadow value is 1.30000000000000
 , but 1.300000 was computed.
-updateError: computedVal:1.3 insIndex:110
+updateError: computedVal:1.3 insIndex:108
 0.000000 bits error (0 ulps)
 ****************
 
-real->initFlag:1 op:1.3
+setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:1.30000000000000
-from: 0x7f1b10644028 to addr:0x1f9e858
-op1Addr:(nil)
-op2Addr:(nil)
+from: 0x7f748735a028 to addr:0x1b8a068
+getRegRes insIndex:105 insMap[insIndex]:2
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:2 frameCur[frameIdx]:0
 computeReal: real1 is null, using op1 value:2
 computeReal: real2 is null, using op2 value:0.7
 computeReal: op1:2 op2:0.7
@@ -97,19 +102,20 @@ computeReal: op1Addr:: (nil) op1:2.00000000000000
 computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
 
 FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
+computeReal: stackTop:2 addr 0x7f748735a050:
 
 The shadow value is 2.70000000000000
 , but 2.700000 was computed.
-updateError: computedVal:2.7 insIndex:107
+updateError: computedVal:2.7 insIndex:105
 0.000000 bits error (0 ulps)
 ****************
 
-real->initFlag:1 op:2.7
+setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:2.70000000000000
-from: 0x7f1b10644050 to addr:0x1f9e4a0
-op1Addr:(nil)
-op2Addr:(nil)
+from: 0x7f748735a050 to addr:0x1b89fb0
+getRegRes insIndex:108 insMap[insIndex]:1
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:1 frameCur[frameIdx]:0
 computeReal: real1 is null, using op1 value:2
 computeReal: real2 is null, using op2 value:0.3
 computeReal: op1:2 op2:0.3
@@ -117,19 +123,20 @@ computeReal: op1Addr:: (nil) op1:2.00000000000000
 computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
 
 FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
+computeReal: stackTop:1 addr 0x7f748735a028:
 
 The shadow value is 2.30000000000000
 , but 2.300000 was computed.
-updateError: computedVal:2.3 insIndex:110
+updateError: computedVal:2.3 insIndex:108
 0.000000 bits error (0 ulps)
 ****************
 
-real->initFlag:1 op:2.3
+setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:2.30000000000000
-from: 0x7f1b10644028 to addr:0x1f9e860
-op1Addr:(nil)
-op2Addr:(nil)
+from: 0x7f748735a028 to addr:0x1b8a070
+getRegRes insIndex:105 insMap[insIndex]:2
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:2 frameCur[frameIdx]:0
 computeReal: real1 is null, using op1 value:3
 computeReal: real2 is null, using op2 value:0.7
 computeReal: op1:3 op2:0.7
@@ -137,19 +144,20 @@ computeReal: op1Addr:: (nil) op1:3.00000000000000
 computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
 
 FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
+computeReal: stackTop:2 addr 0x7f748735a050:
 
 The shadow value is 3.70000000000000
 , but 3.700000 was computed.
-updateError: computedVal:3.7 insIndex:107
+updateError: computedVal:3.7 insIndex:105
 0.000000 bits error (0 ulps)
 ****************
 
-real->initFlag:1 op:3.7
+setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:3.70000000000000
-from: 0x7f1b10644050 to addr:0x1f9e4a8
-op1Addr:(nil)
-op2Addr:(nil)
+from: 0x7f748735a050 to addr:0x1b89fb8
+getRegRes insIndex:108 insMap[insIndex]:1
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:1 frameCur[frameIdx]:0
 computeReal: real1 is null, using op1 value:3
 computeReal: real2 is null, using op2 value:0.3
 computeReal: op1:3 op2:0.3
@@ -157,19 +165,20 @@ computeReal: op1Addr:: (nil) op1:3.00000000000000
 computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
 
 FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
+computeReal: stackTop:1 addr 0x7f748735a028:
 
 The shadow value is 3.30000000000000
 , but 3.300000 was computed.
-updateError: computedVal:3.3 insIndex:110
+updateError: computedVal:3.3 insIndex:108
 0.000000 bits error (0 ulps)
 ****************
 
-real->initFlag:1 op:3.3
+setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:3.30000000000000
-from: 0x7f1b10644028 to addr:0x1f9e868
-op1Addr:(nil)
-op2Addr:(nil)
+from: 0x7f748735a028 to addr:0x1b8a078
+getRegRes insIndex:105 insMap[insIndex]:2
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:2 frameCur[frameIdx]:0
 computeReal: real1 is null, using op1 value:4
 computeReal: real2 is null, using op2 value:0.7
 computeReal: op1:4 op2:0.7
@@ -177,19 +186,20 @@ computeReal: op1Addr:: (nil) op1:4.00000000000000
 computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
 
 FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
+computeReal: stackTop:2 addr 0x7f748735a050:
 
 The shadow value is 4.70000000000000
 , but 4.700000 was computed.
-updateError: computedVal:4.7 insIndex:107
+updateError: computedVal:4.7 insIndex:105
 0.000000 bits error (0 ulps)
 ****************
 
-real->initFlag:1 op:4.7
+setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:4.70000000000000
-from: 0x7f1b10644050 to addr:0x1f9e4b0
-op1Addr:(nil)
-op2Addr:(nil)
+from: 0x7f748735a050 to addr:0x1b89fc0
+getRegRes insIndex:108 insMap[insIndex]:1
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:1 frameCur[frameIdx]:0
 computeReal: real1 is null, using op1 value:4
 computeReal: real2 is null, using op2 value:0.3
 computeReal: op1:4 op2:0.3
@@ -197,3799 +207,1080 @@ computeReal: op1Addr:: (nil) op1:4.00000000000000
 computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
 
 FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
+computeReal: stackTop:1 addr 0x7f748735a028:
 
 The shadow value is 4.30000000000000
 , but 4.300000 was computed.
-updateError: computedVal:4.3 insIndex:110
+updateError: computedVal:4.3 insIndex:108
 0.000000 bits error (0 ulps)
 ****************
 
-real->initFlag:1 op:4.3
+setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:4.30000000000000
-from: 0x7f1b10644028 to addr:0x1f9e870
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:5
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:5 op2:0.7
-computeReal: op1Addr:: (nil) op1:5.00000000000000
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 5.70000000000000
-, but 5.700000 was computed.
-updateError: computedVal:5.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:5.7
-setRealTemp: dest set to:5.70000000000000
-from: 0x7f1b10644050 to addr:0x1f9e4b8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:5
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:5 op2:0.3
-computeReal: op1Addr:: (nil) op1:5.00000000000000
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 5.30000000000000
-, but 5.300000 was computed.
-updateError: computedVal:5.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:5.3
-setRealTemp: dest set to:5.30000000000000
-from: 0x7f1b10644028 to addr:0x1f9e878
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:6
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:6 op2:0.7
-computeReal: op1Addr:: (nil) op1:6.00000000000000
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 6.70000000000000
-, but 6.700000 was computed.
-updateError: computedVal:6.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:6.7
-setRealTemp: dest set to:6.70000000000000
-from: 0x7f1b10644050 to addr:0x1f9e4c0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:6
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:6 op2:0.3
-computeReal: op1Addr:: (nil) op1:6.00000000000000
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 6.30000000000000
-, but 6.300000 was computed.
-updateError: computedVal:6.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:6.3
-setRealTemp: dest set to:6.30000000000000
-from: 0x7f1b10644028 to addr:0x1f9e880
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:7
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:7 op2:0.7
-computeReal: op1Addr:: (nil) op1:7.00000000000000
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 7.70000000000000
-, but 7.700000 was computed.
-updateError: computedVal:7.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:7.7
-setRealTemp: dest set to:7.70000000000000
-from: 0x7f1b10644050 to addr:0x1f9e4c8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:7
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:7 op2:0.3
-computeReal: op1Addr:: (nil) op1:7.00000000000000
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 7.30000000000000
-, but 7.300000 was computed.
-updateError: computedVal:7.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:7.3
-setRealTemp: dest set to:7.30000000000000
-from: 0x7f1b10644028 to addr:0x1f9e888
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:8
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:8 op2:0.7
-computeReal: op1Addr:: (nil) op1:8.00000000000000
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 8.70000000000000
-, but 8.700000 was computed.
-updateError: computedVal:8.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:8.7
-setRealTemp: dest set to:8.70000000000000
-from: 0x7f1b10644050 to addr:0x1f9e4d0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:8
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:8 op2:0.3
-computeReal: op1Addr:: (nil) op1:8.00000000000000
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 8.30000000000000
-, but 8.300000 was computed.
-updateError: computedVal:8.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:8.3
-setRealTemp: dest set to:8.30000000000000
-from: 0x7f1b10644028 to addr:0x1f9e890
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:9
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:9 op2:0.7
-computeReal: op1Addr:: (nil) op1:9.00000000000000
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 9.70000000000000
-, but 9.700000 was computed.
-updateError: computedVal:9.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:9.7
-setRealTemp: dest set to:9.70000000000000
-from: 0x7f1b10644050 to addr:0x1f9e4d8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:9
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:9 op2:0.3
-computeReal: op1Addr:: (nil) op1:9.00000000000000
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 9.30000000000000
-, but 9.300000 was computed.
-updateError: computedVal:9.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:9.3
-setRealTemp: dest set to:9.30000000000000
-from: 0x7f1b10644028 to addr:0x1f9e898
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:10
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:10 op2:0.7
-computeReal: op1Addr:: (nil) op1:1.00000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 1.07000000000000e1
-, but 1.070000e1 was computed.
-updateError: computedVal:10.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:10.7
-setRealTemp: dest set to:1.07000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e4e0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:10
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:10 op2:0.3
-computeReal: op1Addr:: (nil) op1:1.00000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 1.03000000000000e1
-, but 1.030000e1 was computed.
-updateError: computedVal:10.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:10.3
-setRealTemp: dest set to:1.03000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e8a0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:11
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:11 op2:0.7
-computeReal: op1Addr:: (nil) op1:1.10000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 1.17000000000000e1
-, but 1.170000e1 was computed.
-updateError: computedVal:11.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:11.7
-setRealTemp: dest set to:1.17000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e4e8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:11
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:11 op2:0.3
-computeReal: op1Addr:: (nil) op1:1.10000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 1.13000000000000e1
-, but 1.130000e1 was computed.
-updateError: computedVal:11.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:11.3
-setRealTemp: dest set to:1.13000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e8a8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:12
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:12 op2:0.7
-computeReal: op1Addr:: (nil) op1:1.20000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 1.27000000000000e1
-, but 1.270000e1 was computed.
-updateError: computedVal:12.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:12.7
-setRealTemp: dest set to:1.27000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e4f0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:12
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:12 op2:0.3
-computeReal: op1Addr:: (nil) op1:1.20000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 1.23000000000000e1
-, but 1.230000e1 was computed.
-updateError: computedVal:12.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:12.3
-setRealTemp: dest set to:1.23000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e8b0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:13
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:13 op2:0.7
-computeReal: op1Addr:: (nil) op1:1.30000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 1.37000000000000e1
-, but 1.370000e1 was computed.
-updateError: computedVal:13.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:13.7
-setRealTemp: dest set to:1.37000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e4f8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:13
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:13 op2:0.3
-computeReal: op1Addr:: (nil) op1:1.30000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 1.33000000000000e1
-, but 1.330000e1 was computed.
-updateError: computedVal:13.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:13.3
-setRealTemp: dest set to:1.33000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e8b8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:14
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:14 op2:0.7
-computeReal: op1Addr:: (nil) op1:1.40000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 1.47000000000000e1
-, but 1.470000e1 was computed.
-updateError: computedVal:14.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:14.7
-setRealTemp: dest set to:1.47000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e500
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:14
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:14 op2:0.3
-computeReal: op1Addr:: (nil) op1:1.40000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 1.43000000000000e1
-, but 1.430000e1 was computed.
-updateError: computedVal:14.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:14.3
-setRealTemp: dest set to:1.43000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e8c0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:15
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:15 op2:0.7
-computeReal: op1Addr:: (nil) op1:1.50000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 1.57000000000000e1
-, but 1.570000e1 was computed.
-updateError: computedVal:15.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:15.7
-setRealTemp: dest set to:1.57000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e508
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:15
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:15 op2:0.3
-computeReal: op1Addr:: (nil) op1:1.50000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 1.53000000000000e1
-, but 1.530000e1 was computed.
-updateError: computedVal:15.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:15.3
-setRealTemp: dest set to:1.53000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e8c8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:16
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:16 op2:0.7
-computeReal: op1Addr:: (nil) op1:1.60000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 1.67000000000000e1
-, but 1.670000e1 was computed.
-updateError: computedVal:16.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:16.7
-setRealTemp: dest set to:1.67000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e510
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:16
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:16 op2:0.3
-computeReal: op1Addr:: (nil) op1:1.60000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 1.63000000000000e1
-, but 1.630000e1 was computed.
-updateError: computedVal:16.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:16.3
-setRealTemp: dest set to:1.63000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e8d0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:17
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:17 op2:0.7
-computeReal: op1Addr:: (nil) op1:1.70000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 1.77000000000000e1
-, but 1.770000e1 was computed.
-updateError: computedVal:17.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:17.7
-setRealTemp: dest set to:1.77000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e518
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:17
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:17 op2:0.3
-computeReal: op1Addr:: (nil) op1:1.70000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 1.73000000000000e1
-, but 1.730000e1 was computed.
-updateError: computedVal:17.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:17.3
-setRealTemp: dest set to:1.73000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e8d8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:18
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:18 op2:0.7
-computeReal: op1Addr:: (nil) op1:1.80000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 1.87000000000000e1
-, but 1.870000e1 was computed.
-updateError: computedVal:18.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:18.7
-setRealTemp: dest set to:1.87000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e520
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:18
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:18 op2:0.3
-computeReal: op1Addr:: (nil) op1:1.80000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 1.83000000000000e1
-, but 1.830000e1 was computed.
-updateError: computedVal:18.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:18.3
-setRealTemp: dest set to:1.83000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e8e0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:19
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:19 op2:0.7
-computeReal: op1Addr:: (nil) op1:1.90000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 1.97000000000000e1
-, but 1.970000e1 was computed.
-updateError: computedVal:19.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:19.7
-setRealTemp: dest set to:1.97000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e528
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:19
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:19 op2:0.3
-computeReal: op1Addr:: (nil) op1:1.90000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 1.93000000000000e1
-, but 1.930000e1 was computed.
-updateError: computedVal:19.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:19.3
-setRealTemp: dest set to:1.93000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e8e8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:20
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:20 op2:0.7
-computeReal: op1Addr:: (nil) op1:2.00000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 2.07000000000000e1
-, but 2.070000e1 was computed.
-updateError: computedVal:20.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:20.7
-setRealTemp: dest set to:2.07000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e530
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:20
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:20 op2:0.3
-computeReal: op1Addr:: (nil) op1:2.00000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 2.03000000000000e1
-, but 2.030000e1 was computed.
-updateError: computedVal:20.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:20.3
-setRealTemp: dest set to:2.03000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e8f0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:21
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:21 op2:0.7
-computeReal: op1Addr:: (nil) op1:2.10000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 2.17000000000000e1
-, but 2.170000e1 was computed.
-updateError: computedVal:21.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:21.7
-setRealTemp: dest set to:2.17000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e538
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:21
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:21 op2:0.3
-computeReal: op1Addr:: (nil) op1:2.10000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 2.13000000000000e1
-, but 2.130000e1 was computed.
-updateError: computedVal:21.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:21.3
-setRealTemp: dest set to:2.13000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e8f8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:22
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:22 op2:0.7
-computeReal: op1Addr:: (nil) op1:2.20000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 2.27000000000000e1
-, but 2.270000e1 was computed.
-updateError: computedVal:22.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:22.7
-setRealTemp: dest set to:2.27000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e540
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:22
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:22 op2:0.3
-computeReal: op1Addr:: (nil) op1:2.20000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 2.23000000000000e1
-, but 2.230000e1 was computed.
-updateError: computedVal:22.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:22.3
-setRealTemp: dest set to:2.23000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e900
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:23
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:23 op2:0.7
-computeReal: op1Addr:: (nil) op1:2.30000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 2.37000000000000e1
-, but 2.370000e1 was computed.
-updateError: computedVal:23.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:23.7
-setRealTemp: dest set to:2.37000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e548
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:23
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:23 op2:0.3
-computeReal: op1Addr:: (nil) op1:2.30000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 2.33000000000000e1
-, but 2.330000e1 was computed.
-updateError: computedVal:23.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:23.3
-setRealTemp: dest set to:2.33000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e908
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:24
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:24 op2:0.7
-computeReal: op1Addr:: (nil) op1:2.40000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 2.47000000000000e1
-, but 2.470000e1 was computed.
-updateError: computedVal:24.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:24.7
-setRealTemp: dest set to:2.47000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e550
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:24
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:24 op2:0.3
-computeReal: op1Addr:: (nil) op1:2.40000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 2.43000000000000e1
-, but 2.430000e1 was computed.
-updateError: computedVal:24.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:24.3
-setRealTemp: dest set to:2.43000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e910
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:25
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:25 op2:0.7
-computeReal: op1Addr:: (nil) op1:2.50000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 2.57000000000000e1
-, but 2.570000e1 was computed.
-updateError: computedVal:25.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:25.7
-setRealTemp: dest set to:2.57000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e558
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:25
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:25 op2:0.3
-computeReal: op1Addr:: (nil) op1:2.50000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 2.53000000000000e1
-, but 2.530000e1 was computed.
-updateError: computedVal:25.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:25.3
-setRealTemp: dest set to:2.53000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e918
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:26
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:26 op2:0.7
-computeReal: op1Addr:: (nil) op1:2.60000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 2.67000000000000e1
-, but 2.670000e1 was computed.
-updateError: computedVal:26.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:26.7
-setRealTemp: dest set to:2.67000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e560
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:26
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:26 op2:0.3
-computeReal: op1Addr:: (nil) op1:2.60000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 2.63000000000000e1
-, but 2.630000e1 was computed.
-updateError: computedVal:26.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:26.3
-setRealTemp: dest set to:2.63000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e920
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:27
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:27 op2:0.7
-computeReal: op1Addr:: (nil) op1:2.70000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 2.77000000000000e1
-, but 2.770000e1 was computed.
-updateError: computedVal:27.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:27.7
-setRealTemp: dest set to:2.77000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e568
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:27
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:27 op2:0.3
-computeReal: op1Addr:: (nil) op1:2.70000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 2.73000000000000e1
-, but 2.730000e1 was computed.
-updateError: computedVal:27.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:27.3
-setRealTemp: dest set to:2.73000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e928
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:28
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:28 op2:0.7
-computeReal: op1Addr:: (nil) op1:2.80000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 2.87000000000000e1
-, but 2.870000e1 was computed.
-updateError: computedVal:28.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:28.7
-setRealTemp: dest set to:2.87000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e570
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:28
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:28 op2:0.3
-computeReal: op1Addr:: (nil) op1:2.80000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 2.83000000000000e1
-, but 2.830000e1 was computed.
-updateError: computedVal:28.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:28.3
-setRealTemp: dest set to:2.83000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e930
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:29
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:29 op2:0.7
-computeReal: op1Addr:: (nil) op1:2.90000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 2.97000000000000e1
-, but 2.970000e1 was computed.
-updateError: computedVal:29.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:29.7
-setRealTemp: dest set to:2.97000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e578
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:29
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:29 op2:0.3
-computeReal: op1Addr:: (nil) op1:2.90000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 2.93000000000000e1
-, but 2.930000e1 was computed.
-updateError: computedVal:29.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:29.3
-setRealTemp: dest set to:2.93000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e938
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:30
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:30 op2:0.7
-computeReal: op1Addr:: (nil) op1:3.00000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 3.07000000000000e1
-, but 3.070000e1 was computed.
-updateError: computedVal:30.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:30.7
-setRealTemp: dest set to:3.07000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e580
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:30
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:30 op2:0.3
-computeReal: op1Addr:: (nil) op1:3.00000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 3.03000000000000e1
-, but 3.030000e1 was computed.
-updateError: computedVal:30.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:30.3
-setRealTemp: dest set to:3.03000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e940
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:31
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:31 op2:0.7
-computeReal: op1Addr:: (nil) op1:3.10000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 3.17000000000000e1
-, but 3.170000e1 was computed.
-updateError: computedVal:31.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:31.7
-setRealTemp: dest set to:3.17000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e588
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:31
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:31 op2:0.3
-computeReal: op1Addr:: (nil) op1:3.10000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 3.13000000000000e1
-, but 3.130000e1 was computed.
-updateError: computedVal:31.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:31.3
-setRealTemp: dest set to:3.13000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e948
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:32
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:32 op2:0.7
-computeReal: op1Addr:: (nil) op1:3.20000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 3.27000000000000e1
-, but 3.270000e1 was computed.
-updateError: computedVal:32.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:32.7
-setRealTemp: dest set to:3.27000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e590
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:32
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:32 op2:0.3
-computeReal: op1Addr:: (nil) op1:3.20000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 3.23000000000000e1
-, but 3.230000e1 was computed.
-updateError: computedVal:32.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:32.3
-setRealTemp: dest set to:3.23000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e950
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:33
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:33 op2:0.7
-computeReal: op1Addr:: (nil) op1:3.30000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 3.37000000000000e1
-, but 3.370000e1 was computed.
-updateError: computedVal:33.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:33.7
-setRealTemp: dest set to:3.37000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e598
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:33
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:33 op2:0.3
-computeReal: op1Addr:: (nil) op1:3.30000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 3.33000000000000e1
-, but 3.330000e1 was computed.
-updateError: computedVal:33.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:33.3
-setRealTemp: dest set to:3.33000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e958
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:34
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:34 op2:0.7
-computeReal: op1Addr:: (nil) op1:3.40000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 3.47000000000000e1
-, but 3.470000e1 was computed.
-updateError: computedVal:34.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:34.7
-setRealTemp: dest set to:3.47000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e5a0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:34
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:34 op2:0.3
-computeReal: op1Addr:: (nil) op1:3.40000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 3.43000000000000e1
-, but 3.430000e1 was computed.
-updateError: computedVal:34.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:34.3
-setRealTemp: dest set to:3.43000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e960
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:35
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:35 op2:0.7
-computeReal: op1Addr:: (nil) op1:3.50000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 3.57000000000000e1
-, but 3.570000e1 was computed.
-updateError: computedVal:35.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:35.7
-setRealTemp: dest set to:3.57000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e5a8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:35
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:35 op2:0.3
-computeReal: op1Addr:: (nil) op1:3.50000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 3.53000000000000e1
-, but 3.530000e1 was computed.
-updateError: computedVal:35.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:35.3
-setRealTemp: dest set to:3.53000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e968
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:36
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:36 op2:0.7
-computeReal: op1Addr:: (nil) op1:3.60000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 3.67000000000000e1
-, but 3.670000e1 was computed.
-updateError: computedVal:36.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:36.7
-setRealTemp: dest set to:3.67000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e5b0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:36
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:36 op2:0.3
-computeReal: op1Addr:: (nil) op1:3.60000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 3.63000000000000e1
-, but 3.630000e1 was computed.
-updateError: computedVal:36.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:36.3
-setRealTemp: dest set to:3.63000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e970
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:37
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:37 op2:0.7
-computeReal: op1Addr:: (nil) op1:3.70000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 3.77000000000000e1
-, but 3.770000e1 was computed.
-updateError: computedVal:37.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:37.7
-setRealTemp: dest set to:3.77000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e5b8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:37
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:37 op2:0.3
-computeReal: op1Addr:: (nil) op1:3.70000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 3.73000000000000e1
-, but 3.730000e1 was computed.
-updateError: computedVal:37.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:37.3
-setRealTemp: dest set to:3.73000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e978
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:38
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:38 op2:0.7
-computeReal: op1Addr:: (nil) op1:3.80000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 3.87000000000000e1
-, but 3.870000e1 was computed.
-updateError: computedVal:38.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:38.7
-setRealTemp: dest set to:3.87000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e5c0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:38
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:38 op2:0.3
-computeReal: op1Addr:: (nil) op1:3.80000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 3.83000000000000e1
-, but 3.830000e1 was computed.
-updateError: computedVal:38.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:38.3
-setRealTemp: dest set to:3.83000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e980
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:39
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:39 op2:0.7
-computeReal: op1Addr:: (nil) op1:3.90000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 3.97000000000000e1
-, but 3.970000e1 was computed.
-updateError: computedVal:39.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:39.7
-setRealTemp: dest set to:3.97000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e5c8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:39
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:39 op2:0.3
-computeReal: op1Addr:: (nil) op1:3.90000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 3.93000000000000e1
-, but 3.930000e1 was computed.
-updateError: computedVal:39.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:39.3
-setRealTemp: dest set to:3.93000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e988
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:40
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:40 op2:0.7
-computeReal: op1Addr:: (nil) op1:4.00000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 4.07000000000000e1
-, but 4.070000e1 was computed.
-updateError: computedVal:40.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:40.7
-setRealTemp: dest set to:4.07000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e5d0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:40
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:40 op2:0.3
-computeReal: op1Addr:: (nil) op1:4.00000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 4.03000000000000e1
-, but 4.030000e1 was computed.
-updateError: computedVal:40.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:40.3
-setRealTemp: dest set to:4.03000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e990
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:41
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:41 op2:0.7
-computeReal: op1Addr:: (nil) op1:4.10000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 4.17000000000000e1
-, but 4.170000e1 was computed.
-updateError: computedVal:41.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:41.7
-setRealTemp: dest set to:4.17000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e5d8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:41
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:41 op2:0.3
-computeReal: op1Addr:: (nil) op1:4.10000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 4.13000000000000e1
-, but 4.130000e1 was computed.
-updateError: computedVal:41.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:41.3
-setRealTemp: dest set to:4.13000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e998
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:42
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:42 op2:0.7
-computeReal: op1Addr:: (nil) op1:4.20000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 4.27000000000000e1
-, but 4.270000e1 was computed.
-updateError: computedVal:42.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:42.7
-setRealTemp: dest set to:4.27000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e5e0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:42
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:42 op2:0.3
-computeReal: op1Addr:: (nil) op1:4.20000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 4.23000000000000e1
-, but 4.230000e1 was computed.
-updateError: computedVal:42.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:42.3
-setRealTemp: dest set to:4.23000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e9a0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:43
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:43 op2:0.7
-computeReal: op1Addr:: (nil) op1:4.30000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 4.37000000000000e1
-, but 4.370000e1 was computed.
-updateError: computedVal:43.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:43.7
-setRealTemp: dest set to:4.37000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e5e8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:43
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:43 op2:0.3
-computeReal: op1Addr:: (nil) op1:4.30000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 4.33000000000000e1
-, but 4.330000e1 was computed.
-updateError: computedVal:43.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:43.3
-setRealTemp: dest set to:4.33000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e9a8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:44
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:44 op2:0.7
-computeReal: op1Addr:: (nil) op1:4.40000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 4.47000000000000e1
-, but 4.470000e1 was computed.
-updateError: computedVal:44.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:44.7
-setRealTemp: dest set to:4.47000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e5f0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:44
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:44 op2:0.3
-computeReal: op1Addr:: (nil) op1:4.40000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 4.43000000000000e1
-, but 4.430000e1 was computed.
-updateError: computedVal:44.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:44.3
-setRealTemp: dest set to:4.43000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e9b0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:45
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:45 op2:0.7
-computeReal: op1Addr:: (nil) op1:4.50000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 4.57000000000000e1
-, but 4.570000e1 was computed.
-updateError: computedVal:45.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:45.7
-setRealTemp: dest set to:4.57000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e5f8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:45
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:45 op2:0.3
-computeReal: op1Addr:: (nil) op1:4.50000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 4.53000000000000e1
-, but 4.530000e1 was computed.
-updateError: computedVal:45.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:45.3
-setRealTemp: dest set to:4.53000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e9b8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:46
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:46 op2:0.7
-computeReal: op1Addr:: (nil) op1:4.60000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 4.67000000000000e1
-, but 4.670000e1 was computed.
-updateError: computedVal:46.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:46.7
-setRealTemp: dest set to:4.67000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e600
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:46
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:46 op2:0.3
-computeReal: op1Addr:: (nil) op1:4.60000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 4.63000000000000e1
-, but 4.630000e1 was computed.
-updateError: computedVal:46.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:46.3
-setRealTemp: dest set to:4.63000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e9c0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:47
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:47 op2:0.7
-computeReal: op1Addr:: (nil) op1:4.70000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 4.77000000000000e1
-, but 4.770000e1 was computed.
-updateError: computedVal:47.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:47.7
-setRealTemp: dest set to:4.77000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e608
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:47
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:47 op2:0.3
-computeReal: op1Addr:: (nil) op1:4.70000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 4.73000000000000e1
-, but 4.730000e1 was computed.
-updateError: computedVal:47.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:47.3
-setRealTemp: dest set to:4.73000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e9c8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:48
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:48 op2:0.7
-computeReal: op1Addr:: (nil) op1:4.80000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 4.87000000000000e1
-, but 4.870000e1 was computed.
-updateError: computedVal:48.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:48.7
-setRealTemp: dest set to:4.87000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e610
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:48
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:48 op2:0.3
-computeReal: op1Addr:: (nil) op1:4.80000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 4.83000000000000e1
-, but 4.830000e1 was computed.
-updateError: computedVal:48.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:48.3
-setRealTemp: dest set to:4.83000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e9d0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:49
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:49 op2:0.7
-computeReal: op1Addr:: (nil) op1:4.90000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 4.97000000000000e1
-, but 4.970000e1 was computed.
-updateError: computedVal:49.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:49.7
-setRealTemp: dest set to:4.97000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e618
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:49
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:49 op2:0.3
-computeReal: op1Addr:: (nil) op1:4.90000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 4.93000000000000e1
-, but 4.930000e1 was computed.
-updateError: computedVal:49.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:49.3
-setRealTemp: dest set to:4.93000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e9d8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:50
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:50 op2:0.7
-computeReal: op1Addr:: (nil) op1:5.00000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 5.07000000000000e1
-, but 5.070000e1 was computed.
-updateError: computedVal:50.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:50.7
-setRealTemp: dest set to:5.07000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e620
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:50
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:50 op2:0.3
-computeReal: op1Addr:: (nil) op1:5.00000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 5.03000000000000e1
-, but 5.030000e1 was computed.
-updateError: computedVal:50.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:50.3
-setRealTemp: dest set to:5.03000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e9e0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:51
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:51 op2:0.7
-computeReal: op1Addr:: (nil) op1:5.10000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 5.17000000000000e1
-, but 5.170000e1 was computed.
-updateError: computedVal:51.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:51.7
-setRealTemp: dest set to:5.17000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e628
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:51
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:51 op2:0.3
-computeReal: op1Addr:: (nil) op1:5.10000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 5.13000000000000e1
-, but 5.130000e1 was computed.
-updateError: computedVal:51.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:51.3
-setRealTemp: dest set to:5.13000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e9e8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:52
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:52 op2:0.7
-computeReal: op1Addr:: (nil) op1:5.20000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 5.27000000000000e1
-, but 5.270000e1 was computed.
-updateError: computedVal:52.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:52.7
-setRealTemp: dest set to:5.27000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e630
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:52
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:52 op2:0.3
-computeReal: op1Addr:: (nil) op1:5.20000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 5.23000000000000e1
-, but 5.230000e1 was computed.
-updateError: computedVal:52.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:52.3
-setRealTemp: dest set to:5.23000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e9f0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:53
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:53 op2:0.7
-computeReal: op1Addr:: (nil) op1:5.30000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 5.37000000000000e1
-, but 5.370000e1 was computed.
-updateError: computedVal:53.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:53.7
-setRealTemp: dest set to:5.37000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e638
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:53
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:53 op2:0.3
-computeReal: op1Addr:: (nil) op1:5.30000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 5.33000000000000e1
-, but 5.330000e1 was computed.
-updateError: computedVal:53.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:53.3
-setRealTemp: dest set to:5.33000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9e9f8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:54
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:54 op2:0.7
-computeReal: op1Addr:: (nil) op1:5.40000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 5.47000000000000e1
-, but 5.470000e1 was computed.
-updateError: computedVal:54.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:54.7
-setRealTemp: dest set to:5.47000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e640
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:54
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:54 op2:0.3
-computeReal: op1Addr:: (nil) op1:5.40000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 5.43000000000000e1
-, but 5.430000e1 was computed.
-updateError: computedVal:54.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:54.3
-setRealTemp: dest set to:5.43000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9ea00
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:55
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:55 op2:0.7
-computeReal: op1Addr:: (nil) op1:5.50000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 5.57000000000000e1
-, but 5.570000e1 was computed.
-updateError: computedVal:55.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:55.7
-setRealTemp: dest set to:5.57000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e648
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:55
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:55 op2:0.3
-computeReal: op1Addr:: (nil) op1:5.50000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 5.53000000000000e1
-, but 5.530000e1 was computed.
-updateError: computedVal:55.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:55.3
-setRealTemp: dest set to:5.53000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9ea08
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:56
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:56 op2:0.7
-computeReal: op1Addr:: (nil) op1:5.60000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 5.67000000000000e1
-, but 5.670000e1 was computed.
-updateError: computedVal:56.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:56.7
-setRealTemp: dest set to:5.67000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e650
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:56
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:56 op2:0.3
-computeReal: op1Addr:: (nil) op1:5.60000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 5.63000000000000e1
-, but 5.630000e1 was computed.
-updateError: computedVal:56.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:56.3
-setRealTemp: dest set to:5.63000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9ea10
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:57
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:57 op2:0.7
-computeReal: op1Addr:: (nil) op1:5.70000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 5.77000000000000e1
-, but 5.770000e1 was computed.
-updateError: computedVal:57.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:57.7
-setRealTemp: dest set to:5.77000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e658
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:57
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:57 op2:0.3
-computeReal: op1Addr:: (nil) op1:5.70000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 5.73000000000000e1
-, but 5.730000e1 was computed.
-updateError: computedVal:57.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:57.3
-setRealTemp: dest set to:5.73000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9ea18
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:58
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:58 op2:0.7
-computeReal: op1Addr:: (nil) op1:5.80000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 5.87000000000000e1
-, but 5.870000e1 was computed.
-updateError: computedVal:58.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:58.7
-setRealTemp: dest set to:5.87000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e660
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:58
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:58 op2:0.3
-computeReal: op1Addr:: (nil) op1:5.80000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 5.83000000000000e1
-, but 5.830000e1 was computed.
-updateError: computedVal:58.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:58.3
-setRealTemp: dest set to:5.83000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9ea20
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:59
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:59 op2:0.7
-computeReal: op1Addr:: (nil) op1:5.90000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 5.97000000000000e1
-, but 5.970000e1 was computed.
-updateError: computedVal:59.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:59.7
-setRealTemp: dest set to:5.97000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e668
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:59
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:59 op2:0.3
-computeReal: op1Addr:: (nil) op1:5.90000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 5.93000000000000e1
-, but 5.930000e1 was computed.
-updateError: computedVal:59.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:59.3
-setRealTemp: dest set to:5.93000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9ea28
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:60
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:60 op2:0.7
-computeReal: op1Addr:: (nil) op1:6.00000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 6.07000000000000e1
-, but 6.070000e1 was computed.
-updateError: computedVal:60.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:60.7
-setRealTemp: dest set to:6.07000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e670
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:60
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:60 op2:0.3
-computeReal: op1Addr:: (nil) op1:6.00000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 6.03000000000000e1
-, but 6.030000e1 was computed.
-updateError: computedVal:60.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:60.3
-setRealTemp: dest set to:6.03000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9ea30
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:61
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:61 op2:0.7
-computeReal: op1Addr:: (nil) op1:6.10000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 6.17000000000000e1
-, but 6.170000e1 was computed.
-updateError: computedVal:61.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:61.7
-setRealTemp: dest set to:6.17000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e678
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:61
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:61 op2:0.3
-computeReal: op1Addr:: (nil) op1:6.10000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 6.13000000000000e1
-, but 6.130000e1 was computed.
-updateError: computedVal:61.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:61.3
-setRealTemp: dest set to:6.13000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9ea38
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:62
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:62 op2:0.7
-computeReal: op1Addr:: (nil) op1:6.20000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 6.27000000000000e1
-, but 6.270000e1 was computed.
-updateError: computedVal:62.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:62.7
-setRealTemp: dest set to:6.27000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e680
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:62
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:62 op2:0.3
-computeReal: op1Addr:: (nil) op1:6.20000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 6.23000000000000e1
-, but 6.230000e1 was computed.
-updateError: computedVal:62.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:62.3
-setRealTemp: dest set to:6.23000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9ea40
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:63
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:63 op2:0.7
-computeReal: op1Addr:: (nil) op1:6.30000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 6.37000000000000e1
-, but 6.370000e1 was computed.
-updateError: computedVal:63.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:63.7
-setRealTemp: dest set to:6.37000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e688
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:63
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:63 op2:0.3
-computeReal: op1Addr:: (nil) op1:6.30000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 6.33000000000000e1
-, but 6.330000e1 was computed.
-updateError: computedVal:63.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:63.3
-setRealTemp: dest set to:6.33000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9ea48
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:64
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:64 op2:0.7
-computeReal: op1Addr:: (nil) op1:6.40000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 6.47000000000000e1
-, but 6.470000e1 was computed.
-updateError: computedVal:64.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:64.7
-setRealTemp: dest set to:6.47000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e690
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:64
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:64 op2:0.3
-computeReal: op1Addr:: (nil) op1:6.40000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 6.43000000000000e1
-, but 6.430000e1 was computed.
-updateError: computedVal:64.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:64.3
-setRealTemp: dest set to:6.43000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9ea50
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:65
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:65 op2:0.7
-computeReal: op1Addr:: (nil) op1:6.50000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 6.57000000000000e1
-, but 6.570000e1 was computed.
-updateError: computedVal:65.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:65.7
-setRealTemp: dest set to:6.57000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e698
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:65
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:65 op2:0.3
-computeReal: op1Addr:: (nil) op1:6.50000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 6.53000000000000e1
-, but 6.530000e1 was computed.
-updateError: computedVal:65.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:65.3
-setRealTemp: dest set to:6.53000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9ea58
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:66
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:66 op2:0.7
-computeReal: op1Addr:: (nil) op1:6.60000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 6.67000000000000e1
-, but 6.670000e1 was computed.
-updateError: computedVal:66.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:66.7
-setRealTemp: dest set to:6.67000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e6a0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:66
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:66 op2:0.3
-computeReal: op1Addr:: (nil) op1:6.60000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 6.63000000000000e1
-, but 6.630000e1 was computed.
-updateError: computedVal:66.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:66.3
-setRealTemp: dest set to:6.63000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9ea60
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:67
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:67 op2:0.7
-computeReal: op1Addr:: (nil) op1:6.70000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 6.77000000000000e1
-, but 6.770000e1 was computed.
-updateError: computedVal:67.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:67.7
-setRealTemp: dest set to:6.77000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e6a8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:67
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:67 op2:0.3
-computeReal: op1Addr:: (nil) op1:6.70000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 6.73000000000000e1
-, but 6.730000e1 was computed.
-updateError: computedVal:67.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:67.3
-setRealTemp: dest set to:6.73000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9ea68
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:68
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:68 op2:0.7
-computeReal: op1Addr:: (nil) op1:6.80000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 6.87000000000000e1
-, but 6.870000e1 was computed.
-updateError: computedVal:68.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:68.7
-setRealTemp: dest set to:6.87000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e6b0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:68
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:68 op2:0.3
-computeReal: op1Addr:: (nil) op1:6.80000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 6.83000000000000e1
-, but 6.830000e1 was computed.
-updateError: computedVal:68.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:68.3
-setRealTemp: dest set to:6.83000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9ea70
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:69
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:69 op2:0.7
-computeReal: op1Addr:: (nil) op1:6.90000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 6.97000000000000e1
-, but 6.970000e1 was computed.
-updateError: computedVal:69.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:69.7
-setRealTemp: dest set to:6.97000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e6b8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:69
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:69 op2:0.3
-computeReal: op1Addr:: (nil) op1:6.90000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 6.93000000000000e1
-, but 6.930000e1 was computed.
-updateError: computedVal:69.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:69.3
-setRealTemp: dest set to:6.93000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9ea78
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:70
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:70 op2:0.7
-computeReal: op1Addr:: (nil) op1:7.00000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 7.07000000000000e1
-, but 7.070000e1 was computed.
-updateError: computedVal:70.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:70.7
-setRealTemp: dest set to:7.07000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e6c0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:70
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:70 op2:0.3
-computeReal: op1Addr:: (nil) op1:7.00000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 7.03000000000000e1
-, but 7.030000e1 was computed.
-updateError: computedVal:70.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:70.3
-setRealTemp: dest set to:7.03000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9ea80
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:71
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:71 op2:0.7
-computeReal: op1Addr:: (nil) op1:7.10000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 7.17000000000000e1
-, but 7.170000e1 was computed.
-updateError: computedVal:71.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:71.7
-setRealTemp: dest set to:7.17000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e6c8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:71
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:71 op2:0.3
-computeReal: op1Addr:: (nil) op1:7.10000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 7.13000000000000e1
-, but 7.130000e1 was computed.
-updateError: computedVal:71.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:71.3
-setRealTemp: dest set to:7.13000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9ea88
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:72
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:72 op2:0.7
-computeReal: op1Addr:: (nil) op1:7.20000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 7.27000000000000e1
-, but 7.270000e1 was computed.
-updateError: computedVal:72.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:72.7
-setRealTemp: dest set to:7.27000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e6d0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:72
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:72 op2:0.3
-computeReal: op1Addr:: (nil) op1:7.20000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 7.23000000000000e1
-, but 7.230000e1 was computed.
-updateError: computedVal:72.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:72.3
-setRealTemp: dest set to:7.23000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9ea90
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:73
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:73 op2:0.7
-computeReal: op1Addr:: (nil) op1:7.30000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 7.37000000000000e1
-, but 7.370000e1 was computed.
-updateError: computedVal:73.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:73.7
-setRealTemp: dest set to:7.37000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e6d8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:73
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:73 op2:0.3
-computeReal: op1Addr:: (nil) op1:7.30000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 7.33000000000000e1
-, but 7.330000e1 was computed.
-updateError: computedVal:73.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:73.3
-setRealTemp: dest set to:7.33000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9ea98
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:74
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:74 op2:0.7
-computeReal: op1Addr:: (nil) op1:7.40000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 7.47000000000000e1
-, but 7.470000e1 was computed.
-updateError: computedVal:74.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:74.7
-setRealTemp: dest set to:7.47000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e6e0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:74
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:74 op2:0.3
-computeReal: op1Addr:: (nil) op1:7.40000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 7.43000000000000e1
-, but 7.430000e1 was computed.
-updateError: computedVal:74.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:74.3
-setRealTemp: dest set to:7.43000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9eaa0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:75
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:75 op2:0.7
-computeReal: op1Addr:: (nil) op1:7.50000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 7.57000000000000e1
-, but 7.570000e1 was computed.
-updateError: computedVal:75.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:75.7
-setRealTemp: dest set to:7.57000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e6e8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:75
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:75 op2:0.3
-computeReal: op1Addr:: (nil) op1:7.50000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 7.53000000000000e1
-, but 7.530000e1 was computed.
-updateError: computedVal:75.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:75.3
-setRealTemp: dest set to:7.53000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9eaa8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:76
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:76 op2:0.7
-computeReal: op1Addr:: (nil) op1:7.60000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 7.67000000000000e1
-, but 7.670000e1 was computed.
-updateError: computedVal:76.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:76.7
-setRealTemp: dest set to:7.67000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e6f0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:76
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:76 op2:0.3
-computeReal: op1Addr:: (nil) op1:7.60000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 7.63000000000000e1
-, but 7.630000e1 was computed.
-updateError: computedVal:76.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:76.3
-setRealTemp: dest set to:7.63000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9eab0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:77
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:77 op2:0.7
-computeReal: op1Addr:: (nil) op1:7.70000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 7.77000000000000e1
-, but 7.770000e1 was computed.
-updateError: computedVal:77.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:77.7
-setRealTemp: dest set to:7.77000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e6f8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:77
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:77 op2:0.3
-computeReal: op1Addr:: (nil) op1:7.70000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 7.73000000000000e1
-, but 7.730000e1 was computed.
-updateError: computedVal:77.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:77.3
-setRealTemp: dest set to:7.73000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9eab8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:78
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:78 op2:0.7
-computeReal: op1Addr:: (nil) op1:7.80000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 7.87000000000000e1
-, but 7.870000e1 was computed.
-updateError: computedVal:78.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:78.7
-setRealTemp: dest set to:7.87000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e700
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:78
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:78 op2:0.3
-computeReal: op1Addr:: (nil) op1:7.80000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 7.83000000000000e1
-, but 7.830000e1 was computed.
-updateError: computedVal:78.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:78.3
-setRealTemp: dest set to:7.83000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9eac0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:79
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:79 op2:0.7
-computeReal: op1Addr:: (nil) op1:7.90000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 7.97000000000000e1
-, but 7.970000e1 was computed.
-updateError: computedVal:79.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:79.7
-setRealTemp: dest set to:7.97000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e708
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:79
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:79 op2:0.3
-computeReal: op1Addr:: (nil) op1:7.90000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 7.93000000000000e1
-, but 7.930000e1 was computed.
-updateError: computedVal:79.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:79.3
-setRealTemp: dest set to:7.93000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9eac8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:80
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:80 op2:0.7
-computeReal: op1Addr:: (nil) op1:8.00000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 8.07000000000000e1
-, but 8.070000e1 was computed.
-updateError: computedVal:80.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:80.7
-setRealTemp: dest set to:8.07000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e710
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:80
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:80 op2:0.3
-computeReal: op1Addr:: (nil) op1:8.00000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 8.03000000000000e1
-, but 8.030000e1 was computed.
-updateError: computedVal:80.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:80.3
-setRealTemp: dest set to:8.03000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9ead0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:81
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:81 op2:0.7
-computeReal: op1Addr:: (nil) op1:8.10000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 8.17000000000000e1
-, but 8.170000e1 was computed.
-updateError: computedVal:81.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:81.7
-setRealTemp: dest set to:8.17000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e718
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:81
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:81 op2:0.3
-computeReal: op1Addr:: (nil) op1:8.10000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 8.13000000000000e1
-, but 8.130000e1 was computed.
-updateError: computedVal:81.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:81.3
-setRealTemp: dest set to:8.13000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9ead8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:82
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:82 op2:0.7
-computeReal: op1Addr:: (nil) op1:8.20000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 8.27000000000000e1
-, but 8.270000e1 was computed.
-updateError: computedVal:82.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:82.7
-setRealTemp: dest set to:8.27000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e720
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:82
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:82 op2:0.3
-computeReal: op1Addr:: (nil) op1:8.20000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 8.23000000000000e1
-, but 8.230000e1 was computed.
-updateError: computedVal:82.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:82.3
-setRealTemp: dest set to:8.23000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9eae0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:83
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:83 op2:0.7
-computeReal: op1Addr:: (nil) op1:8.30000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 8.37000000000000e1
-, but 8.370000e1 was computed.
-updateError: computedVal:83.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:83.7
-setRealTemp: dest set to:8.37000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e728
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:83
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:83 op2:0.3
-computeReal: op1Addr:: (nil) op1:8.30000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 8.33000000000000e1
-, but 8.330000e1 was computed.
-updateError: computedVal:83.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:83.3
-setRealTemp: dest set to:8.33000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9eae8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:84
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:84 op2:0.7
-computeReal: op1Addr:: (nil) op1:8.40000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 8.47000000000000e1
-, but 8.470000e1 was computed.
-updateError: computedVal:84.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:84.7
-setRealTemp: dest set to:8.47000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e730
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:84
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:84 op2:0.3
-computeReal: op1Addr:: (nil) op1:8.40000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 8.43000000000000e1
-, but 8.430000e1 was computed.
-updateError: computedVal:84.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:84.3
-setRealTemp: dest set to:8.43000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9eaf0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:85
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:85 op2:0.7
-computeReal: op1Addr:: (nil) op1:8.50000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 8.57000000000000e1
-, but 8.570000e1 was computed.
-updateError: computedVal:85.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:85.7
-setRealTemp: dest set to:8.57000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e738
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:85
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:85 op2:0.3
-computeReal: op1Addr:: (nil) op1:8.50000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 8.53000000000000e1
-, but 8.530000e1 was computed.
-updateError: computedVal:85.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:85.3
-setRealTemp: dest set to:8.53000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9eaf8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:86
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:86 op2:0.7
-computeReal: op1Addr:: (nil) op1:8.60000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 8.67000000000000e1
-, but 8.670000e1 was computed.
-updateError: computedVal:86.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:86.7
-setRealTemp: dest set to:8.67000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e740
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:86
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:86 op2:0.3
-computeReal: op1Addr:: (nil) op1:8.60000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 8.63000000000000e1
-, but 8.630000e1 was computed.
-updateError: computedVal:86.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:86.3
-setRealTemp: dest set to:8.63000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9eb00
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:87
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:87 op2:0.7
-computeReal: op1Addr:: (nil) op1:8.70000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 8.77000000000000e1
-, but 8.770000e1 was computed.
-updateError: computedVal:87.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:87.7
-setRealTemp: dest set to:8.77000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e748
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:87
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:87 op2:0.3
-computeReal: op1Addr:: (nil) op1:8.70000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 8.73000000000000e1
-, but 8.730000e1 was computed.
-updateError: computedVal:87.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:87.3
-setRealTemp: dest set to:8.73000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9eb08
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:88
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:88 op2:0.7
-computeReal: op1Addr:: (nil) op1:8.80000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 8.87000000000000e1
-, but 8.870000e1 was computed.
-updateError: computedVal:88.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:88.7
-setRealTemp: dest set to:8.87000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e750
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:88
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:88 op2:0.3
-computeReal: op1Addr:: (nil) op1:8.80000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 8.83000000000000e1
-, but 8.830000e1 was computed.
-updateError: computedVal:88.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:88.3
-setRealTemp: dest set to:8.83000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9eb10
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:89
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:89 op2:0.7
-computeReal: op1Addr:: (nil) op1:8.90000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 8.97000000000000e1
-, but 8.970000e1 was computed.
-updateError: computedVal:89.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:89.7
-setRealTemp: dest set to:8.97000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e758
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:89
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:89 op2:0.3
-computeReal: op1Addr:: (nil) op1:8.90000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 8.93000000000000e1
-, but 8.930000e1 was computed.
-updateError: computedVal:89.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:89.3
-setRealTemp: dest set to:8.93000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9eb18
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:90
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:90 op2:0.7
-computeReal: op1Addr:: (nil) op1:9.00000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 9.07000000000000e1
-, but 9.070000e1 was computed.
-updateError: computedVal:90.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:90.7
-setRealTemp: dest set to:9.07000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e760
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:90
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:90 op2:0.3
-computeReal: op1Addr:: (nil) op1:9.00000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 9.03000000000000e1
-, but 9.030000e1 was computed.
-updateError: computedVal:90.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:90.3
-setRealTemp: dest set to:9.03000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9eb20
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:91
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:91 op2:0.7
-computeReal: op1Addr:: (nil) op1:9.10000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 9.17000000000000e1
-, but 9.170000e1 was computed.
-updateError: computedVal:91.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:91.7
-setRealTemp: dest set to:9.17000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e768
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:91
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:91 op2:0.3
-computeReal: op1Addr:: (nil) op1:9.10000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 9.13000000000000e1
-, but 9.130000e1 was computed.
-updateError: computedVal:91.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:91.3
-setRealTemp: dest set to:9.13000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9eb28
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:92
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:92 op2:0.7
-computeReal: op1Addr:: (nil) op1:9.20000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 9.27000000000000e1
-, but 9.270000e1 was computed.
-updateError: computedVal:92.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:92.7
-setRealTemp: dest set to:9.27000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e770
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:92
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:92 op2:0.3
-computeReal: op1Addr:: (nil) op1:9.20000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 9.23000000000000e1
-, but 9.230000e1 was computed.
-updateError: computedVal:92.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:92.3
-setRealTemp: dest set to:9.23000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9eb30
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:93
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:93 op2:0.7
-computeReal: op1Addr:: (nil) op1:9.30000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 9.37000000000000e1
-, but 9.370000e1 was computed.
-updateError: computedVal:93.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:93.7
-setRealTemp: dest set to:9.37000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e778
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:93
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:93 op2:0.3
-computeReal: op1Addr:: (nil) op1:9.30000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 9.33000000000000e1
-, but 9.330000e1 was computed.
-updateError: computedVal:93.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:93.3
-setRealTemp: dest set to:9.33000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9eb38
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:94
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:94 op2:0.7
-computeReal: op1Addr:: (nil) op1:9.40000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 9.47000000000000e1
-, but 9.470000e1 was computed.
-updateError: computedVal:94.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:94.7
-setRealTemp: dest set to:9.47000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e780
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:94
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:94 op2:0.3
-computeReal: op1Addr:: (nil) op1:9.40000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 9.43000000000000e1
-, but 9.430000e1 was computed.
-updateError: computedVal:94.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:94.3
-setRealTemp: dest set to:9.43000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9eb40
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:95
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:95 op2:0.7
-computeReal: op1Addr:: (nil) op1:9.50000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 9.57000000000000e1
-, but 9.570000e1 was computed.
-updateError: computedVal:95.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:95.7
-setRealTemp: dest set to:9.57000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e788
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:95
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:95 op2:0.3
-computeReal: op1Addr:: (nil) op1:9.50000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 9.53000000000000e1
-, but 9.530000e1 was computed.
-updateError: computedVal:95.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:95.3
-setRealTemp: dest set to:9.53000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9eb48
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:96
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:96 op2:0.7
-computeReal: op1Addr:: (nil) op1:9.60000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 9.67000000000000e1
-, but 9.670000e1 was computed.
-updateError: computedVal:96.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:96.7
-setRealTemp: dest set to:9.67000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e790
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:96
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:96 op2:0.3
-computeReal: op1Addr:: (nil) op1:9.60000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 9.63000000000000e1
-, but 9.630000e1 was computed.
-updateError: computedVal:96.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:96.3
-setRealTemp: dest set to:9.63000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9eb50
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:97
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:97 op2:0.7
-computeReal: op1Addr:: (nil) op1:9.70000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 9.77000000000000e1
-, but 9.770000e1 was computed.
-updateError: computedVal:97.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:97.7
-setRealTemp: dest set to:9.77000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e798
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:97
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:97 op2:0.3
-computeReal: op1Addr:: (nil) op1:9.70000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 9.73000000000000e1
-, but 9.730000e1 was computed.
-updateError: computedVal:97.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:97.3
-setRealTemp: dest set to:9.73000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9eb58
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:98
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:98 op2:0.7
-computeReal: op1Addr:: (nil) op1:9.80000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 9.87000000000000e1
-, but 9.870000e1 was computed.
-updateError: computedVal:98.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:98.7
-setRealTemp: dest set to:9.87000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e7a0
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:98
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:98 op2:0.3
-computeReal: op1Addr:: (nil) op1:9.80000000000000e1
-computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
-
-FADD
-computeReal: stackTop:1 addr 0x7f1b10644028:
-
-The shadow value is 9.83000000000000e1
-, but 9.830000e1 was computed.
-updateError: computedVal:98.3 insIndex:110
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:98.3
-setRealTemp: dest set to:9.83000000000000e1
-from: 0x7f1b10644028 to addr:0x1f9eb60
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:99
-computeReal: real2 is null, using op2 value:0.7
-computeReal: op1:99 op2:0.7
-computeReal: op1Addr:: (nil) op1:9.90000000000000e1
-computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
-
-FADD
-computeReal: stackTop:2 addr 0x7f1b10644050:
-
-The shadow value is 9.97000000000000e1
-, but 9.970000e1 was computed.
-updateError: computedVal:99.7 insIndex:107
-0.000000 bits error (0 ulps)
-****************
-
-real->initFlag:1 op:99.7
-setRealTemp: dest set to:9.97000000000000e1
-from: 0x7f1b10644050 to addr:0x1f9e7a8
-op1Addr:(nil)
-op2Addr:(nil)
-computeReal: real1 is null, using op1 value:99
-computeReal: real2 is null, using op2 value:0.3
-computeReal: op1:99 op2:0.3
+from: 0x7f748735a028 to addr:0x1b8a080
+loop1 done
+getRegRes insIndex:127 insMap[insIndex]:0
+getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:3
+getRegRes newRegIdx:3 frameCur[frameIdx]:0
+fpSanLoadFromShadowMem: opd:4.7 from addr:0x1b89fc0
+fpSanLoadFromShadowMemD: set value:4.70000000000000
+ in shadowStack at:3 for addr:0x7f748735a078  from addr:0x1b89fc0
+getRegRes insIndex:129 insMap[insIndex]:0
+getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:4
+getRegRes newRegIdx:4 frameCur[frameIdx]:0
+fpSanLoadFromShadowMem: opd:4.3 from addr:0x1b8a080
+fpSanLoadFromShadowMemD: set value:4.30000000000000
+ in shadowStack at:4 for addr:0x7f748735a0a0  from addr:0x1b8a080
+getRegRes insIndex:130 insMap[insIndex]:0
+getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:5
+getRegRes newRegIdx:5 frameCur[frameIdx]:0
+computeReal: op1:4.7 op2:4.3
+computeReal: op1Addr:: 0x7f748735a078 op1:4.70000000000000
+computeReal: op2Addr:: 0x7f748735a0a0 op2:4.30000000000000
+
+FADD
+computeReal: stackTop:5 addr 0x7f748735a0c8:
+
+The shadow value is 9.00000000000000
+, but 9.000000 was computed.
+updateError: computedVal:9 insIndex:130
+0.000000 bits error (0 ulps)
+****************
+
+setRealTemp: dest->initFlag:1
+setRealTemp: dest set to:9.00000000000000
+from: 0x7f748735a0c8 to addr:0x1b8a140
+getRegRes insIndex:133 insMap[insIndex]:0
+getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:6
+getRegRes newRegIdx:6 frameCur[frameIdx]:0
+computeReal: op1:4.7 op2:4.3
+computeReal: op1Addr:: 0x7f748735a078 op1:4.70000000000000
+computeReal: op2Addr:: 0x7f748735a0a0 op2:4.30000000000000
+FDIV
+computeReal: stackTop:6 addr 0x7f748735a0f0:
+
+The shadow value is 1.09302325581395
+, but 1.093023 was computed.
+updateError: computedVal:1.09302 insIndex:133
+1.000000 bits error (1 ulps)
+****************
+
+setRealTemp: dest->initFlag:1
+setRealTemp: dest set to:1.09302325581395
+from: 0x7f748735a0f0 to addr:0x1b8a200
+getRegRes insIndex:136 insMap[insIndex]:0
+getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:7
+getRegRes newRegIdx:7 frameCur[frameIdx]:0
+computeReal: op1:9 op2:1.09302
+computeReal: op1Addr:: 0x7f748735a0c8 op1:9.00000000000000
+computeReal: op2Addr:: 0x7f748735a0f0 op2:1.09302325581395
+FMUL
+computeReal: stackTop:7 addr 0x7f748735a118:
+
+The shadow value is 9.83720930232558
+, but 9.837209 was computed.
+updateError: computedVal:9.83721 insIndex:136
+1.000000 bits error (1 ulps)
+****************
+
+setRealTemp: dest->initFlag:1
+setRealTemp: dest set to:9.83720930232558
+from: 0x7f748735a118 to addr:0x1b8a2c0
+getRegRes insIndex:127 insMap[insIndex]:3
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:3 frameCur[frameIdx]:0
+fpSanLoadFromShadowMem: opd:3.7 from addr:0x1b89fb8
+fpSanLoadFromShadowMemD: set value:3.70000000000000
+ in shadowStack at:3 for addr:0x7f748735a078  from addr:0x1b89fb8
+getRegRes insIndex:129 insMap[insIndex]:4
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:4 frameCur[frameIdx]:0
+fpSanLoadFromShadowMem: opd:3.3 from addr:0x1b8a078
+fpSanLoadFromShadowMemD: set value:3.30000000000000
+ in shadowStack at:4 for addr:0x7f748735a0a0  from addr:0x1b8a078
+getRegRes insIndex:130 insMap[insIndex]:5
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:5 frameCur[frameIdx]:0
+computeReal: op1:3.7 op2:3.3
+computeReal: op1Addr:: 0x7f748735a078 op1:3.70000000000000
+computeReal: op2Addr:: 0x7f748735a0a0 op2:3.30000000000000
+
+FADD
+computeReal: stackTop:5 addr 0x7f748735a0c8:
+
+The shadow value is 7.00000000000000
+, but 7.000000 was computed.
+updateError: computedVal:7 insIndex:130
+0.000000 bits error (0 ulps)
+****************
+
+setRealTemp: dest->initFlag:1
+setRealTemp: dest set to:7.00000000000000
+from: 0x7f748735a0c8 to addr:0x1b8a138
+getRegRes insIndex:133 insMap[insIndex]:6
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:6 frameCur[frameIdx]:0
+computeReal: op1:3.7 op2:3.3
+computeReal: op1Addr:: 0x7f748735a078 op1:3.70000000000000
+computeReal: op2Addr:: 0x7f748735a0a0 op2:3.30000000000000
+FDIV
+computeReal: stackTop:6 addr 0x7f748735a0f0:
+
+The shadow value is 1.12121212121212
+, but 1.121212 was computed.
+updateError: computedVal:1.12121 insIndex:133
+1.000000 bits error (1 ulps)
+****************
+
+setRealTemp: dest->initFlag:1
+setRealTemp: dest set to:1.12121212121212
+from: 0x7f748735a0f0 to addr:0x1b8a1f8
+getRegRes insIndex:136 insMap[insIndex]:7
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:7 frameCur[frameIdx]:0
+computeReal: op1:7 op2:1.12121
+computeReal: op1Addr:: 0x7f748735a0c8 op1:7.00000000000000
+computeReal: op2Addr:: 0x7f748735a0f0 op2:1.12121212121212
+FMUL
+computeReal: stackTop:7 addr 0x7f748735a118:
+
+The shadow value is 7.84848484848485
+, but 7.848485 was computed.
+updateError: computedVal:7.84848 insIndex:136
+1.000000 bits error (1 ulps)
+****************
+
+setRealTemp: dest->initFlag:1
+setRealTemp: dest set to:7.84848484848485
+from: 0x7f748735a118 to addr:0x1b8a2b8
+getRegRes insIndex:127 insMap[insIndex]:3
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:3 frameCur[frameIdx]:0
+fpSanLoadFromShadowMem: opd:2.7 from addr:0x1b89fb0
+fpSanLoadFromShadowMemD: set value:2.70000000000000
+ in shadowStack at:3 for addr:0x7f748735a078  from addr:0x1b89fb0
+getRegRes insIndex:129 insMap[insIndex]:4
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:4 frameCur[frameIdx]:0
+fpSanLoadFromShadowMem: opd:2.3 from addr:0x1b8a070
+fpSanLoadFromShadowMemD: set value:2.30000000000000
+ in shadowStack at:4 for addr:0x7f748735a0a0  from addr:0x1b8a070
+getRegRes insIndex:130 insMap[insIndex]:5
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:5 frameCur[frameIdx]:0
+computeReal: op1:2.7 op2:2.3
+computeReal: op1Addr:: 0x7f748735a078 op1:2.70000000000000
+computeReal: op2Addr:: 0x7f748735a0a0 op2:2.30000000000000
+
+FADD
+computeReal: stackTop:5 addr 0x7f748735a0c8:
+
+The shadow value is 5.00000000000000
+, but 5.000000 was computed.
+updateError: computedVal:5 insIndex:130
+0.000000 bits error (0 ulps)
+****************
+
+setRealTemp: dest->initFlag:1
+setRealTemp: dest set to:5.00000000000000
+from: 0x7f748735a0c8 to addr:0x1b8a130
+getRegRes insIndex:133 insMap[insIndex]:6
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:6 frameCur[frameIdx]:0
+computeReal: op1:2.7 op2:2.3
+computeReal: op1Addr:: 0x7f748735a078 op1:2.70000000000000
+computeReal: op2Addr:: 0x7f748735a0a0 op2:2.30000000000000
+FDIV
+computeReal: stackTop:6 addr 0x7f748735a0f0:
+
+The shadow value is 1.17391304347826
+, but 1.173913 was computed.
+updateError: computedVal:1.17391 insIndex:133
+1.000000 bits error (1 ulps)
+****************
+
+setRealTemp: dest->initFlag:1
+setRealTemp: dest set to:1.17391304347826
+from: 0x7f748735a0f0 to addr:0x1b8a1f0
+getRegRes insIndex:136 insMap[insIndex]:7
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:7 frameCur[frameIdx]:0
+computeReal: op1:5 op2:1.17391
+computeReal: op1Addr:: 0x7f748735a0c8 op1:5.00000000000000
+computeReal: op2Addr:: 0x7f748735a0f0 op2:1.17391304347826
+FMUL
+computeReal: stackTop:7 addr 0x7f748735a118:
+
+The shadow value is 5.86956521739130
+, but 5.869565 was computed.
+updateError: computedVal:5.86957 insIndex:136
+0.000000 bits error (0 ulps)
+****************
+
+setRealTemp: dest->initFlag:1
+setRealTemp: dest set to:5.86956521739130
+from: 0x7f748735a118 to addr:0x1b8a2b0
+getRegRes insIndex:127 insMap[insIndex]:3
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:3 frameCur[frameIdx]:0
+fpSanLoadFromShadowMem: opd:1.7 from addr:0x1b89fa8
+fpSanLoadFromShadowMemD: set value:1.70000000000000
+ in shadowStack at:3 for addr:0x7f748735a078  from addr:0x1b89fa8
+getRegRes insIndex:129 insMap[insIndex]:4
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:4 frameCur[frameIdx]:0
+fpSanLoadFromShadowMem: opd:1.3 from addr:0x1b8a068
+fpSanLoadFromShadowMemD: set value:1.30000000000000
+ in shadowStack at:4 for addr:0x7f748735a0a0  from addr:0x1b8a068
+getRegRes insIndex:130 insMap[insIndex]:5
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:5 frameCur[frameIdx]:0
+computeReal: op1:1.7 op2:1.3
+computeReal: op1Addr:: 0x7f748735a078 op1:1.70000000000000
+computeReal: op2Addr:: 0x7f748735a0a0 op2:1.30000000000000
+
+FADD
+computeReal: stackTop:5 addr 0x7f748735a0c8:
+
+The shadow value is 3.00000000000000
+, but 3.000000 was computed.
+updateError: computedVal:3 insIndex:130
+0.000000 bits error (0 ulps)
+****************
+
+setRealTemp: dest->initFlag:1
+setRealTemp: dest set to:3.00000000000000
+from: 0x7f748735a0c8 to addr:0x1b8a128
+getRegRes insIndex:133 insMap[insIndex]:6
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:6 frameCur[frameIdx]:0
+computeReal: op1:1.7 op2:1.3
+computeReal: op1Addr:: 0x7f748735a078 op1:1.70000000000000
+computeReal: op2Addr:: 0x7f748735a0a0 op2:1.30000000000000
+FDIV
+computeReal: stackTop:6 addr 0x7f748735a0f0:
+
+The shadow value is 1.30769230769231
+, but 1.307692 was computed.
+updateError: computedVal:1.30769 insIndex:133
+0.000000 bits error (0 ulps)
+****************
+
+setRealTemp: dest->initFlag:1
+setRealTemp: dest set to:1.30769230769231
+from: 0x7f748735a0f0 to addr:0x1b8a1e8
+getRegRes insIndex:136 insMap[insIndex]:7
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:7 frameCur[frameIdx]:0
+computeReal: op1:3 op2:1.30769
+computeReal: op1Addr:: 0x7f748735a0c8 op1:3.00000000000000
+computeReal: op2Addr:: 0x7f748735a0f0 op2:1.30769230769231
+FMUL
+computeReal: stackTop:7 addr 0x7f748735a118:
+
+The shadow value is 3.92307692307692
+, but 3.923077 was computed.
+updateError: computedVal:3.92308 insIndex:136
+1.000000 bits error (1 ulps)
+****************
+
+setRealTemp: dest->initFlag:1
+setRealTemp: dest set to:3.92307692307692
+from: 0x7f748735a118 to addr:0x1b8a2a8
+getRegRes insIndex:127 insMap[insIndex]:3
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:3 frameCur[frameIdx]:0
+fpSanLoadFromShadowMem: opd:0.7 from addr:0x1b89fa0
+fpSanLoadFromShadowMemD: set value:7.00000000000000e-1
+ in shadowStack at:3 for addr:0x7f748735a078  from addr:0x1b89fa0
+getRegRes insIndex:129 insMap[insIndex]:4
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:4 frameCur[frameIdx]:0
+fpSanLoadFromShadowMem: opd:0.3 from addr:0x1b8a060
+fpSanLoadFromShadowMemD: set value:3.00000000000000e-1
+ in shadowStack at:4 for addr:0x7f748735a0a0  from addr:0x1b8a060
+getRegRes insIndex:130 insMap[insIndex]:5
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:5 frameCur[frameIdx]:0
+computeReal: op1:0.7 op2:0.3
+computeReal: op1Addr:: 0x7f748735a078 op1:7.00000000000000e-1
+computeReal: op2Addr:: 0x7f748735a0a0 op2:3.00000000000000e-1
+
+FADD
+computeReal: stackTop:5 addr 0x7f748735a0c8:
+
+The shadow value is 1.00000000000000
+, but 1.000000 was computed.
+updateError: computedVal:1 insIndex:130
+0.000000 bits error (0 ulps)
+****************
+
+setRealTemp: dest->initFlag:1
+setRealTemp: dest set to:1.00000000000000
+from: 0x7f748735a0c8 to addr:0x1b8a120
+getRegRes insIndex:133 insMap[insIndex]:6
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:6 frameCur[frameIdx]:0
+computeReal: op1:0.7 op2:0.3
+computeReal: op1Addr:: 0x7f748735a078 op1:7.00000000000000e-1
+computeReal: op2Addr:: 0x7f748735a0a0 op2:3.00000000000000e-1
+FDIV
+computeReal: stackTop:6 addr 0x7f748735a0f0:
+
+The shadow value is 2.33333333333333
+, but 2.333333 was computed.
+updateError: computedVal:2.33333 insIndex:133
+0.000000 bits error (0 ulps)
+****************
+
+setRealTemp: dest->initFlag:1
+setRealTemp: dest set to:2.33333333333333
+from: 0x7f748735a0f0 to addr:0x1b8a1e0
+getRegRes insIndex:136 insMap[insIndex]:7
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:7 frameCur[frameIdx]:0
+computeReal: op1:1 op2:2.33333
+computeReal: op1Addr:: 0x7f748735a0c8 op1:1.00000000000000
+computeReal: op2Addr:: 0x7f748735a0f0 op2:2.33333333333333
+FMUL
+computeReal: stackTop:7 addr 0x7f748735a118:
+
+The shadow value is 2.33333333333333
+, but 2.333333 was computed.
+updateError: computedVal:2.33333 insIndex:136
+1.000000 bits error (1 ulps)
+****************
+
+setRealTemp: dest->initFlag:1
+setRealTemp: dest set to:2.33333333333333
+from: 0x7f748735a118 to addr:0x1b8a2a0
+ return addr:0x7f748735a140
+addFunArg: arg copied from: 0 stackTop:9
+addFunArg addr:0x7f748735a168
+3.22526053605166e-319
+addFunArg: arg copied from: 0 stackTop:10
+addFunArg addr:0x7f748735a190
+1.38523893491006e-309
+addFunArg: arg copied from: 0 stackTop:11
+addFunArg addr:0x7f748735a1b8
+1.38523893491006e-309
+__func_init ******
+funcInit:12
+getRegRes insIndex:13 insMap[insIndex]:0
+getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:0
+getRegRes newRegIdx:0 frameCur[frameIdx]:12
+fpSanLoadFromShadowMem: opd:1 from addr:0x1b8a120
+fpSanLoadFromShadowMemD: set value:1.00000000000000
+ in shadowStack at:12 for addr:0x7f748735a1e0  from addr:0x1b8a120
+getRegRes insIndex:15 insMap[insIndex]:0
+getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:1
+getRegRes newRegIdx:1 frameCur[frameIdx]:12
+fpSanLoadFromShadowMem: opd:2.33333 from addr:0x1b8a1e0
+fpSanLoadFromShadowMemD: set value:2.33333333333333
+ in shadowStack at:13 for addr:0x7f748735a208  from addr:0x1b8a1e0
+getRegRes insIndex:16 insMap[insIndex]:0
+getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:2
+getRegRes newRegIdx:2 frameCur[frameIdx]:12
+computeReal: op1:1 op2:2.33333
+computeReal: op1Addr:: 0x7f748735a1e0 op1:1.00000000000000
+computeReal: op2Addr:: 0x7f748735a208 op2:2.33333333333333
+
+FADD
+computeReal: stackTop:14 addr 0x7f748735a230:
+
+The shadow value is 3.33333333333333
+, but 3.333333 was computed.
+updateError: computedVal:3.33333 insIndex:16
+1.000000 bits error (1 ulps)
+****************
+
+getRegRes insIndex:18 insMap[insIndex]:0
+getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:3
+getRegRes newRegIdx:3 frameCur[frameIdx]:12
+fpSanLoadFromShadowMem: opd:2.33333 from addr:0x1b8a2a0
+fpSanLoadFromShadowMemD: set value:2.33333333333333
+ in shadowStack at:15 for addr:0x7f748735a258  from addr:0x1b8a2a0
+getRegRes insIndex:19 insMap[insIndex]:0
+getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:4
+getRegRes newRegIdx:4 frameCur[frameIdx]:12
+computeReal: op1:3.33333 op2:2.33333
+computeReal: op1Addr:: 0x7f748735a230 op1:3.33333333333333
+computeReal: op2Addr:: 0x7f748735a258 op2:2.33333333333333
+
+FADD
+computeReal: stackTop:16 addr 0x7f748735a280:
+
+The shadow value is 5.66666666666667
+, but 5.666667 was computed.
+updateError: computedVal:5.66667 insIndex:19
+1.000000 bits error (1 ulps)
+****************
+
+getRegRes insIndex:20 insMap[insIndex]:0
+getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:5
+getRegRes newRegIdx:5 frameCur[frameIdx]:12
+computeReal: real1 is null, using op1 value:0
+computeReal: op1:0 op2:5.66667
+computeReal: op1Addr:: (nil) op1:0
+computeReal: op2Addr:: 0x7f748735a280 op2:5.66666666666667
+
+FADD
+computeReal: stackTop:17 addr 0x7f748735a2a8:
+
+The shadow value is 5.66666666666667
+, but 5.666667 was computed.
+updateError: computedVal:5.66667 insIndex:20
+1.000000 bits error (1 ulps)
+****************
+
+getRegRes insIndex:13 insMap[insIndex]:0
+getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:6
+getRegRes newRegIdx:6 frameCur[frameIdx]:12
+fpSanLoadFromShadowMem: opd:3 from addr:0x1b8a128
+fpSanLoadFromShadowMemD: set value:3.00000000000000
+ in shadowStack at:18 for addr:0x7f748735a2d0  from addr:0x1b8a128
+getRegRes insIndex:15 insMap[insIndex]:1
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:1 frameCur[frameIdx]:12
+fpSanLoadFromShadowMem: opd:1.30769 from addr:0x1b8a1e8
+fpSanLoadFromShadowMemD: set value:1.30769230769231
+ in shadowStack at:13 for addr:0x7f748735a208  from addr:0x1b8a1e8
+getRegRes insIndex:16 insMap[insIndex]:2
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:2 frameCur[frameIdx]:12
+computeReal: op1:3 op2:1.30769
+computeReal: op1Addr:: 0x7f748735a2d0 op1:3.00000000000000
+computeReal: op2Addr:: 0x7f748735a208 op2:1.30769230769231
+
+FADD
+computeReal: stackTop:14 addr 0x7f748735a230:
+
+The shadow value is 4.30769230769231
+, but 4.307692 was computed.
+updateError: computedVal:4.30769 insIndex:16
+0.000000 bits error (0 ulps)
+****************
+
+getRegRes insIndex:18 insMap[insIndex]:3
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:3 frameCur[frameIdx]:12
+fpSanLoadFromShadowMem: opd:3.92308 from addr:0x1b8a2a8
+fpSanLoadFromShadowMemD: set value:3.92307692307692
+ in shadowStack at:15 for addr:0x7f748735a258  from addr:0x1b8a2a8
+getRegRes insIndex:19 insMap[insIndex]:4
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:4 frameCur[frameIdx]:12
+computeReal: op1:4.30769 op2:3.92308
+computeReal: op1Addr:: 0x7f748735a230 op1:4.30769230769231
+computeReal: op2Addr:: 0x7f748735a258 op2:3.92307692307692
+
+FADD
+computeReal: stackTop:16 addr 0x7f748735a280:
+
+The shadow value is 8.23076923076923
+, but 8.230769 was computed.
+updateError: computedVal:8.23077 insIndex:19
+0.000000 bits error (0 ulps)
+****************
+
+getRegRes insIndex:20 insMap[insIndex]:5
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:5 frameCur[frameIdx]:12
+computeReal: op1:5.66667 op2:8.23077
+computeReal: op1Addr:: 0x7f748735a2a8 op1:5.66666666666667
+computeReal: op2Addr:: 0x7f748735a280 op2:8.23076923076923
+
+FADD
+computeReal: stackTop:17 addr 0x7f748735a2a8:
+
+The shadow value is 1.38974358974359e1
+, but 1.389744e1 was computed.
+updateError: computedVal:13.8974 insIndex:20
+1.000000 bits error (1 ulps)
+****************
+
+getRegRes insIndex:13 insMap[insIndex]:6
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:6 frameCur[frameIdx]:12
+fpSanLoadFromShadowMem: opd:5 from addr:0x1b8a130
+fpSanLoadFromShadowMemD: set value:5.00000000000000
+ in shadowStack at:18 for addr:0x7f748735a2d0  from addr:0x1b8a130
+getRegRes insIndex:15 insMap[insIndex]:1
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:1 frameCur[frameIdx]:12
+fpSanLoadFromShadowMem: opd:1.17391 from addr:0x1b8a1f0
+fpSanLoadFromShadowMemD: set value:1.17391304347826
+ in shadowStack at:13 for addr:0x7f748735a208  from addr:0x1b8a1f0
+getRegRes insIndex:16 insMap[insIndex]:2
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:2 frameCur[frameIdx]:12
+computeReal: op1:5 op2:1.17391
+computeReal: op1Addr:: 0x7f748735a2d0 op1:5.00000000000000
+computeReal: op2Addr:: 0x7f748735a208 op2:1.17391304347826
+
+FADD
+computeReal: stackTop:14 addr 0x7f748735a230:
+
+The shadow value is 6.17391304347826
+, but 6.173913 was computed.
+updateError: computedVal:6.17391 insIndex:16
+0.000000 bits error (0 ulps)
+****************
+
+getRegRes insIndex:18 insMap[insIndex]:3
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:3 frameCur[frameIdx]:12
+fpSanLoadFromShadowMem: opd:5.86957 from addr:0x1b8a2b0
+fpSanLoadFromShadowMemD: set value:5.86956521739130
+ in shadowStack at:15 for addr:0x7f748735a258  from addr:0x1b8a2b0
+getRegRes insIndex:19 insMap[insIndex]:4
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:4 frameCur[frameIdx]:12
+computeReal: op1:6.17391 op2:5.86957
+computeReal: op1Addr:: 0x7f748735a230 op1:6.17391304347826
+computeReal: op2Addr:: 0x7f748735a258 op2:5.86956521739130
+
+FADD
+computeReal: stackTop:16 addr 0x7f748735a280:
+
+The shadow value is 1.20434782608696e1
+, but 1.204348e1 was computed.
+updateError: computedVal:12.0435 insIndex:19
+1.000000 bits error (1 ulps)
+****************
+
+getRegRes insIndex:20 insMap[insIndex]:5
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:5 frameCur[frameIdx]:12
+computeReal: op1:13.8974 op2:12.0435
+computeReal: op1Addr:: 0x7f748735a2a8 op1:1.38974358974359e1
+computeReal: op2Addr:: 0x7f748735a280 op2:1.20434782608696e1
+
+FADD
+computeReal: stackTop:17 addr 0x7f748735a2a8:
+
+The shadow value is 2.59409141583055e1
+, but 2.594091e1 was computed.
+updateError: computedVal:25.9409 insIndex:20
+1.000000 bits error (1 ulps)
+****************
+
+getRegRes insIndex:13 insMap[insIndex]:6
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:6 frameCur[frameIdx]:12
+fpSanLoadFromShadowMem: opd:7 from addr:0x1b8a138
+fpSanLoadFromShadowMemD: set value:7.00000000000000
+ in shadowStack at:18 for addr:0x7f748735a2d0  from addr:0x1b8a138
+getRegRes insIndex:15 insMap[insIndex]:1
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:1 frameCur[frameIdx]:12
+fpSanLoadFromShadowMem: opd:1.12121 from addr:0x1b8a1f8
+fpSanLoadFromShadowMemD: set value:1.12121212121212
+ in shadowStack at:13 for addr:0x7f748735a208  from addr:0x1b8a1f8
+getRegRes insIndex:16 insMap[insIndex]:2
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:2 frameCur[frameIdx]:12
+computeReal: op1:7 op2:1.12121
+computeReal: op1Addr:: 0x7f748735a2d0 op1:7.00000000000000
+computeReal: op2Addr:: 0x7f748735a208 op2:1.12121212121212
+
+FADD
+computeReal: stackTop:14 addr 0x7f748735a230:
+
+The shadow value is 8.12121212121212
+, but 8.121212 was computed.
+updateError: computedVal:8.12121 insIndex:16
+0.000000 bits error (0 ulps)
+****************
+
+getRegRes insIndex:18 insMap[insIndex]:3
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:3 frameCur[frameIdx]:12
+fpSanLoadFromShadowMem: opd:7.84848 from addr:0x1b8a2b8
+fpSanLoadFromShadowMemD: set value:7.84848484848485
+ in shadowStack at:15 for addr:0x7f748735a258  from addr:0x1b8a2b8
+getRegRes insIndex:19 insMap[insIndex]:4
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:4 frameCur[frameIdx]:12
+computeReal: op1:8.12121 op2:7.84848
+computeReal: op1Addr:: 0x7f748735a230 op1:8.12121212121212
+computeReal: op2Addr:: 0x7f748735a258 op2:7.84848484848485
+
+FADD
+computeReal: stackTop:16 addr 0x7f748735a280:
+
+The shadow value is 1.59696969696970e1
+, but 1.596970e1 was computed.
+updateError: computedVal:15.9697 insIndex:19
+1.000000 bits error (1 ulps)
+****************
+
+getRegRes insIndex:20 insMap[insIndex]:5
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:5 frameCur[frameIdx]:12
+computeReal: op1:25.9409 op2:15.9697
+computeReal: op1Addr:: 0x7f748735a2a8 op1:2.59409141583055e1
+computeReal: op2Addr:: 0x7f748735a280 op2:1.59696969696970e1
+
+FADD
+computeReal: stackTop:17 addr 0x7f748735a2a8:
+
+The shadow value is 4.19106111280024e1
+, but 4.191061e1 was computed.
+updateError: computedVal:41.9106 insIndex:20
+1.000000 bits error (1 ulps)
+****************
+
+getRegRes insIndex:13 insMap[insIndex]:6
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:6 frameCur[frameIdx]:12
+fpSanLoadFromShadowMem: opd:9 from addr:0x1b8a140
+fpSanLoadFromShadowMemD: set value:9.00000000000000
+ in shadowStack at:18 for addr:0x7f748735a2d0  from addr:0x1b8a140
+getRegRes insIndex:15 insMap[insIndex]:1
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:1 frameCur[frameIdx]:12
+fpSanLoadFromShadowMem: opd:1.09302 from addr:0x1b8a200
+fpSanLoadFromShadowMemD: set value:1.09302325581395
+ in shadowStack at:13 for addr:0x7f748735a208  from addr:0x1b8a200
+getRegRes insIndex:16 insMap[insIndex]:2
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:2 frameCur[frameIdx]:12
+computeReal: op1:9 op2:1.09302
+computeReal: op1Addr:: 0x7f748735a2d0 op1:9.00000000000000
+computeReal: op2Addr:: 0x7f748735a208 op2:1.09302325581395
+
+FADD
+computeReal: stackTop:14 addr 0x7f748735a230:
+
+The shadow value is 1.00930232558140e1
+, but 1.009302e1 was computed.
+updateError: computedVal:10.093 insIndex:16
+0.000000 bits error (0 ulps)
+****************
+
+getRegRes insIndex:18 insMap[insIndex]:3
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:3 frameCur[frameIdx]:12
+fpSanLoadFromShadowMem: opd:9.83721 from addr:0x1b8a2c0
+fpSanLoadFromShadowMemD: set value:9.83720930232558
+ in shadowStack at:15 for addr:0x7f748735a258  from addr:0x1b8a2c0
+getRegRes insIndex:19 insMap[insIndex]:4
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:4 frameCur[frameIdx]:12
+computeReal: op1:10.093 op2:9.83721
+computeReal: op1Addr:: 0x7f748735a230 op1:1.00930232558140e1
+computeReal: op2Addr:: 0x7f748735a258 op2:9.83720930232558
+
+FADD
+computeReal: stackTop:16 addr 0x7f748735a280:
+
+The shadow value is 1.99302325581395e1
+, but 1.993023e1 was computed.
+updateError: computedVal:19.9302 insIndex:19
+1.000000 bits error (1 ulps)
+****************
+
+getRegRes insIndex:20 insMap[insIndex]:5
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:5 frameCur[frameIdx]:12
+computeReal: op1:41.9106 op2:19.9302
+computeReal: op1Addr:: 0x7f748735a2a8 op1:4.19106111280024e1
+computeReal: op2Addr:: 0x7f748735a280 op2:1.99302325581395e1
+
+FADD
+computeReal: stackTop:17 addr 0x7f748735a2a8:
+
+The shadow value is 6.18408436861420e1
+, but 6.184084e1 was computed.
+updateError: computedVal:61.8408 insIndex:20
+1.000000 bits error (1 ulps)
+****************
+
+__func_exit ******
+funcExit: return copied from::0x7f748735a2a8 to stackTop:8
+ addr:0x7f748735a140
+funcExit:8
+ return addr:0x7f748735a168
+addFunArg: arg copied from: 0 stackTop:10
+addFunArg addr:0x7f748735a190
+3.22526053605166e-319
+addFunArg: arg copied from: 0 stackTop:11
+addFunArg addr:0x7f748735a1b8
+1.38523893491006e-309
+addFunArg: arg copied from: 0 stackTop:12
+addFunArg addr:0x7f748735a1e0
+1.38523893491006e-309
+__func_init ******
+funcInit:13
+getRegRes insIndex:13 insMap[insIndex]:0
+getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:0
+getRegRes newRegIdx:0 frameCur[frameIdx]:13
+fpSanLoadFromShadowMem: opd:2.33333 from addr:0x1b8a1e0
+fpSanLoadFromShadowMemD: set value:2.33333333333333
+ in shadowStack at:13 for addr:0x7f748735a208  from addr:0x1b8a1e0
+getRegRes insIndex:15 insMap[insIndex]:0
+getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:1
+getRegRes newRegIdx:1 frameCur[frameIdx]:13
+fpSanLoadFromShadowMem: opd:1 from addr:0x1b8a120
+fpSanLoadFromShadowMemD: set value:1.00000000000000
+ in shadowStack at:14 for addr:0x7f748735a230  from addr:0x1b8a120
+getRegRes insIndex:16 insMap[insIndex]:0
+getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:2
+getRegRes newRegIdx:2 frameCur[frameIdx]:13
+computeReal: op1:2.33333 op2:1
+computeReal: op1Addr:: 0x7f748735a208 op1:2.33333333333333
+computeReal: op2Addr:: 0x7f748735a230 op2:1.00000000000000
+
+FADD
+computeReal: stackTop:15 addr 0x7f748735a258:
+
+The shadow value is 3.33333333333333
+, but 3.333333 was computed.
+updateError: computedVal:3.33333 insIndex:16
+1.000000 bits error (1 ulps)
+****************
+
+getRegRes insIndex:18 insMap[insIndex]:0
+getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:3
+getRegRes newRegIdx:3 frameCur[frameIdx]:13
+fpSanLoadFromShadowMem: opd:2.33333 from addr:0x1b8a2a0
+fpSanLoadFromShadowMemD: set value:2.33333333333333
+ in shadowStack at:16 for addr:0x7f748735a280  from addr:0x1b8a2a0
+getRegRes insIndex:19 insMap[insIndex]:0
+getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:4
+getRegRes newRegIdx:4 frameCur[frameIdx]:13
+computeReal: op1:3.33333 op2:2.33333
+computeReal: op1Addr:: 0x7f748735a258 op1:3.33333333333333
+computeReal: op2Addr:: 0x7f748735a280 op2:2.33333333333333
+
+FADD
+computeReal: stackTop:17 addr 0x7f748735a2a8:
+
+The shadow value is 5.66666666666667
+, but 5.666667 was computed.
+updateError: computedVal:5.66667 insIndex:19
+1.000000 bits error (1 ulps)
+****************
+
+getRegRes insIndex:20 insMap[insIndex]:0
+getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:5
+getRegRes newRegIdx:5 frameCur[frameIdx]:13
+computeReal: real1 is null, using op1 value:0
+computeReal: op1:0 op2:5.66667
+computeReal: op1Addr:: (nil) op1:0
+computeReal: op2Addr:: 0x7f748735a2a8 op2:5.66666666666667
+
+FADD
+computeReal: stackTop:18 addr 0x7f748735a2d0:
+
+The shadow value is 5.66666666666667
+, but 5.666667 was computed.
+updateError: computedVal:5.66667 insIndex:20
+1.000000 bits error (1 ulps)
+****************
+
+getRegRes insIndex:13 insMap[insIndex]:0
+getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:6
+getRegRes newRegIdx:6 frameCur[frameIdx]:13
+fpSanLoadFromShadowMem: opd:1.30769 from addr:0x1b8a1e8
+fpSanLoadFromShadowMemD: set value:1.30769230769231
+ in shadowStack at:19 for addr:0x7f748735a2f8  from addr:0x1b8a1e8
+getRegRes insIndex:15 insMap[insIndex]:1
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:1 frameCur[frameIdx]:13
+fpSanLoadFromShadowMem: opd:3 from addr:0x1b8a128
+fpSanLoadFromShadowMemD: set value:3.00000000000000
+ in shadowStack at:14 for addr:0x7f748735a230  from addr:0x1b8a128
+getRegRes insIndex:16 insMap[insIndex]:2
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:2 frameCur[frameIdx]:13
+computeReal: op1:1.30769 op2:3
+computeReal: op1Addr:: 0x7f748735a2f8 op1:1.30769230769231
+computeReal: op2Addr:: 0x7f748735a230 op2:3.00000000000000
+
+FADD
+computeReal: stackTop:15 addr 0x7f748735a258:
+
+The shadow value is 4.30769230769231
+, but 4.307692 was computed.
+updateError: computedVal:4.30769 insIndex:16
+0.000000 bits error (0 ulps)
+****************
+
+getRegRes insIndex:18 insMap[insIndex]:3
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:3 frameCur[frameIdx]:13
+fpSanLoadFromShadowMem: opd:3.92308 from addr:0x1b8a2a8
+fpSanLoadFromShadowMemD: set value:3.92307692307692
+ in shadowStack at:16 for addr:0x7f748735a280  from addr:0x1b8a2a8
+getRegRes insIndex:19 insMap[insIndex]:4
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:4 frameCur[frameIdx]:13
+computeReal: op1:4.30769 op2:3.92308
+computeReal: op1Addr:: 0x7f748735a258 op1:4.30769230769231
+computeReal: op2Addr:: 0x7f748735a280 op2:3.92307692307692
+
+FADD
+computeReal: stackTop:17 addr 0x7f748735a2a8:
+
+The shadow value is 8.23076923076923
+, but 8.230769 was computed.
+updateError: computedVal:8.23077 insIndex:19
+0.000000 bits error (0 ulps)
+****************
+
+getRegRes insIndex:20 insMap[insIndex]:5
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:5 frameCur[frameIdx]:13
+computeReal: op1:5.66667 op2:8.23077
+computeReal: op1Addr:: 0x7f748735a2d0 op1:5.66666666666667
+computeReal: op2Addr:: 0x7f748735a2a8 op2:8.23076923076923
+
+FADD
+computeReal: stackTop:18 addr 0x7f748735a2d0:
+
+The shadow value is 1.38974358974359e1
+, but 1.389744e1 was computed.
+updateError: computedVal:13.8974 insIndex:20
+1.000000 bits error (1 ulps)
+****************
+
+getRegRes insIndex:13 insMap[insIndex]:6
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:6 frameCur[frameIdx]:13
+fpSanLoadFromShadowMem: opd:1.17391 from addr:0x1b8a1f0
+fpSanLoadFromShadowMemD: set value:1.17391304347826
+ in shadowStack at:19 for addr:0x7f748735a2f8  from addr:0x1b8a1f0
+getRegRes insIndex:15 insMap[insIndex]:1
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:1 frameCur[frameIdx]:13
+fpSanLoadFromShadowMem: opd:5 from addr:0x1b8a130
+fpSanLoadFromShadowMemD: set value:5.00000000000000
+ in shadowStack at:14 for addr:0x7f748735a230  from addr:0x1b8a130
+getRegRes insIndex:16 insMap[insIndex]:2
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:2 frameCur[frameIdx]:13
+computeReal: op1:1.17391 op2:5
+computeReal: op1Addr:: 0x7f748735a2f8 op1:1.17391304347826
+computeReal: op2Addr:: 0x7f748735a230 op2:5.00000000000000
+
+FADD
+computeReal: stackTop:15 addr 0x7f748735a258:
+
+The shadow value is 6.17391304347826
+, but 6.173913 was computed.
+updateError: computedVal:6.17391 insIndex:16
+0.000000 bits error (0 ulps)
+****************
+
+getRegRes insIndex:18 insMap[insIndex]:3
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:3 frameCur[frameIdx]:13
+fpSanLoadFromShadowMem: opd:5.86957 from addr:0x1b8a2b0
+fpSanLoadFromShadowMemD: set value:5.86956521739130
+ in shadowStack at:16 for addr:0x7f748735a280  from addr:0x1b8a2b0
+getRegRes insIndex:19 insMap[insIndex]:4
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:4 frameCur[frameIdx]:13
+computeReal: op1:6.17391 op2:5.86957
+computeReal: op1Addr:: 0x7f748735a258 op1:6.17391304347826
+computeReal: op2Addr:: 0x7f748735a280 op2:5.86956521739130
+
+FADD
+computeReal: stackTop:17 addr 0x7f748735a2a8:
+
+The shadow value is 1.20434782608696e1
+, but 1.204348e1 was computed.
+updateError: computedVal:12.0435 insIndex:19
+1.000000 bits error (1 ulps)
+****************
+
+getRegRes insIndex:20 insMap[insIndex]:5
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:5 frameCur[frameIdx]:13
+computeReal: op1:13.8974 op2:12.0435
+computeReal: op1Addr:: 0x7f748735a2d0 op1:1.38974358974359e1
+computeReal: op2Addr:: 0x7f748735a2a8 op2:1.20434782608696e1
+
+FADD
+computeReal: stackTop:18 addr 0x7f748735a2d0:
+
+The shadow value is 2.59409141583055e1
+, but 2.594091e1 was computed.
+updateError: computedVal:25.9409 insIndex:20
+1.000000 bits error (1 ulps)
+****************
+
+getRegRes insIndex:13 insMap[insIndex]:6
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:6 frameCur[frameIdx]:13
+fpSanLoadFromShadowMem: opd:1.12121 from addr:0x1b8a1f8
+fpSanLoadFromShadowMemD: set value:1.12121212121212
+ in shadowStack at:19 for addr:0x7f748735a2f8  from addr:0x1b8a1f8
+getRegRes insIndex:15 insMap[insIndex]:1
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:1 frameCur[frameIdx]:13
+fpSanLoadFromShadowMem: opd:7 from addr:0x1b8a138
+fpSanLoadFromShadowMemD: set value:7.00000000000000
+ in shadowStack at:14 for addr:0x7f748735a230  from addr:0x1b8a138
+getRegRes insIndex:16 insMap[insIndex]:2
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:2 frameCur[frameIdx]:13
+computeReal: op1:1.12121 op2:7
+computeReal: op1Addr:: 0x7f748735a2f8 op1:1.12121212121212
+computeReal: op2Addr:: 0x7f748735a230 op2:7.00000000000000
+
+FADD
+computeReal: stackTop:15 addr 0x7f748735a258:
+
+The shadow value is 8.12121212121212
+, but 8.121212 was computed.
+updateError: computedVal:8.12121 insIndex:16
+0.000000 bits error (0 ulps)
+****************
+
+getRegRes insIndex:18 insMap[insIndex]:3
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:3 frameCur[frameIdx]:13
+fpSanLoadFromShadowMem: opd:7.84848 from addr:0x1b8a2b8
+fpSanLoadFromShadowMemD: set value:7.84848484848485
+ in shadowStack at:16 for addr:0x7f748735a280  from addr:0x1b8a2b8
+getRegRes insIndex:19 insMap[insIndex]:4
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:4 frameCur[frameIdx]:13
+computeReal: op1:8.12121 op2:7.84848
+computeReal: op1Addr:: 0x7f748735a258 op1:8.12121212121212
+computeReal: op2Addr:: 0x7f748735a280 op2:7.84848484848485
+
+FADD
+computeReal: stackTop:17 addr 0x7f748735a2a8:
+
+The shadow value is 1.59696969696970e1
+, but 1.596970e1 was computed.
+updateError: computedVal:15.9697 insIndex:19
+1.000000 bits error (1 ulps)
+****************
+
+getRegRes insIndex:20 insMap[insIndex]:5
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:5 frameCur[frameIdx]:13
+computeReal: op1:25.9409 op2:15.9697
+computeReal: op1Addr:: 0x7f748735a2d0 op1:2.59409141583055e1
+computeReal: op2Addr:: 0x7f748735a2a8 op2:1.59696969696970e1
+
+FADD
+computeReal: stackTop:18 addr 0x7f748735a2d0:
+
+The shadow value is 4.19106111280024e1
+, but 4.191061e1 was computed.
+updateError: computedVal:41.9106 insIndex:20
+1.000000 bits error (1 ulps)
+****************
+
+getRegRes insIndex:13 insMap[insIndex]:6
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:6 frameCur[frameIdx]:13
+fpSanLoadFromShadowMem: opd:1.09302 from addr:0x1b8a200
+fpSanLoadFromShadowMemD: set value:1.09302325581395
+ in shadowStack at:19 for addr:0x7f748735a2f8  from addr:0x1b8a200
+getRegRes insIndex:15 insMap[insIndex]:1
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:1 frameCur[frameIdx]:13
+fpSanLoadFromShadowMem: opd:9 from addr:0x1b8a140
+fpSanLoadFromShadowMemD: set value:9.00000000000000
+ in shadowStack at:14 for addr:0x7f748735a230  from addr:0x1b8a140
+getRegRes insIndex:16 insMap[insIndex]:2
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:2 frameCur[frameIdx]:13
+computeReal: op1:1.09302 op2:9
+computeReal: op1Addr:: 0x7f748735a2f8 op1:1.09302325581395
+computeReal: op2Addr:: 0x7f748735a230 op2:9.00000000000000
+
+FADD
+computeReal: stackTop:15 addr 0x7f748735a258:
+
+The shadow value is 1.00930232558140e1
+, but 1.009302e1 was computed.
+updateError: computedVal:10.093 insIndex:16
+0.000000 bits error (0 ulps)
+****************
+
+getRegRes insIndex:18 insMap[insIndex]:3
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:3 frameCur[frameIdx]:13
+fpSanLoadFromShadowMem: opd:9.83721 from addr:0x1b8a2c0
+fpSanLoadFromShadowMemD: set value:9.83720930232558
+ in shadowStack at:16 for addr:0x7f748735a280  from addr:0x1b8a2c0
+getRegRes insIndex:19 insMap[insIndex]:4
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:4 frameCur[frameIdx]:13
+computeReal: op1:10.093 op2:9.83721
+computeReal: op1Addr:: 0x7f748735a258 op1:1.00930232558140e1
+computeReal: op2Addr:: 0x7f748735a280 op2:9.83720930232558
+
+FADD
+computeReal: stackTop:17 addr 0x7f748735a2a8:
+
+The shadow value is 1.99302325581395e1
+, but 1.993023e1 was computed.
+updateError: computedVal:19.9302 insIndex:19
+1.000000 bits error (1 ulps)
+****************
+
+getRegRes insIndex:20 insMap[insIndex]:5
+getRegRes insMap[insIndex] != 0
+getRegRes newRegIdx:5 frameCur[frameIdx]:13
+computeReal: op1:41.9106 op2:19.9302
+computeReal: op1Addr:: 0x7f748735a2d0 op1:4.19106111280024e1
+computeReal: op2Addr:: 0x7f748735a2a8 op2:1.99302325581395e1
+
+FADD
+computeReal: stackTop:18 addr 0x7f748735a2d0:
+
+The shadow value is 6.18408436861420e1
+, but 6.184084e1 was computed.
+updateError: computedVal:61.8408 insIndex:20
+1.000000 bits error (1 ulps)
+****************
+
+__func_exit ******
+funcExit: return copied from::0x7f748735a2d0 to stackTop:9
+ addr:0x7f748735a168
+funcExit:9
+6.184084e+01
+6.184084e+01
+6.184084e+01
+******
+Avg Instructions:-nan
+initTime:0
+computeTime:0
+setRealTime:0
+getAddrTime:0
+funcInitTime:0
+funcExitTime:0
+mallocTime:0
+callocTime:0
+memsetTime:0
+memcpyTime:0
+uErrorTime:0
+loadFTime:0
+loadDTime:0
+addAddrTime:0
+addFunTime:0
+fToITime:0
+mathFTime:0
+mathDTime:0
+selectTime:0
+computeFTime:0
+checkBrTime:0
+setRealFArgTime:0
+setRealCDTime:0
+setRealCFTime:0
+count:0
+count1:0
+count2:0
+count3:0
+count4:0
+count5:0
+count6:0

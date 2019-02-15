@@ -21,7 +21,7 @@
 #define MAX_SIZE 100000000
 #define INSSIZE 1000000
 //#define MPFRINIT 100000000 //for spec
-#define MPFRINIT 10000
+#define MPFRINIT 100
 
 const size_t SS_PRIMARY_TABLE_ENTRIES = ((size_t) 4194304);//2^22
 const size_t SS_SEC_TABLE_ENTRIES = ((size_t) 64*(size_t) 1024 * (size_t) 1024); // 2^26
@@ -69,6 +69,8 @@ struct Compute{
 	size_t lineNo;
 	bool fcmpRes;
 };
+size_t totalIns = 0;
+double sumIns = 0;
 double initTime = 0;
 double computeTime = 0;
 double setRealTime = 0;
@@ -144,6 +146,7 @@ extern "C" size_t __get_addr(void *Addr);
 extern "C"  void __init();
 extern "C"  void __finish();
 extern "C"  void printToFile(void* op1Addr, void* op2Addr, void* op3Addr);
+size_t getFunOperands(size_t addr);
 void* get_real_fun_arg(size_t index);
 unsigned long ulpd(double x, double y);
 unsigned long ulpf(float x, float y);
