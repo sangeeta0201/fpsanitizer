@@ -26,8 +26,8 @@ int main() {
 	double *z2 = (double *)malloc(SIZE*sizeof(double));
 	double *z3 = (double *)malloc(SIZE*sizeof(double));
 	double max;
-  for (int i = 0; i < SIZE; i++){
-		x[i] = i + 0.7;
+	for (int i = 0; i < SIZE; i++){
+			x[i] = i + 0.7;
 		y[i] = i + 0.3;
 	}
 	printf("loop1 done\n");
@@ -37,8 +37,10 @@ int main() {
 		z3[i] = z1[i] * z2[i];
 	}
 	double xx = bar(z1, z2, z3);
+	
 	double yy = bar(z2, z1, z3);
-	printf("%e\n", max);
+	double sum = xx + yy;
+	printf("%e\n", sum);
 	printf("%e\n", xx);
 	printf("%e\n", yy);
 	printf("******\n");

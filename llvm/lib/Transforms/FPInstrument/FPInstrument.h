@@ -44,14 +44,14 @@ public:
   //it fillis new phi node
   void handleNewPhi(Function &F);
   //its called for CallInst to handle functions other than math functions
-  void handleCallInst(Instruction *I, CallInst *CI, Function &F);
+  void handleCallInst(Instruction *I, CallInst *CI, BasicBlock *BB, Function &F);
   //Its called for every BinaryOperator in floating point instruction
   //void handleOp(Instruction *I, BinaryOperator* BO, Function &F);
   void handleOp(Instruction *I, BasicBlock *BB, BinaryOperator* BO, Function &F);
   //this is called inside from handleOp to handle each operand, it it could be constant, temp or loaded from memory
   void handleOperand(Instruction *I, Instruction **Index, Value* OP, Function &F, bool *IsConstant, bool *IsReg);
   //it gives unique index to every instruction
-  void handleIns();
+  void handleIns(Function &F);
   void handleCRIns();
   //its called for every FCmpInst
   void handleFcmp(Instruction *I, BasicBlock *BB, FCmpInst *FCI, Function &F);
@@ -82,6 +82,7 @@ public:
 	void handleFloatToInt(Instruction *I, BasicBlock *BB, FPToSIInst *FSI, Function &F);
   static char ID; // Pass identification, replacement for typeid
 private:
+	std::queue<StringRef> FunctionList;
   SmallVector<Function*, 8> AllFuncList;
   SmallVector<Instruction*, 8> AllInsList;
   SmallVector<Instruction*, 8> AllCRList;
@@ -101,7 +102,7 @@ private:
   //this is used to track index of every instruction
   std::map<Instruction*, size_t> InsMap;
   std::map<Instruction*, size_t> InsCRMap;
-  std::map<Function*, size_t> FunMap;
+  std::map<Function*, size_t> FunRetMap;
   //this is used to save mapping of old phi node and new phi node
   std::map<Instruction*, Instruction*> NewPhiMap;
   //this is used to give unique index to every argument of the function. Since we won't know address

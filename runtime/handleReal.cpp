@@ -22,10 +22,10 @@ const size_t SS_SEC_TABLE_ENTRIES = ((size_t) 64*(size_t) 1024 * (size_t) 1024);
 2. Clean up shadow
 3. How to figure out memcpy of only double?
 */
-#define debug 0
-#define debugCR 0
-//#define MPFRINIT 100000000 //for spec
-#define MPFRINIT 10000
+#define debug 1
+#define debugCR 1
+#define MPFRINIT 100000000 //for spec
+//#define MPFRINIT 10000
 FILE *pFile = fopen ("error.log","w");
 FILE *eFile = fopen ("branch.log","w");
 FILE *lbmRef = fopen ("ref.log","w");
@@ -466,10 +466,12 @@ extern "C" void* handleSelect(void *Addr, size_t insIndex, double op){
   size_t newRegIdx = getRegRes(insIndex);
 	size_t AddrInt = (size_t) Addr;
 	Real *real1;
-	real1 = (Real *)Addr;
-	if(AddrInt == 0 || real1->initFlag == 0){
+	std::cout<<"AddrInt:"<<AddrInt<<"\n";
+	real1 = (Real *)AddrInt;
+	if(AddrInt == 0)
 		mpfr_set_d(shadowStack[newRegIdx].mpfr_val, op, MPFR_RNDN);
-	}
+	else if(real1->initFlag == 0)
+		mpfr_set_d(shadowStack[newRegIdx].mpfr_val, op, MPFR_RNDN);
 	else
 		mpfr_set(shadowStack[newRegIdx].mpfr_val, real1->mpfr_val, MPFR_RNDN);
 	if(debug){

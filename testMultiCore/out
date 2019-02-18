@@ -1,6 +1,5 @@
 init called
 __func_init ******
-funcInit:0
 init1
 thread created
 handleMalloc size:40
@@ -8,9 +7,7 @@ handleMalloc size:40
 handleMalloc size:40
 handleMalloc size:40
 handleMalloc size:40
-getRegRes insIndex:105 insMap[insIndex]:0
-getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:0
-getRegRes newRegIdx:0 frameCur[frameIdx]:0
+op1Addr:0 op2Addr:0
 computeReal: real1 is null, using op1 value:0
 computeReal: real2 is null, using op2 value:0.7
 computeReal: op1:0 op2:0.7
@@ -18,20 +15,18 @@ computeReal: op1Addr:: (nil) op1:0
 computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
 
 FADD
-computeReal: stackTop:0 addr 0x7f748735a000:
+computeReal: stackTop:0 addr 0x7f3604d2b000:
 
 The shadow value is 7.00000000000000e-1
 , but 7.000000e-1 was computed.
-updateError: computedVal:0.7 insIndex:105
+updateError: computedVal:0.7 insIndex:0
 0.000000 bits error (0 ulps)
 ****************
 
 setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:7.00000000000000e-1
-from: 0x7f748735a000 to addr:0x1b89fa0
-getRegRes insIndex:108 insMap[insIndex]:0
-getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:1
-getRegRes newRegIdx:1 frameCur[frameIdx]:0
+from: 0 to addr:0x236afb0
+op1Addr:0 op2Addr:0
 computeReal: real1 is null, using op1 value:0
 computeReal: real2 is null, using op2 value:0.3
 computeReal: op1:0 op2:0.3
@@ -39,20 +34,18 @@ computeReal: op1Addr:: (nil) op1:0
 computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
 
 FADD
-computeReal: stackTop:1 addr 0x7f748735a028:
+computeReal: stackTop:2 addr 0x7f3604d2b050:
 
 The shadow value is 3.00000000000000e-1
 , but 3.000000e-1 was computed.
-updateError: computedVal:0.3 insIndex:108
+updateError: computedVal:0.3 insIndex:2
 0.000000 bits error (0 ulps)
 ****************
 
 setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:3.00000000000000e-1
-from: 0x7f748735a028 to addr:0x1b8a060
-getRegRes insIndex:105 insMap[insIndex]:0
-getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:2
-getRegRes newRegIdx:2 frameCur[frameIdx]:0
+from: 2 to addr:0x236b070
+op1Addr:0 op2Addr:0
 computeReal: real1 is null, using op1 value:1
 computeReal: real2 is null, using op2 value:0.7
 computeReal: op1:1 op2:0.7
@@ -60,20 +53,18 @@ computeReal: op1Addr:: (nil) op1:1.00000000000000
 computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
 
 FADD
-computeReal: stackTop:2 addr 0x7f748735a050:
+computeReal: stackTop:0 addr 0x7f3604d2b000:
 
 The shadow value is 1.70000000000000
 , but 1.700000 was computed.
-updateError: computedVal:1.7 insIndex:105
+updateError: computedVal:1.7 insIndex:0
 0.000000 bits error (0 ulps)
 ****************
 
 setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:1.70000000000000
-from: 0x7f748735a050 to addr:0x1b89fa8
-getRegRes insIndex:108 insMap[insIndex]:1
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:1 frameCur[frameIdx]:0
+from: 0 to addr:0x236afb8
+op1Addr:0 op2Addr:0
 computeReal: real1 is null, using op1 value:1
 computeReal: real2 is null, using op2 value:0.3
 computeReal: op1:1 op2:0.3
@@ -81,20 +72,18 @@ computeReal: op1Addr:: (nil) op1:1.00000000000000
 computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
 
 FADD
-computeReal: stackTop:1 addr 0x7f748735a028:
+computeReal: stackTop:2 addr 0x7f3604d2b050:
 
 The shadow value is 1.30000000000000
 , but 1.300000 was computed.
-updateError: computedVal:1.3 insIndex:108
+updateError: computedVal:1.3 insIndex:2
 0.000000 bits error (0 ulps)
 ****************
 
 setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:1.30000000000000
-from: 0x7f748735a028 to addr:0x1b8a068
-getRegRes insIndex:105 insMap[insIndex]:2
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:2 frameCur[frameIdx]:0
+from: 2 to addr:0x236b078
+op1Addr:0 op2Addr:0
 computeReal: real1 is null, using op1 value:2
 computeReal: real2 is null, using op2 value:0.7
 computeReal: op1:2 op2:0.7
@@ -102,20 +91,18 @@ computeReal: op1Addr:: (nil) op1:2.00000000000000
 computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
 
 FADD
-computeReal: stackTop:2 addr 0x7f748735a050:
+computeReal: stackTop:0 addr 0x7f3604d2b000:
 
 The shadow value is 2.70000000000000
 , but 2.700000 was computed.
-updateError: computedVal:2.7 insIndex:105
+updateError: computedVal:2.7 insIndex:0
 0.000000 bits error (0 ulps)
 ****************
 
 setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:2.70000000000000
-from: 0x7f748735a050 to addr:0x1b89fb0
-getRegRes insIndex:108 insMap[insIndex]:1
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:1 frameCur[frameIdx]:0
+from: 0 to addr:0x236afc0
+op1Addr:0 op2Addr:0
 computeReal: real1 is null, using op1 value:2
 computeReal: real2 is null, using op2 value:0.3
 computeReal: op1:2 op2:0.3
@@ -123,20 +110,18 @@ computeReal: op1Addr:: (nil) op1:2.00000000000000
 computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
 
 FADD
-computeReal: stackTop:1 addr 0x7f748735a028:
+computeReal: stackTop:2 addr 0x7f3604d2b050:
 
 The shadow value is 2.30000000000000
 , but 2.300000 was computed.
-updateError: computedVal:2.3 insIndex:108
+updateError: computedVal:2.3 insIndex:2
 0.000000 bits error (0 ulps)
 ****************
 
 setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:2.30000000000000
-from: 0x7f748735a028 to addr:0x1b8a070
-getRegRes insIndex:105 insMap[insIndex]:2
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:2 frameCur[frameIdx]:0
+from: 2 to addr:0x236b080
+op1Addr:0 op2Addr:0
 computeReal: real1 is null, using op1 value:3
 computeReal: real2 is null, using op2 value:0.7
 computeReal: op1:3 op2:0.7
@@ -144,20 +129,18 @@ computeReal: op1Addr:: (nil) op1:3.00000000000000
 computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
 
 FADD
-computeReal: stackTop:2 addr 0x7f748735a050:
+computeReal: stackTop:0 addr 0x7f3604d2b000:
 
 The shadow value is 3.70000000000000
 , but 3.700000 was computed.
-updateError: computedVal:3.7 insIndex:105
+updateError: computedVal:3.7 insIndex:0
 0.000000 bits error (0 ulps)
 ****************
 
 setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:3.70000000000000
-from: 0x7f748735a050 to addr:0x1b89fb8
-getRegRes insIndex:108 insMap[insIndex]:1
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:1 frameCur[frameIdx]:0
+from: 0 to addr:0x236afc8
+op1Addr:0 op2Addr:0
 computeReal: real1 is null, using op1 value:3
 computeReal: real2 is null, using op2 value:0.3
 computeReal: op1:3 op2:0.3
@@ -165,20 +148,18 @@ computeReal: op1Addr:: (nil) op1:3.00000000000000
 computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
 
 FADD
-computeReal: stackTop:1 addr 0x7f748735a028:
+computeReal: stackTop:2 addr 0x7f3604d2b050:
 
 The shadow value is 3.30000000000000
 , but 3.300000 was computed.
-updateError: computedVal:3.3 insIndex:108
+updateError: computedVal:3.3 insIndex:2
 0.000000 bits error (0 ulps)
 ****************
 
 setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:3.30000000000000
-from: 0x7f748735a028 to addr:0x1b8a078
-getRegRes insIndex:105 insMap[insIndex]:2
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:2 frameCur[frameIdx]:0
+from: 2 to addr:0x236b088
+op1Addr:0 op2Addr:0
 computeReal: real1 is null, using op1 value:4
 computeReal: real2 is null, using op2 value:0.7
 computeReal: op1:4 op2:0.7
@@ -186,20 +167,18 @@ computeReal: op1Addr:: (nil) op1:4.00000000000000
 computeReal: op2Addr:: (nil) op2:7.00000000000000e-1
 
 FADD
-computeReal: stackTop:2 addr 0x7f748735a050:
+computeReal: stackTop:0 addr 0x7f3604d2b000:
 
 The shadow value is 4.70000000000000
 , but 4.700000 was computed.
-updateError: computedVal:4.7 insIndex:105
+updateError: computedVal:4.7 insIndex:0
 0.000000 bits error (0 ulps)
 ****************
 
 setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:4.70000000000000
-from: 0x7f748735a050 to addr:0x1b89fc0
-getRegRes insIndex:108 insMap[insIndex]:1
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:1 frameCur[frameIdx]:0
+from: 0 to addr:0x236afd0
+op1Addr:0 op2Addr:0
 computeReal: real1 is null, using op1 value:4
 computeReal: real2 is null, using op2 value:0.3
 computeReal: op1:4 op2:0.3
@@ -207,1048 +186,832 @@ computeReal: op1Addr:: (nil) op1:4.00000000000000
 computeReal: op2Addr:: (nil) op2:3.00000000000000e-1
 
 FADD
-computeReal: stackTop:1 addr 0x7f748735a028:
+computeReal: stackTop:2 addr 0x7f3604d2b050:
 
 The shadow value is 4.30000000000000
 , but 4.300000 was computed.
-updateError: computedVal:4.3 insIndex:108
+updateError: computedVal:4.3 insIndex:2
 0.000000 bits error (0 ulps)
 ****************
 
 setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:4.30000000000000
-from: 0x7f748735a028 to addr:0x1b8a080
+from: 2 to addr:0x236b090
 loop1 done
-getRegRes insIndex:127 insMap[insIndex]:0
-getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:3
-getRegRes newRegIdx:3 frameCur[frameIdx]:0
-fpSanLoadFromShadowMem: opd:4.7 from addr:0x1b89fc0
+fpSanLoadFromShadowMem: opd:4.7 from addr:0x236afd0
 fpSanLoadFromShadowMemD: set value:4.70000000000000
- in shadowStack at:3 for addr:0x7f748735a078  from addr:0x1b89fc0
-getRegRes insIndex:129 insMap[insIndex]:0
-getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:4
-getRegRes newRegIdx:4 frameCur[frameIdx]:0
-fpSanLoadFromShadowMem: opd:4.3 from addr:0x1b8a080
+ in shadowStack at:9 for addr:0x7f3604d2b168  from addr:0x236afd0
+fpSanLoadFromShadowMem: opd:4.3 from addr:0x236b090
 fpSanLoadFromShadowMemD: set value:4.30000000000000
- in shadowStack at:4 for addr:0x7f748735a0a0  from addr:0x1b8a080
-getRegRes insIndex:130 insMap[insIndex]:0
-getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:5
-getRegRes newRegIdx:5 frameCur[frameIdx]:0
+ in shadowStack at:10 for addr:0x7f3604d2b190  from addr:0x236b090
+op1Addr:9 op2Addr:10
 computeReal: op1:4.7 op2:4.3
-computeReal: op1Addr:: 0x7f748735a078 op1:4.70000000000000
-computeReal: op2Addr:: 0x7f748735a0a0 op2:4.30000000000000
+computeReal: op1Addr:: 0x9 op1:4.70000000000000
+computeReal: op2Addr:: 0xa op2:4.30000000000000
 
 FADD
-computeReal: stackTop:5 addr 0x7f748735a0c8:
+computeReal: stackTop:8 addr 0x7f3604d2b140:
 
 The shadow value is 9.00000000000000
 , but 9.000000 was computed.
-updateError: computedVal:9 insIndex:130
+updateError: computedVal:9 insIndex:8
 0.000000 bits error (0 ulps)
 ****************
 
 setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:9.00000000000000
-from: 0x7f748735a0c8 to addr:0x1b8a140
-getRegRes insIndex:133 insMap[insIndex]:0
-getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:6
-getRegRes newRegIdx:6 frameCur[frameIdx]:0
+from: 8 to addr:0x236b150
+op1Addr:9 op2Addr:10
 computeReal: op1:4.7 op2:4.3
-computeReal: op1Addr:: 0x7f748735a078 op1:4.70000000000000
-computeReal: op2Addr:: 0x7f748735a0a0 op2:4.30000000000000
+computeReal: op1Addr:: 0x9 op1:4.70000000000000
+computeReal: op2Addr:: 0xa op2:4.30000000000000
 FDIV
-computeReal: stackTop:6 addr 0x7f748735a0f0:
+computeReal: stackTop:11 addr 0x7f3604d2b1b8:
 
 The shadow value is 1.09302325581395
 , but 1.093023 was computed.
-updateError: computedVal:1.09302 insIndex:133
+updateError: computedVal:1.09302 insIndex:11
 1.000000 bits error (1 ulps)
 ****************
 
 setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:1.09302325581395
-from: 0x7f748735a0f0 to addr:0x1b8a200
-getRegRes insIndex:136 insMap[insIndex]:0
-getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:7
-getRegRes newRegIdx:7 frameCur[frameIdx]:0
+from: 11 to addr:0x236b210
+op1Addr:8 op2Addr:11
 computeReal: op1:9 op2:1.09302
-computeReal: op1Addr:: 0x7f748735a0c8 op1:9.00000000000000
-computeReal: op2Addr:: 0x7f748735a0f0 op2:1.09302325581395
+computeReal: op1Addr:: 0x8 op1:9.00000000000000
+computeReal: op2Addr:: 0xb op2:1.09302325581395
 FMUL
-computeReal: stackTop:7 addr 0x7f748735a118:
+computeReal: stackTop:14 addr 0x7f3604d2b230:
 
 The shadow value is 9.83720930232558
 , but 9.837209 was computed.
-updateError: computedVal:9.83721 insIndex:136
+updateError: computedVal:9.83721 insIndex:14
 1.000000 bits error (1 ulps)
 ****************
 
 setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:9.83720930232558
-from: 0x7f748735a118 to addr:0x1b8a2c0
-getRegRes insIndex:127 insMap[insIndex]:3
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:3 frameCur[frameIdx]:0
-fpSanLoadFromShadowMem: opd:3.7 from addr:0x1b89fb8
+from: 14 to addr:0x236b2d0
+fpSanLoadFromShadowMem: opd:3.7 from addr:0x236afc8
 fpSanLoadFromShadowMemD: set value:3.70000000000000
- in shadowStack at:3 for addr:0x7f748735a078  from addr:0x1b89fb8
-getRegRes insIndex:129 insMap[insIndex]:4
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:4 frameCur[frameIdx]:0
-fpSanLoadFromShadowMem: opd:3.3 from addr:0x1b8a078
+ in shadowStack at:9 for addr:0x7f3604d2b168  from addr:0x236afc8
+fpSanLoadFromShadowMem: opd:3.3 from addr:0x236b088
 fpSanLoadFromShadowMemD: set value:3.30000000000000
- in shadowStack at:4 for addr:0x7f748735a0a0  from addr:0x1b8a078
-getRegRes insIndex:130 insMap[insIndex]:5
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:5 frameCur[frameIdx]:0
+ in shadowStack at:10 for addr:0x7f3604d2b190  from addr:0x236b088
+op1Addr:9 op2Addr:10
 computeReal: op1:3.7 op2:3.3
-computeReal: op1Addr:: 0x7f748735a078 op1:3.70000000000000
-computeReal: op2Addr:: 0x7f748735a0a0 op2:3.30000000000000
+computeReal: op1Addr:: 0x9 op1:3.70000000000000
+computeReal: op2Addr:: 0xa op2:3.30000000000000
 
 FADD
-computeReal: stackTop:5 addr 0x7f748735a0c8:
+computeReal: stackTop:8 addr 0x7f3604d2b140:
 
 The shadow value is 7.00000000000000
 , but 7.000000 was computed.
-updateError: computedVal:7 insIndex:130
+updateError: computedVal:7 insIndex:8
 0.000000 bits error (0 ulps)
 ****************
 
 setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:7.00000000000000
-from: 0x7f748735a0c8 to addr:0x1b8a138
-getRegRes insIndex:133 insMap[insIndex]:6
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:6 frameCur[frameIdx]:0
+from: 8 to addr:0x236b148
+op1Addr:9 op2Addr:10
 computeReal: op1:3.7 op2:3.3
-computeReal: op1Addr:: 0x7f748735a078 op1:3.70000000000000
-computeReal: op2Addr:: 0x7f748735a0a0 op2:3.30000000000000
+computeReal: op1Addr:: 0x9 op1:3.70000000000000
+computeReal: op2Addr:: 0xa op2:3.30000000000000
 FDIV
-computeReal: stackTop:6 addr 0x7f748735a0f0:
+computeReal: stackTop:11 addr 0x7f3604d2b1b8:
 
 The shadow value is 1.12121212121212
 , but 1.121212 was computed.
-updateError: computedVal:1.12121 insIndex:133
+updateError: computedVal:1.12121 insIndex:11
 1.000000 bits error (1 ulps)
 ****************
 
 setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:1.12121212121212
-from: 0x7f748735a0f0 to addr:0x1b8a1f8
-getRegRes insIndex:136 insMap[insIndex]:7
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:7 frameCur[frameIdx]:0
+from: 11 to addr:0x236b208
+op1Addr:8 op2Addr:11
 computeReal: op1:7 op2:1.12121
-computeReal: op1Addr:: 0x7f748735a0c8 op1:7.00000000000000
-computeReal: op2Addr:: 0x7f748735a0f0 op2:1.12121212121212
+computeReal: op1Addr:: 0x8 op1:7.00000000000000
+computeReal: op2Addr:: 0xb op2:1.12121212121212
 FMUL
-computeReal: stackTop:7 addr 0x7f748735a118:
+computeReal: stackTop:14 addr 0x7f3604d2b230:
 
 The shadow value is 7.84848484848485
 , but 7.848485 was computed.
-updateError: computedVal:7.84848 insIndex:136
+updateError: computedVal:7.84848 insIndex:14
 1.000000 bits error (1 ulps)
 ****************
 
 setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:7.84848484848485
-from: 0x7f748735a118 to addr:0x1b8a2b8
-getRegRes insIndex:127 insMap[insIndex]:3
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:3 frameCur[frameIdx]:0
-fpSanLoadFromShadowMem: opd:2.7 from addr:0x1b89fb0
+from: 14 to addr:0x236b2c8
+fpSanLoadFromShadowMem: opd:2.7 from addr:0x236afc0
 fpSanLoadFromShadowMemD: set value:2.70000000000000
- in shadowStack at:3 for addr:0x7f748735a078  from addr:0x1b89fb0
-getRegRes insIndex:129 insMap[insIndex]:4
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:4 frameCur[frameIdx]:0
-fpSanLoadFromShadowMem: opd:2.3 from addr:0x1b8a070
+ in shadowStack at:9 for addr:0x7f3604d2b168  from addr:0x236afc0
+fpSanLoadFromShadowMem: opd:2.3 from addr:0x236b080
 fpSanLoadFromShadowMemD: set value:2.30000000000000
- in shadowStack at:4 for addr:0x7f748735a0a0  from addr:0x1b8a070
-getRegRes insIndex:130 insMap[insIndex]:5
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:5 frameCur[frameIdx]:0
+ in shadowStack at:10 for addr:0x7f3604d2b190  from addr:0x236b080
+op1Addr:9 op2Addr:10
 computeReal: op1:2.7 op2:2.3
-computeReal: op1Addr:: 0x7f748735a078 op1:2.70000000000000
-computeReal: op2Addr:: 0x7f748735a0a0 op2:2.30000000000000
+computeReal: op1Addr:: 0x9 op1:2.70000000000000
+computeReal: op2Addr:: 0xa op2:2.30000000000000
 
 FADD
-computeReal: stackTop:5 addr 0x7f748735a0c8:
+computeReal: stackTop:8 addr 0x7f3604d2b140:
 
 The shadow value is 5.00000000000000
 , but 5.000000 was computed.
-updateError: computedVal:5 insIndex:130
+updateError: computedVal:5 insIndex:8
 0.000000 bits error (0 ulps)
 ****************
 
 setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:5.00000000000000
-from: 0x7f748735a0c8 to addr:0x1b8a130
-getRegRes insIndex:133 insMap[insIndex]:6
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:6 frameCur[frameIdx]:0
+from: 8 to addr:0x236b140
+op1Addr:9 op2Addr:10
 computeReal: op1:2.7 op2:2.3
-computeReal: op1Addr:: 0x7f748735a078 op1:2.70000000000000
-computeReal: op2Addr:: 0x7f748735a0a0 op2:2.30000000000000
+computeReal: op1Addr:: 0x9 op1:2.70000000000000
+computeReal: op2Addr:: 0xa op2:2.30000000000000
 FDIV
-computeReal: stackTop:6 addr 0x7f748735a0f0:
+computeReal: stackTop:11 addr 0x7f3604d2b1b8:
 
 The shadow value is 1.17391304347826
 , but 1.173913 was computed.
-updateError: computedVal:1.17391 insIndex:133
+updateError: computedVal:1.17391 insIndex:11
 1.000000 bits error (1 ulps)
 ****************
 
 setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:1.17391304347826
-from: 0x7f748735a0f0 to addr:0x1b8a1f0
-getRegRes insIndex:136 insMap[insIndex]:7
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:7 frameCur[frameIdx]:0
+from: 11 to addr:0x236b200
+op1Addr:8 op2Addr:11
 computeReal: op1:5 op2:1.17391
-computeReal: op1Addr:: 0x7f748735a0c8 op1:5.00000000000000
-computeReal: op2Addr:: 0x7f748735a0f0 op2:1.17391304347826
+computeReal: op1Addr:: 0x8 op1:5.00000000000000
+computeReal: op2Addr:: 0xb op2:1.17391304347826
 FMUL
-computeReal: stackTop:7 addr 0x7f748735a118:
+computeReal: stackTop:14 addr 0x7f3604d2b230:
 
 The shadow value is 5.86956521739130
 , but 5.869565 was computed.
-updateError: computedVal:5.86957 insIndex:136
+updateError: computedVal:5.86957 insIndex:14
 0.000000 bits error (0 ulps)
 ****************
 
 setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:5.86956521739130
-from: 0x7f748735a118 to addr:0x1b8a2b0
-getRegRes insIndex:127 insMap[insIndex]:3
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:3 frameCur[frameIdx]:0
-fpSanLoadFromShadowMem: opd:1.7 from addr:0x1b89fa8
+from: 14 to addr:0x236b2c0
+fpSanLoadFromShadowMem: opd:1.7 from addr:0x236afb8
 fpSanLoadFromShadowMemD: set value:1.70000000000000
- in shadowStack at:3 for addr:0x7f748735a078  from addr:0x1b89fa8
-getRegRes insIndex:129 insMap[insIndex]:4
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:4 frameCur[frameIdx]:0
-fpSanLoadFromShadowMem: opd:1.3 from addr:0x1b8a068
+ in shadowStack at:9 for addr:0x7f3604d2b168  from addr:0x236afb8
+fpSanLoadFromShadowMem: opd:1.3 from addr:0x236b078
 fpSanLoadFromShadowMemD: set value:1.30000000000000
- in shadowStack at:4 for addr:0x7f748735a0a0  from addr:0x1b8a068
-getRegRes insIndex:130 insMap[insIndex]:5
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:5 frameCur[frameIdx]:0
+ in shadowStack at:10 for addr:0x7f3604d2b190  from addr:0x236b078
+op1Addr:9 op2Addr:10
 computeReal: op1:1.7 op2:1.3
-computeReal: op1Addr:: 0x7f748735a078 op1:1.70000000000000
-computeReal: op2Addr:: 0x7f748735a0a0 op2:1.30000000000000
+computeReal: op1Addr:: 0x9 op1:1.70000000000000
+computeReal: op2Addr:: 0xa op2:1.30000000000000
 
 FADD
-computeReal: stackTop:5 addr 0x7f748735a0c8:
+computeReal: stackTop:8 addr 0x7f3604d2b140:
 
 The shadow value is 3.00000000000000
 , but 3.000000 was computed.
-updateError: computedVal:3 insIndex:130
+updateError: computedVal:3 insIndex:8
 0.000000 bits error (0 ulps)
 ****************
 
 setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:3.00000000000000
-from: 0x7f748735a0c8 to addr:0x1b8a128
-getRegRes insIndex:133 insMap[insIndex]:6
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:6 frameCur[frameIdx]:0
+from: 8 to addr:0x236b138
+op1Addr:9 op2Addr:10
 computeReal: op1:1.7 op2:1.3
-computeReal: op1Addr:: 0x7f748735a078 op1:1.70000000000000
-computeReal: op2Addr:: 0x7f748735a0a0 op2:1.30000000000000
+computeReal: op1Addr:: 0x9 op1:1.70000000000000
+computeReal: op2Addr:: 0xa op2:1.30000000000000
 FDIV
-computeReal: stackTop:6 addr 0x7f748735a0f0:
+computeReal: stackTop:11 addr 0x7f3604d2b1b8:
 
 The shadow value is 1.30769230769231
 , but 1.307692 was computed.
-updateError: computedVal:1.30769 insIndex:133
+updateError: computedVal:1.30769 insIndex:11
 0.000000 bits error (0 ulps)
 ****************
 
 setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:1.30769230769231
-from: 0x7f748735a0f0 to addr:0x1b8a1e8
-getRegRes insIndex:136 insMap[insIndex]:7
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:7 frameCur[frameIdx]:0
+from: 11 to addr:0x236b1f8
+op1Addr:8 op2Addr:11
 computeReal: op1:3 op2:1.30769
-computeReal: op1Addr:: 0x7f748735a0c8 op1:3.00000000000000
-computeReal: op2Addr:: 0x7f748735a0f0 op2:1.30769230769231
+computeReal: op1Addr:: 0x8 op1:3.00000000000000
+computeReal: op2Addr:: 0xb op2:1.30769230769231
 FMUL
-computeReal: stackTop:7 addr 0x7f748735a118:
+computeReal: stackTop:14 addr 0x7f3604d2b230:
 
 The shadow value is 3.92307692307692
 , but 3.923077 was computed.
-updateError: computedVal:3.92308 insIndex:136
+updateError: computedVal:3.92308 insIndex:14
 1.000000 bits error (1 ulps)
 ****************
 
 setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:3.92307692307692
-from: 0x7f748735a118 to addr:0x1b8a2a8
-getRegRes insIndex:127 insMap[insIndex]:3
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:3 frameCur[frameIdx]:0
-fpSanLoadFromShadowMem: opd:0.7 from addr:0x1b89fa0
+from: 14 to addr:0x236b2b8
+fpSanLoadFromShadowMem: opd:0.7 from addr:0x236afb0
 fpSanLoadFromShadowMemD: set value:7.00000000000000e-1
- in shadowStack at:3 for addr:0x7f748735a078  from addr:0x1b89fa0
-getRegRes insIndex:129 insMap[insIndex]:4
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:4 frameCur[frameIdx]:0
-fpSanLoadFromShadowMem: opd:0.3 from addr:0x1b8a060
+ in shadowStack at:9 for addr:0x7f3604d2b168  from addr:0x236afb0
+fpSanLoadFromShadowMem: opd:0.3 from addr:0x236b070
 fpSanLoadFromShadowMemD: set value:3.00000000000000e-1
- in shadowStack at:4 for addr:0x7f748735a0a0  from addr:0x1b8a060
-getRegRes insIndex:130 insMap[insIndex]:5
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:5 frameCur[frameIdx]:0
+ in shadowStack at:10 for addr:0x7f3604d2b190  from addr:0x236b070
+op1Addr:9 op2Addr:10
 computeReal: op1:0.7 op2:0.3
-computeReal: op1Addr:: 0x7f748735a078 op1:7.00000000000000e-1
-computeReal: op2Addr:: 0x7f748735a0a0 op2:3.00000000000000e-1
+computeReal: op1Addr:: 0x9 op1:7.00000000000000e-1
+computeReal: op2Addr:: 0xa op2:3.00000000000000e-1
 
 FADD
-computeReal: stackTop:5 addr 0x7f748735a0c8:
+computeReal: stackTop:8 addr 0x7f3604d2b140:
 
 The shadow value is 1.00000000000000
 , but 1.000000 was computed.
-updateError: computedVal:1 insIndex:130
+updateError: computedVal:1 insIndex:8
 0.000000 bits error (0 ulps)
 ****************
 
 setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:1.00000000000000
-from: 0x7f748735a0c8 to addr:0x1b8a120
-getRegRes insIndex:133 insMap[insIndex]:6
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:6 frameCur[frameIdx]:0
+from: 8 to addr:0x236b130
+op1Addr:9 op2Addr:10
 computeReal: op1:0.7 op2:0.3
-computeReal: op1Addr:: 0x7f748735a078 op1:7.00000000000000e-1
-computeReal: op2Addr:: 0x7f748735a0a0 op2:3.00000000000000e-1
+computeReal: op1Addr:: 0x9 op1:7.00000000000000e-1
+computeReal: op2Addr:: 0xa op2:3.00000000000000e-1
 FDIV
-computeReal: stackTop:6 addr 0x7f748735a0f0:
+computeReal: stackTop:11 addr 0x7f3604d2b1b8:
 
 The shadow value is 2.33333333333333
 , but 2.333333 was computed.
-updateError: computedVal:2.33333 insIndex:133
+updateError: computedVal:2.33333 insIndex:11
 0.000000 bits error (0 ulps)
 ****************
 
 setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:2.33333333333333
-from: 0x7f748735a0f0 to addr:0x1b8a1e0
-getRegRes insIndex:136 insMap[insIndex]:7
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:7 frameCur[frameIdx]:0
+from: 11 to addr:0x236b1f0
+op1Addr:8 op2Addr:11
 computeReal: op1:1 op2:2.33333
-computeReal: op1Addr:: 0x7f748735a0c8 op1:1.00000000000000
-computeReal: op2Addr:: 0x7f748735a0f0 op2:2.33333333333333
+computeReal: op1Addr:: 0x8 op1:1.00000000000000
+computeReal: op2Addr:: 0xb op2:2.33333333333333
 FMUL
-computeReal: stackTop:7 addr 0x7f748735a118:
+computeReal: stackTop:14 addr 0x7f3604d2b230:
 
 The shadow value is 2.33333333333333
 , but 2.333333 was computed.
-updateError: computedVal:2.33333 insIndex:136
+updateError: computedVal:2.33333 insIndex:14
 1.000000 bits error (1 ulps)
 ****************
 
 setRealTemp: dest->initFlag:1
 setRealTemp: dest set to:2.33333333333333
-from: 0x7f748735a118 to addr:0x1b8a2a0
- return addr:0x7f748735a140
-addFunArg: arg copied from: 0 stackTop:9
-addFunArg addr:0x7f748735a168
-3.22526053605166e-319
-addFunArg: arg copied from: 0 stackTop:10
-addFunArg addr:0x7f748735a190
-1.38523893491006e-309
-addFunArg: arg copied from: 0 stackTop:11
-addFunArg addr:0x7f748735a1b8
-1.38523893491006e-309
+from: 14 to addr:0x236b2b0
 __func_init ******
-funcInit:12
-getRegRes insIndex:13 insMap[insIndex]:0
-getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:0
-getRegRes newRegIdx:0 frameCur[frameIdx]:12
-fpSanLoadFromShadowMem: opd:1 from addr:0x1b8a120
+fpSanLoadFromShadowMem: opd:1 from addr:0x236b130
 fpSanLoadFromShadowMemD: set value:1.00000000000000
- in shadowStack at:12 for addr:0x7f748735a1e0  from addr:0x1b8a120
-getRegRes insIndex:15 insMap[insIndex]:0
-getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:1
-getRegRes newRegIdx:1 frameCur[frameIdx]:12
-fpSanLoadFromShadowMem: opd:2.33333 from addr:0x1b8a1e0
+ in shadowStack at:20 for addr:0x7f3604d2b320  from addr:0x236b130
+fpSanLoadFromShadowMem: opd:2.33333 from addr:0x236b1f0
 fpSanLoadFromShadowMemD: set value:2.33333333333333
- in shadowStack at:13 for addr:0x7f748735a208  from addr:0x1b8a1e0
-getRegRes insIndex:16 insMap[insIndex]:0
-getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:2
-getRegRes newRegIdx:2 frameCur[frameIdx]:12
+ in shadowStack at:21 for addr:0x7f3604d2b348  from addr:0x236b1f0
+op1Addr:20 op2Addr:21
 computeReal: op1:1 op2:2.33333
-computeReal: op1Addr:: 0x7f748735a1e0 op1:1.00000000000000
-computeReal: op2Addr:: 0x7f748735a208 op2:2.33333333333333
+computeReal: op1Addr:: 0x14 op1:1.00000000000000
+computeReal: op2Addr:: 0x15 op2:2.33333333333333
 
 FADD
-computeReal: stackTop:14 addr 0x7f748735a230:
+computeReal: stackTop:19 addr 0x7f3604d2b2f8:
 
 The shadow value is 3.33333333333333
 , but 3.333333 was computed.
-updateError: computedVal:3.33333 insIndex:16
+updateError: computedVal:3.33333 insIndex:19
 1.000000 bits error (1 ulps)
 ****************
 
-getRegRes insIndex:18 insMap[insIndex]:0
-getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:3
-getRegRes newRegIdx:3 frameCur[frameIdx]:12
-fpSanLoadFromShadowMem: opd:2.33333 from addr:0x1b8a2a0
+fpSanLoadFromShadowMem: opd:2.33333 from addr:0x236b2b0
 fpSanLoadFromShadowMemD: set value:2.33333333333333
- in shadowStack at:15 for addr:0x7f748735a258  from addr:0x1b8a2a0
-getRegRes insIndex:19 insMap[insIndex]:0
-getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:4
-getRegRes newRegIdx:4 frameCur[frameIdx]:12
+ in shadowStack at:24 for addr:0x7f3604d2b3c0  from addr:0x236b2b0
+op1Addr:19 op2Addr:24
 computeReal: op1:3.33333 op2:2.33333
-computeReal: op1Addr:: 0x7f748735a230 op1:3.33333333333333
-computeReal: op2Addr:: 0x7f748735a258 op2:2.33333333333333
+computeReal: op1Addr:: 0x13 op1:3.33333333333333
+computeReal: op2Addr:: 0x18 op2:2.33333333333333
 
 FADD
-computeReal: stackTop:16 addr 0x7f748735a280:
+computeReal: stackTop:22 addr 0x7f3604d2b370:
 
 The shadow value is 5.66666666666667
 , but 5.666667 was computed.
-updateError: computedVal:5.66667 insIndex:19
+updateError: computedVal:5.66667 insIndex:22
 1.000000 bits error (1 ulps)
 ****************
 
-getRegRes insIndex:20 insMap[insIndex]:0
-getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:5
-getRegRes newRegIdx:5 frameCur[frameIdx]:12
-computeReal: real1 is null, using op1 value:0
+op1Addr:26 op2Addr:22
+real1 is null
 computeReal: op1:0 op2:5.66667
-computeReal: op1Addr:: (nil) op1:0
-computeReal: op2Addr:: 0x7f748735a280 op2:5.66666666666667
+computeReal: op1Addr:: 0x1a op1:0
+computeReal: op2Addr:: 0x16 op2:5.66666666666667
 
 FADD
-computeReal: stackTop:17 addr 0x7f748735a2a8:
+computeReal: stackTop:25 addr 0x7f3604d2b3e8:
 
 The shadow value is 5.66666666666667
 , but 5.666667 was computed.
-updateError: computedVal:5.66667 insIndex:20
+updateError: computedVal:5.66667 insIndex:25
 1.000000 bits error (1 ulps)
 ****************
 
-getRegRes insIndex:13 insMap[insIndex]:0
-getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:6
-getRegRes newRegIdx:6 frameCur[frameIdx]:12
-fpSanLoadFromShadowMem: opd:3 from addr:0x1b8a128
+fpSanLoadFromShadowMem: opd:3 from addr:0x236b138
 fpSanLoadFromShadowMemD: set value:3.00000000000000
- in shadowStack at:18 for addr:0x7f748735a2d0  from addr:0x1b8a128
-getRegRes insIndex:15 insMap[insIndex]:1
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:1 frameCur[frameIdx]:12
-fpSanLoadFromShadowMem: opd:1.30769 from addr:0x1b8a1e8
+ in shadowStack at:20 for addr:0x7f3604d2b320  from addr:0x236b138
+fpSanLoadFromShadowMem: opd:1.30769 from addr:0x236b1f8
 fpSanLoadFromShadowMemD: set value:1.30769230769231
- in shadowStack at:13 for addr:0x7f748735a208  from addr:0x1b8a1e8
-getRegRes insIndex:16 insMap[insIndex]:2
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:2 frameCur[frameIdx]:12
+ in shadowStack at:21 for addr:0x7f3604d2b348  from addr:0x236b1f8
+op1Addr:20 op2Addr:21
 computeReal: op1:3 op2:1.30769
-computeReal: op1Addr:: 0x7f748735a2d0 op1:3.00000000000000
-computeReal: op2Addr:: 0x7f748735a208 op2:1.30769230769231
+computeReal: op1Addr:: 0x14 op1:3.00000000000000
+computeReal: op2Addr:: 0x15 op2:1.30769230769231
 
 FADD
-computeReal: stackTop:14 addr 0x7f748735a230:
+computeReal: stackTop:19 addr 0x7f3604d2b2f8:
 
 The shadow value is 4.30769230769231
 , but 4.307692 was computed.
-updateError: computedVal:4.30769 insIndex:16
+updateError: computedVal:4.30769 insIndex:19
 0.000000 bits error (0 ulps)
 ****************
 
-getRegRes insIndex:18 insMap[insIndex]:3
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:3 frameCur[frameIdx]:12
-fpSanLoadFromShadowMem: opd:3.92308 from addr:0x1b8a2a8
+fpSanLoadFromShadowMem: opd:3.92308 from addr:0x236b2b8
 fpSanLoadFromShadowMemD: set value:3.92307692307692
- in shadowStack at:15 for addr:0x7f748735a258  from addr:0x1b8a2a8
-getRegRes insIndex:19 insMap[insIndex]:4
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:4 frameCur[frameIdx]:12
+ in shadowStack at:24 for addr:0x7f3604d2b3c0  from addr:0x236b2b8
+op1Addr:19 op2Addr:24
 computeReal: op1:4.30769 op2:3.92308
-computeReal: op1Addr:: 0x7f748735a230 op1:4.30769230769231
-computeReal: op2Addr:: 0x7f748735a258 op2:3.92307692307692
+computeReal: op1Addr:: 0x13 op1:4.30769230769231
+computeReal: op2Addr:: 0x18 op2:3.92307692307692
 
 FADD
-computeReal: stackTop:16 addr 0x7f748735a280:
+computeReal: stackTop:22 addr 0x7f3604d2b370:
 
 The shadow value is 8.23076923076923
 , but 8.230769 was computed.
-updateError: computedVal:8.23077 insIndex:19
+updateError: computedVal:8.23077 insIndex:22
 0.000000 bits error (0 ulps)
 ****************
 
-getRegRes insIndex:20 insMap[insIndex]:5
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:5 frameCur[frameIdx]:12
+op1Addr:26 op2Addr:22
+real1 is null
 computeReal: op1:5.66667 op2:8.23077
-computeReal: op1Addr:: 0x7f748735a2a8 op1:5.66666666666667
-computeReal: op2Addr:: 0x7f748735a280 op2:8.23076923076923
+computeReal: op1Addr:: 0x1a op1:5.66666666666667
+computeReal: op2Addr:: 0x16 op2:8.23076923076923
 
 FADD
-computeReal: stackTop:17 addr 0x7f748735a2a8:
+computeReal: stackTop:25 addr 0x7f3604d2b3e8:
 
 The shadow value is 1.38974358974359e1
 , but 1.389744e1 was computed.
-updateError: computedVal:13.8974 insIndex:20
-1.000000 bits error (1 ulps)
+updateError: computedVal:13.8974 insIndex:25
+0.000000 bits error (0 ulps)
 ****************
 
-getRegRes insIndex:13 insMap[insIndex]:6
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:6 frameCur[frameIdx]:12
-fpSanLoadFromShadowMem: opd:5 from addr:0x1b8a130
+fpSanLoadFromShadowMem: opd:5 from addr:0x236b140
 fpSanLoadFromShadowMemD: set value:5.00000000000000
- in shadowStack at:18 for addr:0x7f748735a2d0  from addr:0x1b8a130
-getRegRes insIndex:15 insMap[insIndex]:1
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:1 frameCur[frameIdx]:12
-fpSanLoadFromShadowMem: opd:1.17391 from addr:0x1b8a1f0
+ in shadowStack at:20 for addr:0x7f3604d2b320  from addr:0x236b140
+fpSanLoadFromShadowMem: opd:1.17391 from addr:0x236b200
 fpSanLoadFromShadowMemD: set value:1.17391304347826
- in shadowStack at:13 for addr:0x7f748735a208  from addr:0x1b8a1f0
-getRegRes insIndex:16 insMap[insIndex]:2
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:2 frameCur[frameIdx]:12
+ in shadowStack at:21 for addr:0x7f3604d2b348  from addr:0x236b200
+op1Addr:20 op2Addr:21
 computeReal: op1:5 op2:1.17391
-computeReal: op1Addr:: 0x7f748735a2d0 op1:5.00000000000000
-computeReal: op2Addr:: 0x7f748735a208 op2:1.17391304347826
+computeReal: op1Addr:: 0x14 op1:5.00000000000000
+computeReal: op2Addr:: 0x15 op2:1.17391304347826
 
 FADD
-computeReal: stackTop:14 addr 0x7f748735a230:
+computeReal: stackTop:19 addr 0x7f3604d2b2f8:
 
 The shadow value is 6.17391304347826
 , but 6.173913 was computed.
-updateError: computedVal:6.17391 insIndex:16
+updateError: computedVal:6.17391 insIndex:19
 0.000000 bits error (0 ulps)
 ****************
 
-getRegRes insIndex:18 insMap[insIndex]:3
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:3 frameCur[frameIdx]:12
-fpSanLoadFromShadowMem: opd:5.86957 from addr:0x1b8a2b0
+fpSanLoadFromShadowMem: opd:5.86957 from addr:0x236b2c0
 fpSanLoadFromShadowMemD: set value:5.86956521739130
- in shadowStack at:15 for addr:0x7f748735a258  from addr:0x1b8a2b0
-getRegRes insIndex:19 insMap[insIndex]:4
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:4 frameCur[frameIdx]:12
+ in shadowStack at:24 for addr:0x7f3604d2b3c0  from addr:0x236b2c0
+op1Addr:19 op2Addr:24
 computeReal: op1:6.17391 op2:5.86957
-computeReal: op1Addr:: 0x7f748735a230 op1:6.17391304347826
-computeReal: op2Addr:: 0x7f748735a258 op2:5.86956521739130
+computeReal: op1Addr:: 0x13 op1:6.17391304347826
+computeReal: op2Addr:: 0x18 op2:5.86956521739130
 
 FADD
-computeReal: stackTop:16 addr 0x7f748735a280:
+computeReal: stackTop:22 addr 0x7f3604d2b370:
 
 The shadow value is 1.20434782608696e1
 , but 1.204348e1 was computed.
-updateError: computedVal:12.0435 insIndex:19
+updateError: computedVal:12.0435 insIndex:22
 1.000000 bits error (1 ulps)
 ****************
 
-getRegRes insIndex:20 insMap[insIndex]:5
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:5 frameCur[frameIdx]:12
+op1Addr:26 op2Addr:22
+real1 is null
 computeReal: op1:13.8974 op2:12.0435
-computeReal: op1Addr:: 0x7f748735a2a8 op1:1.38974358974359e1
-computeReal: op2Addr:: 0x7f748735a280 op2:1.20434782608696e1
+computeReal: op1Addr:: 0x1a op1:1.38974358974359e1
+computeReal: op2Addr:: 0x16 op2:1.20434782608696e1
 
 FADD
-computeReal: stackTop:17 addr 0x7f748735a2a8:
+computeReal: stackTop:25 addr 0x7f3604d2b3e8:
 
 The shadow value is 2.59409141583055e1
 , but 2.594091e1 was computed.
-updateError: computedVal:25.9409 insIndex:20
-1.000000 bits error (1 ulps)
+updateError: computedVal:25.9409 insIndex:25
+0.000000 bits error (0 ulps)
 ****************
 
-getRegRes insIndex:13 insMap[insIndex]:6
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:6 frameCur[frameIdx]:12
-fpSanLoadFromShadowMem: opd:7 from addr:0x1b8a138
+fpSanLoadFromShadowMem: opd:7 from addr:0x236b148
 fpSanLoadFromShadowMemD: set value:7.00000000000000
- in shadowStack at:18 for addr:0x7f748735a2d0  from addr:0x1b8a138
-getRegRes insIndex:15 insMap[insIndex]:1
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:1 frameCur[frameIdx]:12
-fpSanLoadFromShadowMem: opd:1.12121 from addr:0x1b8a1f8
+ in shadowStack at:20 for addr:0x7f3604d2b320  from addr:0x236b148
+fpSanLoadFromShadowMem: opd:1.12121 from addr:0x236b208
 fpSanLoadFromShadowMemD: set value:1.12121212121212
- in shadowStack at:13 for addr:0x7f748735a208  from addr:0x1b8a1f8
-getRegRes insIndex:16 insMap[insIndex]:2
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:2 frameCur[frameIdx]:12
+ in shadowStack at:21 for addr:0x7f3604d2b348  from addr:0x236b208
+op1Addr:20 op2Addr:21
 computeReal: op1:7 op2:1.12121
-computeReal: op1Addr:: 0x7f748735a2d0 op1:7.00000000000000
-computeReal: op2Addr:: 0x7f748735a208 op2:1.12121212121212
+computeReal: op1Addr:: 0x14 op1:7.00000000000000
+computeReal: op2Addr:: 0x15 op2:1.12121212121212
 
 FADD
-computeReal: stackTop:14 addr 0x7f748735a230:
+computeReal: stackTop:19 addr 0x7f3604d2b2f8:
 
 The shadow value is 8.12121212121212
 , but 8.121212 was computed.
-updateError: computedVal:8.12121 insIndex:16
+updateError: computedVal:8.12121 insIndex:19
 0.000000 bits error (0 ulps)
 ****************
 
-getRegRes insIndex:18 insMap[insIndex]:3
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:3 frameCur[frameIdx]:12
-fpSanLoadFromShadowMem: opd:7.84848 from addr:0x1b8a2b8
+fpSanLoadFromShadowMem: opd:7.84848 from addr:0x236b2c8
 fpSanLoadFromShadowMemD: set value:7.84848484848485
- in shadowStack at:15 for addr:0x7f748735a258  from addr:0x1b8a2b8
-getRegRes insIndex:19 insMap[insIndex]:4
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:4 frameCur[frameIdx]:12
+ in shadowStack at:24 for addr:0x7f3604d2b3c0  from addr:0x236b2c8
+op1Addr:19 op2Addr:24
 computeReal: op1:8.12121 op2:7.84848
-computeReal: op1Addr:: 0x7f748735a230 op1:8.12121212121212
-computeReal: op2Addr:: 0x7f748735a258 op2:7.84848484848485
+computeReal: op1Addr:: 0x13 op1:8.12121212121212
+computeReal: op2Addr:: 0x18 op2:7.84848484848485
 
 FADD
-computeReal: stackTop:16 addr 0x7f748735a280:
+computeReal: stackTop:22 addr 0x7f3604d2b370:
 
 The shadow value is 1.59696969696970e1
 , but 1.596970e1 was computed.
-updateError: computedVal:15.9697 insIndex:19
+updateError: computedVal:15.9697 insIndex:22
 1.000000 bits error (1 ulps)
 ****************
 
-getRegRes insIndex:20 insMap[insIndex]:5
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:5 frameCur[frameIdx]:12
+op1Addr:26 op2Addr:22
+real1 is null
 computeReal: op1:25.9409 op2:15.9697
-computeReal: op1Addr:: 0x7f748735a2a8 op1:2.59409141583055e1
-computeReal: op2Addr:: 0x7f748735a280 op2:1.59696969696970e1
+computeReal: op1Addr:: 0x1a op1:2.59409141583055e1
+computeReal: op2Addr:: 0x16 op2:1.59696969696970e1
 
 FADD
-computeReal: stackTop:17 addr 0x7f748735a2a8:
+computeReal: stackTop:25 addr 0x7f3604d2b3e8:
 
 The shadow value is 4.19106111280024e1
 , but 4.191061e1 was computed.
-updateError: computedVal:41.9106 insIndex:20
-1.000000 bits error (1 ulps)
-****************
-
-getRegRes insIndex:13 insMap[insIndex]:6
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:6 frameCur[frameIdx]:12
-fpSanLoadFromShadowMem: opd:9 from addr:0x1b8a140
-fpSanLoadFromShadowMemD: set value:9.00000000000000
- in shadowStack at:18 for addr:0x7f748735a2d0  from addr:0x1b8a140
-getRegRes insIndex:15 insMap[insIndex]:1
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:1 frameCur[frameIdx]:12
-fpSanLoadFromShadowMem: opd:1.09302 from addr:0x1b8a200
-fpSanLoadFromShadowMemD: set value:1.09302325581395
- in shadowStack at:13 for addr:0x7f748735a208  from addr:0x1b8a200
-getRegRes insIndex:16 insMap[insIndex]:2
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:2 frameCur[frameIdx]:12
-computeReal: op1:9 op2:1.09302
-computeReal: op1Addr:: 0x7f748735a2d0 op1:9.00000000000000
-computeReal: op2Addr:: 0x7f748735a208 op2:1.09302325581395
-
-FADD
-computeReal: stackTop:14 addr 0x7f748735a230:
-
-The shadow value is 1.00930232558140e1
-, but 1.009302e1 was computed.
-updateError: computedVal:10.093 insIndex:16
+updateError: computedVal:41.9106 insIndex:25
 0.000000 bits error (0 ulps)
 ****************
 
-getRegRes insIndex:18 insMap[insIndex]:3
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:3 frameCur[frameIdx]:12
-fpSanLoadFromShadowMem: opd:9.83721 from addr:0x1b8a2c0
-fpSanLoadFromShadowMemD: set value:9.83720930232558
- in shadowStack at:15 for addr:0x7f748735a258  from addr:0x1b8a2c0
-getRegRes insIndex:19 insMap[insIndex]:4
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:4 frameCur[frameIdx]:12
-computeReal: op1:10.093 op2:9.83721
-computeReal: op1Addr:: 0x7f748735a230 op1:1.00930232558140e1
-computeReal: op2Addr:: 0x7f748735a258 op2:9.83720930232558
+fpSanLoadFromShadowMem: opd:9 from addr:0x236b150
+fpSanLoadFromShadowMemD: set value:9.00000000000000
+ in shadowStack at:20 for addr:0x7f3604d2b320  from addr:0x236b150
+fpSanLoadFromShadowMem: opd:1.09302 from addr:0x236b210
+fpSanLoadFromShadowMemD: set value:1.09302325581395
+ in shadowStack at:21 for addr:0x7f3604d2b348  from addr:0x236b210
+op1Addr:20 op2Addr:21
+computeReal: op1:9 op2:1.09302
+computeReal: op1Addr:: 0x14 op1:9.00000000000000
+computeReal: op2Addr:: 0x15 op2:1.09302325581395
 
 FADD
-computeReal: stackTop:16 addr 0x7f748735a280:
+computeReal: stackTop:19 addr 0x7f3604d2b2f8:
+
+The shadow value is 1.00930232558140e1
+, but 1.009302e1 was computed.
+updateError: computedVal:10.093 insIndex:19
+0.000000 bits error (0 ulps)
+****************
+
+fpSanLoadFromShadowMem: opd:9.83721 from addr:0x236b2d0
+fpSanLoadFromShadowMemD: set value:9.83720930232558
+ in shadowStack at:24 for addr:0x7f3604d2b3c0  from addr:0x236b2d0
+op1Addr:19 op2Addr:24
+computeReal: op1:10.093 op2:9.83721
+computeReal: op1Addr:: 0x13 op1:1.00930232558140e1
+computeReal: op2Addr:: 0x18 op2:9.83720930232558
+
+FADD
+computeReal: stackTop:22 addr 0x7f3604d2b370:
 
 The shadow value is 1.99302325581395e1
 , but 1.993023e1 was computed.
-updateError: computedVal:19.9302 insIndex:19
+updateError: computedVal:19.9302 insIndex:22
 1.000000 bits error (1 ulps)
 ****************
 
-getRegRes insIndex:20 insMap[insIndex]:5
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:5 frameCur[frameIdx]:12
+op1Addr:26 op2Addr:22
+real1 is null
 computeReal: op1:41.9106 op2:19.9302
-computeReal: op1Addr:: 0x7f748735a2a8 op1:4.19106111280024e1
-computeReal: op2Addr:: 0x7f748735a280 op2:1.99302325581395e1
+computeReal: op1Addr:: 0x1a op1:4.19106111280024e1
+computeReal: op2Addr:: 0x16 op2:1.99302325581395e1
 
 FADD
-computeReal: stackTop:17 addr 0x7f748735a2a8:
+computeReal: stackTop:25 addr 0x7f3604d2b3e8:
 
 The shadow value is 6.18408436861420e1
 , but 6.184084e1 was computed.
-updateError: computedVal:61.8408 insIndex:20
-1.000000 bits error (1 ulps)
+updateError: computedVal:61.8408 insIndex:25
+0.000000 bits error (0 ulps)
 ****************
 
-__func_exit ******
-funcExit: return copied from::0x7f748735a2a8 to stackTop:8
- addr:0x7f748735a140
-funcExit:8
- return addr:0x7f748735a168
-addFunArg: arg copied from: 0 stackTop:10
-addFunArg addr:0x7f748735a190
-3.22526053605166e-319
-addFunArg: arg copied from: 0 stackTop:11
-addFunArg addr:0x7f748735a1b8
-1.38523893491006e-309
-addFunArg: arg copied from: 0 stackTop:12
-addFunArg addr:0x7f748735a1e0
-1.38523893491006e-309
+__call_exit: toIndex:5 fromIndex:7
 __func_init ******
-funcInit:13
-getRegRes insIndex:13 insMap[insIndex]:0
-getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:0
-getRegRes newRegIdx:0 frameCur[frameIdx]:13
-fpSanLoadFromShadowMem: opd:2.33333 from addr:0x1b8a1e0
+fpSanLoadFromShadowMem: opd:2.33333 from addr:0x236b1f0
 fpSanLoadFromShadowMemD: set value:2.33333333333333
- in shadowStack at:13 for addr:0x7f748735a208  from addr:0x1b8a1e0
-getRegRes insIndex:15 insMap[insIndex]:0
-getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:1
-getRegRes newRegIdx:1 frameCur[frameIdx]:13
-fpSanLoadFromShadowMem: opd:1 from addr:0x1b8a120
+ in shadowStack at:20 for addr:0x7f3604d2b320  from addr:0x236b1f0
+fpSanLoadFromShadowMem: opd:1 from addr:0x236b130
 fpSanLoadFromShadowMemD: set value:1.00000000000000
- in shadowStack at:14 for addr:0x7f748735a230  from addr:0x1b8a120
-getRegRes insIndex:16 insMap[insIndex]:0
-getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:2
-getRegRes newRegIdx:2 frameCur[frameIdx]:13
+ in shadowStack at:21 for addr:0x7f3604d2b348  from addr:0x236b130
+op1Addr:20 op2Addr:21
 computeReal: op1:2.33333 op2:1
-computeReal: op1Addr:: 0x7f748735a208 op1:2.33333333333333
-computeReal: op2Addr:: 0x7f748735a230 op2:1.00000000000000
+computeReal: op1Addr:: 0x14 op1:2.33333333333333
+computeReal: op2Addr:: 0x15 op2:1.00000000000000
 
 FADD
-computeReal: stackTop:15 addr 0x7f748735a258:
+computeReal: stackTop:19 addr 0x7f3604d2b2f8:
 
 The shadow value is 3.33333333333333
 , but 3.333333 was computed.
-updateError: computedVal:3.33333 insIndex:16
+updateError: computedVal:3.33333 insIndex:19
 1.000000 bits error (1 ulps)
 ****************
 
-getRegRes insIndex:18 insMap[insIndex]:0
-getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:3
-getRegRes newRegIdx:3 frameCur[frameIdx]:13
-fpSanLoadFromShadowMem: opd:2.33333 from addr:0x1b8a2a0
+fpSanLoadFromShadowMem: opd:2.33333 from addr:0x236b2b0
 fpSanLoadFromShadowMemD: set value:2.33333333333333
- in shadowStack at:16 for addr:0x7f748735a280  from addr:0x1b8a2a0
-getRegRes insIndex:19 insMap[insIndex]:0
-getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:4
-getRegRes newRegIdx:4 frameCur[frameIdx]:13
+ in shadowStack at:24 for addr:0x7f3604d2b3c0  from addr:0x236b2b0
+op1Addr:19 op2Addr:24
 computeReal: op1:3.33333 op2:2.33333
-computeReal: op1Addr:: 0x7f748735a258 op1:3.33333333333333
-computeReal: op2Addr:: 0x7f748735a280 op2:2.33333333333333
+computeReal: op1Addr:: 0x13 op1:3.33333333333333
+computeReal: op2Addr:: 0x18 op2:2.33333333333333
 
 FADD
-computeReal: stackTop:17 addr 0x7f748735a2a8:
+computeReal: stackTop:22 addr 0x7f3604d2b370:
 
 The shadow value is 5.66666666666667
 , but 5.666667 was computed.
-updateError: computedVal:5.66667 insIndex:19
+updateError: computedVal:5.66667 insIndex:22
 1.000000 bits error (1 ulps)
 ****************
 
-getRegRes insIndex:20 insMap[insIndex]:0
-getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:5
-getRegRes newRegIdx:5 frameCur[frameIdx]:13
-computeReal: real1 is null, using op1 value:0
+op1Addr:26 op2Addr:22
+real1 is null
 computeReal: op1:0 op2:5.66667
-computeReal: op1Addr:: (nil) op1:0
-computeReal: op2Addr:: 0x7f748735a2a8 op2:5.66666666666667
+computeReal: op1Addr:: 0x1a op1:0
+computeReal: op2Addr:: 0x16 op2:5.66666666666667
 
 FADD
-computeReal: stackTop:18 addr 0x7f748735a2d0:
+computeReal: stackTop:25 addr 0x7f3604d2b3e8:
 
 The shadow value is 5.66666666666667
 , but 5.666667 was computed.
-updateError: computedVal:5.66667 insIndex:20
+updateError: computedVal:5.66667 insIndex:25
 1.000000 bits error (1 ulps)
 ****************
 
-getRegRes insIndex:13 insMap[insIndex]:0
-getRegRes insMap[insIndex] == 0 slotIdx[frameIdx]:6
-getRegRes newRegIdx:6 frameCur[frameIdx]:13
-fpSanLoadFromShadowMem: opd:1.30769 from addr:0x1b8a1e8
+fpSanLoadFromShadowMem: opd:1.30769 from addr:0x236b1f8
 fpSanLoadFromShadowMemD: set value:1.30769230769231
- in shadowStack at:19 for addr:0x7f748735a2f8  from addr:0x1b8a1e8
-getRegRes insIndex:15 insMap[insIndex]:1
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:1 frameCur[frameIdx]:13
-fpSanLoadFromShadowMem: opd:3 from addr:0x1b8a128
+ in shadowStack at:20 for addr:0x7f3604d2b320  from addr:0x236b1f8
+fpSanLoadFromShadowMem: opd:3 from addr:0x236b138
 fpSanLoadFromShadowMemD: set value:3.00000000000000
- in shadowStack at:14 for addr:0x7f748735a230  from addr:0x1b8a128
-getRegRes insIndex:16 insMap[insIndex]:2
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:2 frameCur[frameIdx]:13
+ in shadowStack at:21 for addr:0x7f3604d2b348  from addr:0x236b138
+op1Addr:20 op2Addr:21
 computeReal: op1:1.30769 op2:3
-computeReal: op1Addr:: 0x7f748735a2f8 op1:1.30769230769231
-computeReal: op2Addr:: 0x7f748735a230 op2:3.00000000000000
+computeReal: op1Addr:: 0x14 op1:1.30769230769231
+computeReal: op2Addr:: 0x15 op2:3.00000000000000
 
 FADD
-computeReal: stackTop:15 addr 0x7f748735a258:
+computeReal: stackTop:19 addr 0x7f3604d2b2f8:
 
 The shadow value is 4.30769230769231
 , but 4.307692 was computed.
-updateError: computedVal:4.30769 insIndex:16
+updateError: computedVal:4.30769 insIndex:19
 0.000000 bits error (0 ulps)
 ****************
 
-getRegRes insIndex:18 insMap[insIndex]:3
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:3 frameCur[frameIdx]:13
-fpSanLoadFromShadowMem: opd:3.92308 from addr:0x1b8a2a8
+fpSanLoadFromShadowMem: opd:3.92308 from addr:0x236b2b8
 fpSanLoadFromShadowMemD: set value:3.92307692307692
- in shadowStack at:16 for addr:0x7f748735a280  from addr:0x1b8a2a8
-getRegRes insIndex:19 insMap[insIndex]:4
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:4 frameCur[frameIdx]:13
+ in shadowStack at:24 for addr:0x7f3604d2b3c0  from addr:0x236b2b8
+op1Addr:19 op2Addr:24
 computeReal: op1:4.30769 op2:3.92308
-computeReal: op1Addr:: 0x7f748735a258 op1:4.30769230769231
-computeReal: op2Addr:: 0x7f748735a280 op2:3.92307692307692
+computeReal: op1Addr:: 0x13 op1:4.30769230769231
+computeReal: op2Addr:: 0x18 op2:3.92307692307692
 
 FADD
-computeReal: stackTop:17 addr 0x7f748735a2a8:
+computeReal: stackTop:22 addr 0x7f3604d2b370:
 
 The shadow value is 8.23076923076923
 , but 8.230769 was computed.
-updateError: computedVal:8.23077 insIndex:19
+updateError: computedVal:8.23077 insIndex:22
 0.000000 bits error (0 ulps)
 ****************
 
-getRegRes insIndex:20 insMap[insIndex]:5
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:5 frameCur[frameIdx]:13
+op1Addr:26 op2Addr:22
+real1 is null
 computeReal: op1:5.66667 op2:8.23077
-computeReal: op1Addr:: 0x7f748735a2d0 op1:5.66666666666667
-computeReal: op2Addr:: 0x7f748735a2a8 op2:8.23076923076923
+computeReal: op1Addr:: 0x1a op1:5.66666666666667
+computeReal: op2Addr:: 0x16 op2:8.23076923076923
 
 FADD
-computeReal: stackTop:18 addr 0x7f748735a2d0:
+computeReal: stackTop:25 addr 0x7f3604d2b3e8:
 
 The shadow value is 1.38974358974359e1
 , but 1.389744e1 was computed.
-updateError: computedVal:13.8974 insIndex:20
-1.000000 bits error (1 ulps)
+updateError: computedVal:13.8974 insIndex:25
+0.000000 bits error (0 ulps)
 ****************
 
-getRegRes insIndex:13 insMap[insIndex]:6
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:6 frameCur[frameIdx]:13
-fpSanLoadFromShadowMem: opd:1.17391 from addr:0x1b8a1f0
+fpSanLoadFromShadowMem: opd:1.17391 from addr:0x236b200
 fpSanLoadFromShadowMemD: set value:1.17391304347826
- in shadowStack at:19 for addr:0x7f748735a2f8  from addr:0x1b8a1f0
-getRegRes insIndex:15 insMap[insIndex]:1
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:1 frameCur[frameIdx]:13
-fpSanLoadFromShadowMem: opd:5 from addr:0x1b8a130
+ in shadowStack at:20 for addr:0x7f3604d2b320  from addr:0x236b200
+fpSanLoadFromShadowMem: opd:5 from addr:0x236b140
 fpSanLoadFromShadowMemD: set value:5.00000000000000
- in shadowStack at:14 for addr:0x7f748735a230  from addr:0x1b8a130
-getRegRes insIndex:16 insMap[insIndex]:2
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:2 frameCur[frameIdx]:13
+ in shadowStack at:21 for addr:0x7f3604d2b348  from addr:0x236b140
+op1Addr:20 op2Addr:21
 computeReal: op1:1.17391 op2:5
-computeReal: op1Addr:: 0x7f748735a2f8 op1:1.17391304347826
-computeReal: op2Addr:: 0x7f748735a230 op2:5.00000000000000
+computeReal: op1Addr:: 0x14 op1:1.17391304347826
+computeReal: op2Addr:: 0x15 op2:5.00000000000000
 
 FADD
-computeReal: stackTop:15 addr 0x7f748735a258:
+computeReal: stackTop:19 addr 0x7f3604d2b2f8:
 
 The shadow value is 6.17391304347826
 , but 6.173913 was computed.
-updateError: computedVal:6.17391 insIndex:16
+updateError: computedVal:6.17391 insIndex:19
 0.000000 bits error (0 ulps)
 ****************
 
-getRegRes insIndex:18 insMap[insIndex]:3
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:3 frameCur[frameIdx]:13
-fpSanLoadFromShadowMem: opd:5.86957 from addr:0x1b8a2b0
+fpSanLoadFromShadowMem: opd:5.86957 from addr:0x236b2c0
 fpSanLoadFromShadowMemD: set value:5.86956521739130
- in shadowStack at:16 for addr:0x7f748735a280  from addr:0x1b8a2b0
-getRegRes insIndex:19 insMap[insIndex]:4
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:4 frameCur[frameIdx]:13
+ in shadowStack at:24 for addr:0x7f3604d2b3c0  from addr:0x236b2c0
+op1Addr:19 op2Addr:24
 computeReal: op1:6.17391 op2:5.86957
-computeReal: op1Addr:: 0x7f748735a258 op1:6.17391304347826
-computeReal: op2Addr:: 0x7f748735a280 op2:5.86956521739130
+computeReal: op1Addr:: 0x13 op1:6.17391304347826
+computeReal: op2Addr:: 0x18 op2:5.86956521739130
 
 FADD
-computeReal: stackTop:17 addr 0x7f748735a2a8:
+computeReal: stackTop:22 addr 0x7f3604d2b370:
 
 The shadow value is 1.20434782608696e1
 , but 1.204348e1 was computed.
-updateError: computedVal:12.0435 insIndex:19
+updateError: computedVal:12.0435 insIndex:22
 1.000000 bits error (1 ulps)
 ****************
 
-getRegRes insIndex:20 insMap[insIndex]:5
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:5 frameCur[frameIdx]:13
+op1Addr:26 op2Addr:22
+real1 is null
 computeReal: op1:13.8974 op2:12.0435
-computeReal: op1Addr:: 0x7f748735a2d0 op1:1.38974358974359e1
-computeReal: op2Addr:: 0x7f748735a2a8 op2:1.20434782608696e1
+computeReal: op1Addr:: 0x1a op1:1.38974358974359e1
+computeReal: op2Addr:: 0x16 op2:1.20434782608696e1
 
 FADD
-computeReal: stackTop:18 addr 0x7f748735a2d0:
+computeReal: stackTop:25 addr 0x7f3604d2b3e8:
 
 The shadow value is 2.59409141583055e1
 , but 2.594091e1 was computed.
-updateError: computedVal:25.9409 insIndex:20
-1.000000 bits error (1 ulps)
+updateError: computedVal:25.9409 insIndex:25
+0.000000 bits error (0 ulps)
 ****************
 
-getRegRes insIndex:13 insMap[insIndex]:6
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:6 frameCur[frameIdx]:13
-fpSanLoadFromShadowMem: opd:1.12121 from addr:0x1b8a1f8
+fpSanLoadFromShadowMem: opd:1.12121 from addr:0x236b208
 fpSanLoadFromShadowMemD: set value:1.12121212121212
- in shadowStack at:19 for addr:0x7f748735a2f8  from addr:0x1b8a1f8
-getRegRes insIndex:15 insMap[insIndex]:1
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:1 frameCur[frameIdx]:13
-fpSanLoadFromShadowMem: opd:7 from addr:0x1b8a138
+ in shadowStack at:20 for addr:0x7f3604d2b320  from addr:0x236b208
+fpSanLoadFromShadowMem: opd:7 from addr:0x236b148
 fpSanLoadFromShadowMemD: set value:7.00000000000000
- in shadowStack at:14 for addr:0x7f748735a230  from addr:0x1b8a138
-getRegRes insIndex:16 insMap[insIndex]:2
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:2 frameCur[frameIdx]:13
+ in shadowStack at:21 for addr:0x7f3604d2b348  from addr:0x236b148
+op1Addr:20 op2Addr:21
 computeReal: op1:1.12121 op2:7
-computeReal: op1Addr:: 0x7f748735a2f8 op1:1.12121212121212
-computeReal: op2Addr:: 0x7f748735a230 op2:7.00000000000000
+computeReal: op1Addr:: 0x14 op1:1.12121212121212
+computeReal: op2Addr:: 0x15 op2:7.00000000000000
 
 FADD
-computeReal: stackTop:15 addr 0x7f748735a258:
+computeReal: stackTop:19 addr 0x7f3604d2b2f8:
 
 The shadow value is 8.12121212121212
 , but 8.121212 was computed.
-updateError: computedVal:8.12121 insIndex:16
+updateError: computedVal:8.12121 insIndex:19
 0.000000 bits error (0 ulps)
 ****************
 
-getRegRes insIndex:18 insMap[insIndex]:3
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:3 frameCur[frameIdx]:13
-fpSanLoadFromShadowMem: opd:7.84848 from addr:0x1b8a2b8
+fpSanLoadFromShadowMem: opd:7.84848 from addr:0x236b2c8
 fpSanLoadFromShadowMemD: set value:7.84848484848485
- in shadowStack at:16 for addr:0x7f748735a280  from addr:0x1b8a2b8
-getRegRes insIndex:19 insMap[insIndex]:4
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:4 frameCur[frameIdx]:13
+ in shadowStack at:24 for addr:0x7f3604d2b3c0  from addr:0x236b2c8
+op1Addr:19 op2Addr:24
 computeReal: op1:8.12121 op2:7.84848
-computeReal: op1Addr:: 0x7f748735a258 op1:8.12121212121212
-computeReal: op2Addr:: 0x7f748735a280 op2:7.84848484848485
+computeReal: op1Addr:: 0x13 op1:8.12121212121212
+computeReal: op2Addr:: 0x18 op2:7.84848484848485
 
 FADD
-computeReal: stackTop:17 addr 0x7f748735a2a8:
+computeReal: stackTop:22 addr 0x7f3604d2b370:
 
 The shadow value is 1.59696969696970e1
 , but 1.596970e1 was computed.
-updateError: computedVal:15.9697 insIndex:19
+updateError: computedVal:15.9697 insIndex:22
 1.000000 bits error (1 ulps)
 ****************
 
-getRegRes insIndex:20 insMap[insIndex]:5
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:5 frameCur[frameIdx]:13
+op1Addr:26 op2Addr:22
+real1 is null
 computeReal: op1:25.9409 op2:15.9697
-computeReal: op1Addr:: 0x7f748735a2d0 op1:2.59409141583055e1
-computeReal: op2Addr:: 0x7f748735a2a8 op2:1.59696969696970e1
+computeReal: op1Addr:: 0x1a op1:2.59409141583055e1
+computeReal: op2Addr:: 0x16 op2:1.59696969696970e1
 
 FADD
-computeReal: stackTop:18 addr 0x7f748735a2d0:
+computeReal: stackTop:25 addr 0x7f3604d2b3e8:
 
 The shadow value is 4.19106111280024e1
 , but 4.191061e1 was computed.
-updateError: computedVal:41.9106 insIndex:20
-1.000000 bits error (1 ulps)
-****************
-
-getRegRes insIndex:13 insMap[insIndex]:6
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:6 frameCur[frameIdx]:13
-fpSanLoadFromShadowMem: opd:1.09302 from addr:0x1b8a200
-fpSanLoadFromShadowMemD: set value:1.09302325581395
- in shadowStack at:19 for addr:0x7f748735a2f8  from addr:0x1b8a200
-getRegRes insIndex:15 insMap[insIndex]:1
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:1 frameCur[frameIdx]:13
-fpSanLoadFromShadowMem: opd:9 from addr:0x1b8a140
-fpSanLoadFromShadowMemD: set value:9.00000000000000
- in shadowStack at:14 for addr:0x7f748735a230  from addr:0x1b8a140
-getRegRes insIndex:16 insMap[insIndex]:2
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:2 frameCur[frameIdx]:13
-computeReal: op1:1.09302 op2:9
-computeReal: op1Addr:: 0x7f748735a2f8 op1:1.09302325581395
-computeReal: op2Addr:: 0x7f748735a230 op2:9.00000000000000
-
-FADD
-computeReal: stackTop:15 addr 0x7f748735a258:
-
-The shadow value is 1.00930232558140e1
-, but 1.009302e1 was computed.
-updateError: computedVal:10.093 insIndex:16
+updateError: computedVal:41.9106 insIndex:25
 0.000000 bits error (0 ulps)
 ****************
 
-getRegRes insIndex:18 insMap[insIndex]:3
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:3 frameCur[frameIdx]:13
-fpSanLoadFromShadowMem: opd:9.83721 from addr:0x1b8a2c0
-fpSanLoadFromShadowMemD: set value:9.83720930232558
- in shadowStack at:16 for addr:0x7f748735a280  from addr:0x1b8a2c0
-getRegRes insIndex:19 insMap[insIndex]:4
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:4 frameCur[frameIdx]:13
-computeReal: op1:10.093 op2:9.83721
-computeReal: op1Addr:: 0x7f748735a258 op1:1.00930232558140e1
-computeReal: op2Addr:: 0x7f748735a280 op2:9.83720930232558
+fpSanLoadFromShadowMem: opd:1.09302 from addr:0x236b210
+fpSanLoadFromShadowMemD: set value:1.09302325581395
+ in shadowStack at:20 for addr:0x7f3604d2b320  from addr:0x236b210
+fpSanLoadFromShadowMem: opd:9 from addr:0x236b150
+fpSanLoadFromShadowMemD: set value:9.00000000000000
+ in shadowStack at:21 for addr:0x7f3604d2b348  from addr:0x236b150
+op1Addr:20 op2Addr:21
+computeReal: op1:1.09302 op2:9
+computeReal: op1Addr:: 0x14 op1:1.09302325581395
+computeReal: op2Addr:: 0x15 op2:9.00000000000000
 
 FADD
-computeReal: stackTop:17 addr 0x7f748735a2a8:
+computeReal: stackTop:19 addr 0x7f3604d2b2f8:
+
+The shadow value is 1.00930232558140e1
+, but 1.009302e1 was computed.
+updateError: computedVal:10.093 insIndex:19
+0.000000 bits error (0 ulps)
+****************
+
+fpSanLoadFromShadowMem: opd:9.83721 from addr:0x236b2d0
+fpSanLoadFromShadowMemD: set value:9.83720930232558
+ in shadowStack at:24 for addr:0x7f3604d2b3c0  from addr:0x236b2d0
+op1Addr:19 op2Addr:24
+computeReal: op1:10.093 op2:9.83721
+computeReal: op1Addr:: 0x13 op1:1.00930232558140e1
+computeReal: op2Addr:: 0x18 op2:9.83720930232558
+
+FADD
+computeReal: stackTop:22 addr 0x7f3604d2b370:
 
 The shadow value is 1.99302325581395e1
 , but 1.993023e1 was computed.
-updateError: computedVal:19.9302 insIndex:19
+updateError: computedVal:19.9302 insIndex:22
 1.000000 bits error (1 ulps)
 ****************
 
-getRegRes insIndex:20 insMap[insIndex]:5
-getRegRes insMap[insIndex] != 0
-getRegRes newRegIdx:5 frameCur[frameIdx]:13
+op1Addr:26 op2Addr:22
+real1 is null
 computeReal: op1:41.9106 op2:19.9302
-computeReal: op1Addr:: 0x7f748735a2d0 op1:4.19106111280024e1
-computeReal: op2Addr:: 0x7f748735a2a8 op2:1.99302325581395e1
+computeReal: op1Addr:: 0x1a op1:4.19106111280024e1
+computeReal: op2Addr:: 0x16 op2:1.99302325581395e1
 
 FADD
-computeReal: stackTop:18 addr 0x7f748735a2d0:
+computeReal: stackTop:25 addr 0x7f3604d2b3e8:
 
 The shadow value is 6.18408436861420e1
 , but 6.184084e1 was computed.
-updateError: computedVal:61.8408 insIndex:20
-1.000000 bits error (1 ulps)
+updateError: computedVal:61.8408 insIndex:25
+0.000000 bits error (0 ulps)
 ****************
 
-__func_exit ******
-funcExit: return copied from::0x7f748735a2d0 to stackTop:9
- addr:0x7f748735a168
-funcExit:9
-6.184084e+01
+__call_exit: toIndex:6 fromIndex:7
+op1Addr:5 op2Addr:6
+computeReal: op1:61.8408 op2:61.8408
+computeReal: op1Addr:: 0x5 op1:@NaN@
+computeReal: op2Addr:: 0x6 op2:@NaN@
+
+FADD
+computeReal: stackTop:4 addr 0x7f3604d2b0a0:
+
+The shadow value is @NaN@
+, but 1.236817e2 was computed.
+updateError: computedVal:123.682 insIndex:4
+64.000000 bits error (18446744073709551614 ulps)
+****************
+
+1.236817e+02
 6.184084e+01
 6.184084e+01
 ******
