@@ -80,9 +80,9 @@ bool FPInstrument::runOnModule(Module &M) {
             case Instruction::FMul:
             case Instruction::FDiv:{
 						AllInsList.push_back(&I);
-						if (!isa<ConstantFP>(BO->getOperand(0)))
+						if (!isa<ConstantFP>(BO->getOperand(0)) && (!isa<SIToFPInst>(BO->getOperand(0))))
 							AllInsList.push_back(dyn_cast<Instruction>(BO->getOperand(0)));
-						if (!isa<ConstantFP>(BO->getOperand(1)))
+						if (!isa<ConstantFP>(BO->getOperand(1)) && (!isa<SIToFPInst>(BO->getOperand(1))))
 							AllInsList.push_back(dyn_cast<Instruction>(BO->getOperand(1)));
             }  // we handle binary operations on fp
           }
@@ -1520,12 +1520,13 @@ void FPInstrument::handleOp(Instruction *I, BasicBlock *BB, BinaryOperator* BO, 
   bool IsRegOp2 = false;
 
   //get index of ins
-    	errs()<<"handleOp: I:"<<*I<<"\n";
-    	errs()<<"handleOp: op0:"<<*BO->getOperand(0)<<"\n";
-    	errs()<<"handleOp: op1:"<<*BO->getOperand(1)<<"\n";
+	errs()<<"handleOp: I:"<<*I<<"\n";
+	errs()<<"handleOp: op0:"<<*BO->getOperand(0)<<"\n";
+	errs()<<"handleOp: op1:"<<*BO->getOperand(1)<<"\n";
+
   size_t InsIndex;
   InsIndex = InsMap.at(I);
-    	errs()<<"handleOp: I index:"<<InsIndex<<"\n";
+  errs()<<"handleOp: I index:"<<InsIndex<<"\n";
   size_t InsIndexop1;
   size_t InsIndexop2;
   Constant* ConsInsIndex = ConstantInt::get(Type::getInt64Ty(M->getContext()), InsIndex); 

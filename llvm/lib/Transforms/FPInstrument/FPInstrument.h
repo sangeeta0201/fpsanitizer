@@ -113,7 +113,7 @@ private:
   //this is index for constants 
   size_t ConsCount = 0;
   //this is index for instructions
-  size_t InsCount = 0;
+  size_t InsCount = 1;
   size_t InsCRCount = 0;
   //these are handlers for run time functions
   std::map<size_t, Instruction*> ComputeRealIns;
