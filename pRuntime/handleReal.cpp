@@ -1577,6 +1577,7 @@ extern "C" void __init(size_t totalSlots){
 #endif
 }
 
+#if MULTITHREADED
 void* consumer(void *ptr) {
 	Compute *op; 
 	bool op1 = false;
@@ -1894,7 +1895,7 @@ void* consumer6(void *ptr) {
 	}
 	return NULL;
 }
-
+#endif
 extern "C" void __finish(){
 	consumerFlag = true;
 	std::cout<<"Avg Instructions:"<<(double)sumIns/totalIns<<"\n";

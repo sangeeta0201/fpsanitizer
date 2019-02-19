@@ -116,7 +116,7 @@ size_t count3 = 0;
 size_t count4 = 0;
 size_t count5 = 0;
 size_t count6 = 0;
-
+/*
 tbb::concurrent_queue<struct Compute*> worker;
 tbb::concurrent_queue<struct Compute*> ready1;
 tbb::concurrent_queue<struct Compute*> ready2;
@@ -124,6 +124,7 @@ tbb::concurrent_queue<struct Compute*> ready3;
 tbb::concurrent_queue<struct Compute*> ready4;
 tbb::concurrent_queue<struct Compute*> ready5;
 tbb::concurrent_queue<struct Compute*> ready6;
+*/
 std::map<size_t, struct ErrorAggregate*>errorMap;
 std::map<size_t, struct BrError*>errBrMap;
 //this will link ins index to index of result in shadow mem
