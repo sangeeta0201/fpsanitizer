@@ -9,6 +9,10 @@
 #include <sys/time.h>
 #include <sys/ioctl.h>
 #include <linux/perf_event.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <unistd.h>
+#include <asm/unistd.h>
 
 #define MULTHITHREADED 0
 #define TIME 0
