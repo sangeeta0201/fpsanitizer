@@ -186,11 +186,12 @@ extern "C" void __func_exit(size_t returnIndex){
 	struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
 #endif
+	size_t offset = frameCur[frameIdx];
 	/*return is copied from calle to the caller*/
-	Real *returnReal = &(shadowStack[returnIndex]);
+	Real *returnReal = &(shadowStack[returnIndex + offset]);
 	mpfr_set(shadowStack[curRetIdx].mpfr_val, returnReal->mpfr_val, MPFR_RNDN);
 	shadowStack[curRetIdx].initFlag = 1;
-	std::cout<<"return copied from index:"<<returnIndex<<" to index:"<<curRetIdx<<"\n";
+	std::cout<<"return copied from index:"<<returnIndex + offset<<" to index:"<<curRetIdx<<"\n";
 
 	frameIdx--;	
 #if TIME
@@ -1569,7 +1570,7 @@ extern "C" void __init(size_t totalSlots){
     frameCur[0] = 0;
     argCount[0] = 0;
     slotIdx[0] = 0;
-    __func_init(totalSlots, 0);
+    __func_init(0, 0);
 
 		std::cout<<"init1\n";	
   	// Create the threads

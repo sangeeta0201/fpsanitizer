@@ -109,7 +109,7 @@ bool FPInstrument::runOnModule(Module &M) {
       }
     }
     handleIns(*F); 
-		InsCount = 0;
+		InsCount = 1;
   }
   for (Module::iterator Mit = M.begin(), Mend = M.end(); Mit != Mend; ++Mit) {
     Function &F = *Mit;
