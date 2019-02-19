@@ -4,7 +4,7 @@ CAMLFLAGs=
 CSRC = $(wildcard *.c)
 COUT = $(patsubst %.c,%.o,$(CSRC))
 
-CC = clang -g -pg -Xclang -load -Xclang /home/sangeeta/fpsanitizer/build/lib/LLVMFPInstrument.so
+CC = clang -g -pg -Xclang -load -Xclang $(FPROOT)/../build/lib/LLVMFPInstrument.so
 
 all: $(COUT) $(CAMLOUT)
 
