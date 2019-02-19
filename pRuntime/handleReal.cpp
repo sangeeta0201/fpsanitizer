@@ -155,9 +155,20 @@ extern "C" void __func_init(size_t totalSlots, size_t returnIdx){
 		__init(totalSlots);
 		initFlag = true;
 	}
+/*
+	frameIdx is incremented for every func call
+*/
 	frameIdx++;	
-	frameCur[frameIdx] = totalSlots;
-	curRetIdx = returnIdx; // current return index for this function, this function should copy its return index to curRetIdx
+/*
+	frameCur points to the current frame frameIndex, which is sum of 
+old frame index and total number of slots of previous function 
+*/
+	frameCur[frameIdx] = frameCur[frameIdx-1] + totalSlots;
+/*
+	curRetIdx stores the index where return needs to be copied in caller
+*/
+
+	curRetIdx = returnIdx;
 #if TIME
 	gettimeofday(&tv2, NULL);
 	funcInitTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
@@ -171,10 +182,12 @@ extern "C" void __func_exit(size_t returnIndex){
 	struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
 #endif
+	/*return is copied from calle to the caller*/
 	Real *returnReal = &(shadowStack[returnIndex]);
 	mpfr_set(shadowStack[curRetIdx].mpfr_val, returnReal->mpfr_val, MPFR_RNDN);
 	shadowStack[curRetIdx].initFlag = 1;
 	std::cout<<"return copied from index:"<<returnIndex<<" to index:"<<curRetIdx<<"\n";
+
 	frameIdx--;	
 #if TIME
 	gettimeofday(&tv2, NULL);
@@ -857,8 +870,10 @@ void setOperandsDouble(size_t opCode, size_t op1Addr, size_t op2Addr,
   Real r2;
   bool mpfrFlag1 = false;
   bool mpfrFlag2 = false;
-	std::cout<<"setOperandsDouble: insIndex"<<insIndex<<" frameIdx:"<<frameIdx<<"\n";
-	insIndex += frameIdx;
+
+	size_t offset = frameCur[frameIdx];
+	std::cout<<"setOperandsDouble: insIndex"<<insIndex<<" offset:"<<offset<<"\n";
+	insIndex += offset;
 	std::cout<<"op1Addr:"<<op1Addr<<" op2Addr:"<<op2Addr<<"\n";
 	if(op1Addr == 0){ //it is a constant
     if(debugCR)
@@ -870,7 +885,7 @@ void setOperandsDouble(size_t opCode, size_t op1Addr, size_t op2Addr,
     mpfrFlag1 = true; 
 	}
 	else{
-		real1 = &(shadowStack[op1Addr + frameIdx]);
+		real1 = &(shadowStack[op1Addr + offset]);
 		if(real1->initFlag == 0){
     	if(debugCR)
 				std::cout<<"real1 is null\n";
@@ -892,7 +907,7 @@ void setOperandsDouble(size_t opCode, size_t op1Addr, size_t op2Addr,
     mpfrFlag2 = true; 
 	}
 	else{
-		real2 = &(shadowStack[op2Addr + frameIdx]);
+		real2 = &(shadowStack[op2Addr + offset]);
 			if(real2->initFlag == 0){
     		if(debugCR)
 					std::cout<<"real2 is null\n";
