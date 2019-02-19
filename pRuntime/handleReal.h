@@ -69,6 +69,7 @@ struct Compute{
 	size_t lineNo;
 	bool fcmpRes;
 };
+size_t curRetIdx = 0;
 size_t totalIns = 0;
 double sumIns = 0;
 double initTime = 0;
@@ -99,6 +100,7 @@ bool consumerFlag = false;
 size_t funcCount = 0;
 bool initFlag = false;
 int frameIdx = 0;
+size_t oldFrame = 0;
 size_t newRegIdx = 0;
 bool recurFlag = false;
 size_t mpfrClear = 0;
@@ -143,8 +145,8 @@ void* consumer6(void *ptr);
 void computeReal();
 
 extern "C" size_t __get_addr(void *Addr);
-extern "C"  void __init();
 extern "C"  void __finish();
+extern "C"  void __init(size_t totalSlots);
 extern "C"  void printToFile(void* op1Addr, void* op2Addr, void* op3Addr);
 size_t getFunOperands(size_t addr);
 void* get_real_fun_arg(size_t index);

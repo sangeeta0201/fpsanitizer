@@ -68,7 +68,7 @@ public:
   //this function looks one instruction ahead and return it
   Instruction* getNextInstruction(Instruction *I, BasicBlock *BB);
   void handleFuncExit(Instruction *I, ReturnInst *RI, Function &F);  
-  void handleFuncInit(Function &F);  
+  void handleFuncInit(Function *F, Constant* ConsInsIndex);  
   void handleAlloca(Instruction *I, BasicBlock *BB, AllocaInst *A, Function &F);  void handleCleanup(Instruction *I, ReturnInst *RI, Function &F); 
   void handleSelect(Instruction *I, BasicBlock *BB, SelectInst *SI, Function &F);
   void handleLoad(Instruction *I, LoadInst *LI, BasicBlock *BB, Function &F);
@@ -103,6 +103,7 @@ private:
   std::map<Instruction*, size_t> InsMap;
   std::map<Instruction*, size_t> InsCRMap;
   std::map<Function*, size_t> FunRetMap;
+  std::map<Function*, size_t> FunInsMap;
   //this is used to save mapping of old phi node and new phi node
   std::map<Instruction*, Instruction*> NewPhiMap;
   //this is used to give unique index to every argument of the function. Since we won't know address

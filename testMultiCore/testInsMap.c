@@ -14,9 +14,6 @@ double bar(double *a, double *b, double *c){
 	return x;
 }
 
-double* foo(){
-
-}
 int main() {
 //	start_counter();
 	double a = 0;

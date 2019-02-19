@@ -21,11 +21,6 @@ Test this with microbenchmark
 bool FPInstrument::runOnModule(Module &M) {
  
   size_t count = 0;
-	for (Module::global_iterator it = M.global_begin(); it != M.global_end(); it++) {
-	//	for(auto *S : M.getIdentifiedStructTypes())
-  //  {
-   // }
-	}
   for (Module::iterator Mit = M.begin(), Mend = M.end(); Mit != Mend; ++Mit) {
     Function &F = *Mit;
     if (F.isDeclaration()) continue;
@@ -136,7 +131,7 @@ bool FPInstrument::runOnModule(Module &M) {
     		handleFuncMainInit(F);
 			else{
     		if (!instrumentFunctions(F.getName())) continue;
-      	handleFuncInit(F);
+      	//handleFuncInit(F);
 			}
     //insert call to init
   }
@@ -383,6 +378,7 @@ bool FPInstrument::runOnModule(Module &M) {
 #endif
   return true;
 }
+
 void FPInstrument::handleFuncMainInit(Function &F){
   Function::iterator Fit = F.begin();
   BasicBlock &BB = *Fit; 
@@ -391,9 +387,14 @@ void FPInstrument::handleFuncMainInit(Function &F){
 
   Module *M = F.getParent();
   IRBuilder<> IRB(First);
+
   Type* VoidTy = Type::getVoidTy(M->getContext());
-  Finish = M->getOrInsertFunction("__init", VoidTy);
-  IRB.CreateCall(Finish, {});
+	Type* Int64Ty = Type::getInt64Ty(M->getContext());
+
+  Finish = M->getOrInsertFunction("__init", VoidTy, Int64Ty);
+	size_t TotIns = FunInsMap.at(&F);
+  Constant* ConsTotIns = ConstantInt::get(Type::getInt64Ty(M->getContext()), TotIns); 
+  IRB.CreateCall(Finish, {ConsTotIns});
 }
 
 void FPInstrument::cleanGEP(StructType *ST,Instruction *I, BasicBlock *BB,  GetElementPtrInst *GEP, Function &F, size_t index) { 
@@ -809,13 +810,14 @@ void FPInstrument::handleCallInst(Instruction *I, CallInst *CI, BasicBlock *BB, 
 
   size_t InsIndex;
   InsIndex = InsMap.at(CI);
+	errs()<<"calling funcInit with return Index:"<<InsIndex<<"\n";
   Constant* ConsInsIndex = ConstantInt::get(Type::getInt64Ty(M->getContext()), InsIndex); 
 
-	size_t RetIndex = FunRetMap.at(Callee);
-  Constant* ConsRetIndex = ConstantInt::get(Type::getInt64Ty(M->getContext()), RetIndex); 
+	FuncInit = M->getOrInsertFunction("__func_init", VoidTy, Int64Ty, Int64Ty);
+	size_t TotIns = FunInsMap.at(&F);
+  Constant* ConsTotIns = ConstantInt::get(Type::getInt64Ty(M->getContext()), TotIns); 
+	IRB.CreateCall(FuncInit, {ConsTotIns, ConsInsIndex});
 
-	AddFunArg = M->getOrInsertFunction("__call_exit", VoidTy, Int64Ty, Int64Ty);
-	IRBN.CreateCall(AddFunArg, {ConsInsIndex, ConsRetIndex});
 
 	AddFunArg = M->getOrInsertFunction("__add_return_addr", Int64Ty);
 	Instruction *NewIns = IRB.CreateCall(AddFunArg, {});
@@ -847,21 +849,24 @@ void FPInstrument::handleCallInst(Instruction *I, CallInst *CI, BasicBlock *BB, 
   }
 }
 
-void FPInstrument::handleFuncInit(Function &F){
-  Function::iterator Fit = F.begin();
+void FPInstrument::handleFuncInit(Function *F, Constant* ConsInsIndex){
+  Function::iterator Fit = F->begin();
   BasicBlock &BB = *Fit; 
   BasicBlock::iterator BBit = BB.begin();
   Instruction *First = &*BBit;
 
-  Module *M = F.getParent();
+  Module *M = F->getParent();
   IRBuilder<> IRB(First);
   Type* VoidTy = Type::getVoidTy(M->getContext());
+  Type* Int64Ty = Type::getInt64Ty(M->getContext());
  	
 	Constant *fname = ConstantDataArray::getString(M->getContext(),"hi", true);
   Value *FBloc = new GlobalVariable(*M, fname->getType(), true, GlobalValue::InternalLinkage, fname, "fBloc");
  
-	FuncInit = M->getOrInsertFunction("__func_init", VoidTy, FBloc->getType());
-	IRB.CreateCall(FuncInit, {FBloc});
+	FuncInit = M->getOrInsertFunction("__func_init", VoidTy, Int64Ty, Int64Ty);
+	size_t TotIns = FunInsMap.at(F);
+  Constant* ConsTotIns = ConstantInt::get(Type::getInt64Ty(M->getContext()), TotIns); 
+	IRB.CreateCall(FuncInit, {ConsTotIns, ConsInsIndex});
 }
 
 void FPInstrument::handleFuncExit(Instruction *I, ReturnInst *RI, Function &F){
@@ -873,12 +878,20 @@ void FPInstrument::handleFuncExit(Instruction *I, ReturnInst *RI, Function &F){
   Type* VoidTy = Type::getVoidTy(M->getContext());
   Type* Int64Ty = Type::getInt64Ty(M->getContext());
 	errs()<<"handleFuncExit:"<<*RI<<"\n";
-		
-  size_t InsIndex;
-  InsIndex = InsMap.at(RI);
-	
-}
+	if (RI->getNumOperands() != 0){
+		Value *OP = RI->getOperand(0);
+		errs()<<"handleFuncExit:"<<*OP<<"\n";
+		Instruction *OpIns = dyn_cast<Instruction>(OP);
+		errs()<<"handleFuncExit:"<<*OpIns<<"\n";
+  	size_t InsIndex;
+  	InsIndex = InsMap.at(OpIns);
+		errs()<<"calling funcExit with return Index:"<<InsIndex<<"\n";
+  	Constant* ConsInsIndex = ConstantInt::get(Type::getInt64Ty(M->getContext()), InsIndex); 
+  	FuncExit = M->getOrInsertFunction("__func_exit", VoidTy, Int64Ty);
+  	IRB.CreateCall(FuncExit, {ConsInsIndex});
+	}
 
+}
 void FPInstrument::handleLoad(Instruction *I, LoadInst *LI, BasicBlock *BB, Function &F){
   Module *M = F.getParent();
   Instruction *Next = getNextInstruction(I, BB);
@@ -1244,13 +1257,11 @@ void FPInstrument::handleIns(Function &F){
 	errs()<<"*****"<<F.getName()<<"****\n";
   for (Instruction *I : AllInsList) {
   	InsMap.insert(std::pair<Instruction*, size_t>(I, InsCount));
-		
-		if (ReturnInst *RI = dyn_cast<ReturnInst>(I)) //handle math library functions
-  		FunRetMap.insert(std::pair<Function*, size_t>(&F, InsCount));
 		errs()<<"I:"<<*I<<" InsCount:"<<InsCount<<"\n";
   	InsCount++; 
 	}
-
+  FunInsMap.insert(std::pair<Function*, size_t>(&F, InsCount));
+	errs()<<F.getName()<<":"<<InsCount<<"\n";
 }
 /*
 void FPInstrument::handleExtractValue(Instruction *I, ExtractValueInst *EVI, Function &F){

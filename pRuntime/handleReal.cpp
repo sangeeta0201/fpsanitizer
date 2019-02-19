@@ -144,27 +144,25 @@ extern "C" void __add_fun_arg(size_t argNo, size_t argAddrInt, double op){
 #endif
 }
 
-extern "C" void __func_init(){
-	std::cout<<"__func_init ******\n";
+extern "C" void __func_init(size_t totalSlots, size_t returnIdx){
+	std::cout<<"__func_init totalSlots:"<<totalSlots<<"******\n";
+	std::cout<<"__func_init returnIdx:"<<returnIdx<<"******\n";
 #if TIME
 	struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
 #endif
 	if(!initFlag){
-		__init();
+		__init(totalSlots);
 		initFlag = true;
 	}
+	frameIdx++;	
+	frameCur[frameIdx] = totalSlots;
+	curRetIdx = returnIdx; // current return index for this function, this function should copy its return index to curRetIdx
 #if TIME
 	gettimeofday(&tv2, NULL);
 	funcInitTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
          (double) (tv2.tv_sec - tv1.tv_sec); 
 #endif
-}
-
-extern "C" void __call_exit(size_t toIndex, size_t fromIndex){
-	std::cout<<"__call_exit: toIndex:"<<toIndex<<" fromIndex:"<<fromIndex<<"\n";
-	mpfr_set(shadowStack[toIndex].mpfr_val, shadowStack[fromIndex].mpfr_val, MPFR_RNDN); 
-	shadowStack[toIndex].initFlag = 1;
 }
 
 extern "C" void __func_exit(size_t returnIndex){
@@ -173,10 +171,16 @@ extern "C" void __func_exit(size_t returnIndex){
 	struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
 #endif
+	Real *returnReal = &(shadowStack[returnIndex]);
+	mpfr_set(shadowStack[curRetIdx].mpfr_val, returnReal->mpfr_val, MPFR_RNDN);
+	shadowStack[curRetIdx].initFlag = 1;
+	std::cout<<"return copied from index:"<<returnIndex<<" to index:"<<curRetIdx<<"\n";
+	frameIdx--;	
 #if TIME
 	gettimeofday(&tv2, NULL);
 	funcExitTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
          (double) (tv2.tv_sec - tv1.tv_sec); 
+
 #endif
 /*
 	while(worker.unsafe_size() > 0 || ready1.unsafe_size() > 0 || ready2.unsafe_size() > 0){
@@ -853,6 +857,8 @@ void setOperandsDouble(size_t opCode, size_t op1Addr, size_t op2Addr,
   Real r2;
   bool mpfrFlag1 = false;
   bool mpfrFlag2 = false;
+	std::cout<<"setOperandsDouble: insIndex"<<insIndex<<" frameIdx:"<<frameIdx<<"\n";
+	insIndex += frameIdx;
 	std::cout<<"op1Addr:"<<op1Addr<<" op2Addr:"<<op2Addr<<"\n";
 	if(op1Addr == 0){ //it is a constant
     if(debugCR)
@@ -864,7 +870,7 @@ void setOperandsDouble(size_t opCode, size_t op1Addr, size_t op2Addr,
     mpfrFlag1 = true; 
 	}
 	else{
-		real1 = &(shadowStack[op1Addr]);
+		real1 = &(shadowStack[op1Addr + frameIdx]);
 		if(real1->initFlag == 0){
     	if(debugCR)
 				std::cout<<"real1 is null\n";
@@ -886,7 +892,7 @@ void setOperandsDouble(size_t opCode, size_t op1Addr, size_t op2Addr,
     mpfrFlag2 = true; 
 	}
 	else{
-		real2 = &(shadowStack[op2Addr]);
+		real2 = &(shadowStack[op2Addr + frameIdx]);
 			if(real2->initFlag == 0){
     		if(debugCR)
 					std::cout<<"real2 is null\n";
@@ -898,10 +904,8 @@ void setOperandsDouble(size_t opCode, size_t op1Addr, size_t op2Addr,
 			}
 	}
 	if(debugCR){
-		std::cout<<"computeReal: op1:"<<op1d<<" op2:"<<op2d<<"\n";
-		printf("computeReal: op1Addr:: %p op1:", (void *)op1Addr);
+		std::cout<<"computeReal: op1Addr:"<<op1Addr<<" op1:"<<op1d<<" op2Addr:"<<op2Addr<<" op2:"<<op2d<<"\n";
   	printReal(real1->mpfr_val);
-		printf("computeReal: op2Addr:: %p op2:", (void *)op2Addr);
   	printReal(real2->mpfr_val);
 	}
 	if(real1 == NULL || real2 == NULL)
@@ -1517,7 +1521,7 @@ void initializeErrorAggregate(ErrorAggregate *eagg){
   eagg->num_evals = 0;
 }
 
-extern "C" void __init(){
+extern "C" void __init(size_t totalSlots){
 #if TIME
 	struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
@@ -1546,7 +1550,7 @@ extern "C" void __init(){
     frameCur[0] = 0;
     argCount[0] = 0;
     slotIdx[0] = 0;
-    __func_init();
+    __func_init(totalSlots, 0);
 
 		std::cout<<"init1\n";	
   	// Create the threads
