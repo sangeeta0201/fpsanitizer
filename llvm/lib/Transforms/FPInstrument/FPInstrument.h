@@ -49,7 +49,7 @@ public:
   //void handleOp(Instruction *I, BinaryOperator* BO, Function &F);
   void handleOp(Instruction *I, BasicBlock *BB, BinaryOperator* BO, Function &F);
   //this is called inside from handleOp to handle each operand, it it could be constant, temp or loaded from memory
-  void handleOperand(Instruction *I, Instruction **Index, Value* OP, Function &F, bool *IsConstant, bool *IsReg);
+  Constant* handleOperand(Instruction *I, Value* OP, Function &F);
   //it gives unique index to every instruction
   void handleIns(Function &F);
   void handleCRIns();
@@ -71,7 +71,7 @@ public:
   void handleFuncInit(Function *F, Constant* ConsInsIndex);  
   void handleAlloca(Instruction *I, BasicBlock *BB, AllocaInst *A, Function &F);  void handleCleanup(Instruction *I, ReturnInst *RI, Function &F); 
   void handleSelect(Instruction *I, BasicBlock *BB, SelectInst *SI, Function &F);
-  void handleLoad(Instruction *I, LoadInst *LI, BasicBlock *BB, Function &F);
+  void handleLoad(Instruction *I, LoadInst *LI, BasicBlock *BB, Function &F, bool flag);
 	void instrumentAllFunctions(std::string FN);
 	void handleExtractValue(Instruction *I, ExtractValueInst *EVI, Function &F);
 	void handleLLVMMemcpy(Instruction *I, CallInst *CI, Function &F);
@@ -111,6 +111,7 @@ private:
   //runtime for its address or index. 
   std::map<Argument*, size_t> ArgMap;
   //this is index for constants 
+	size_t TotalIns = 0;
   size_t ConsCount = 0;
   //this is index for instructions
   size_t InsCount = 1;

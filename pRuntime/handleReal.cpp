@@ -15,8 +15,8 @@
 #include <asm/unistd.h>
 
 #define MULTHITHREADED 0
-#define TIME 0
-#define debug 1 
+#define TIME 1
+#define debug 1
 #define debugCR 1
 
 pthread_mutex_t the_mutex;
@@ -91,6 +91,20 @@ struct Real* getAddrIndex(size_t addrInt){
 	return realAddr;
 }
 
+size_t getSlotIndex(size_t InsIndex){
+	size_t offset = frameCur[frameIdx];
+	size_t idx = offset + InsIndex;
+	if(idx >= MAX_STACK_SIZE){
+		std::cout<<"idx:"<<idx;
+	}
+	assert(idx < MAX_STACK_SIZE);
+	if(!shadowStack[idx].initFlag){
+  	mpfr_init2(shadowStack[idx].mpfr_val, PRECISION);
+		shadowStack[idx].initFlag = 1;
+	}
+	return idx;	
+}
+
 void print_trace (void)
 {
   void *array[10];
@@ -101,24 +115,11 @@ void print_trace (void)
   size = backtrace (array, 10);
   strings = backtrace_symbols (array, size);
 
-  for (i = 0; i < 4; i++)
+  for (i = 2; i < 4; i++)
 		std::cout<<strings[i]<<"\n"; 
 		//fprintf (eFile, "%s\n", strings[i]); 
 
   free (strings);
-}
-
-extern "C" void* __add_return_addr(){
-#if TIME
-	struct timeval  tv1, tv2;
-	gettimeofday(&tv1, NULL);
-#endif
-#if TIME
-	gettimeofday(&tv2, NULL);
-	addAddrTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
-         (double) (tv2.tv_sec - tv1.tv_sec); 
-#endif
-  return &shadowStack[0];
 }
 
 extern "C" size_t __get_addr(void *Addr){
@@ -135,12 +136,33 @@ extern "C" size_t __get_addr(void *Addr){
   return AddrInt;
 }
 
-extern "C" void __add_fun_arg(size_t argNo, size_t argAddrInt, double op){
+//called from caller before calling function
+extern "C" void __add_fun_arg(size_t argNo, size_t opIdx, double op){
 #if TIME
 	struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
 #endif
 //TODO assert, as it might crash here
+	size_t dest = getSlotIndex(argNo); // this is location where argument is need to be pushed
+	size_t src = frameCur[frameIdx - 1] + opIdx; //this is index of parameter passed to the function
+	if(opIdx == 0){
+		mpfr_set_d(shadowStack[dest].mpfr_val, op, MPFR_RNDN);
+//		std::cout<<"copying argument from:"<<op<<" to dest:"<<dest<<"\n";
+	}
+	else if(shadowStack[src].initFlag){
+		mpfr_set(shadowStack[dest].mpfr_val, shadowStack[src].mpfr_val, MPFR_RNDN);
+	//	std::cout<<"copying argument from:"<<src<<" to dest:"<<dest<<"\n";
+//		printReal(shadowStack[src].mpfr_val);
+	}
+	else{
+		mpfr_set_d(shadowStack[dest].mpfr_val, op, MPFR_RNDN);
+//		std::cout<<"copying argument from:"<<op<<" to dest:"<<dest<<"\n";
+	}
+	if(debug){
+		std::cout<<"shadowStack[dest].mpfr_val:";
+		printReal(shadowStack[dest].mpfr_val);
+	}
+	
 #if TIME
 	gettimeofday(&tv2, NULL);
 	addFunTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
@@ -149,8 +171,6 @@ extern "C" void __add_fun_arg(size_t argNo, size_t argAddrInt, double op){
 }
 
 extern "C" void __func_init(size_t totalSlots, size_t returnIdx){
-	std::cout<<"__func_init totalSlots:"<<totalSlots<<"******\n";
-	std::cout<<"__func_init returnIdx:"<<returnIdx<<"******\n";
 #if TIME
 	struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
@@ -168,11 +188,16 @@ extern "C" void __func_init(size_t totalSlots, size_t returnIdx){
 old frame index and total number of slots of previous function 
 */
 	frameCur[frameIdx] = frameCur[frameIdx-1] + totalSlots;
+	if(debug){
+		std::cout<<"__func_init totalSlots:"<<totalSlots<<" frameIdx:"<<frameIdx<<" offset:"<<frameCur[frameIdx]<<"******\n";
+	}
 /*
 	curRetIdx stores the index where return needs to be copied in caller
 */
-
-	curRetIdx = returnIdx;
+	curRetIdx = frameCur[frameIdx - 1] + returnIdx;
+	if(debug){
+		std::cout<<"__func_init curRetIdx:"<<curRetIdx<<" returnIdx:"<<returnIdx<<"******\n";
+	}
 #if TIME
 	gettimeofday(&tv2, NULL);
 	funcInitTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
@@ -181,19 +206,27 @@ old frame index and total number of slots of previous function
 }
 
 extern "C" void __func_exit(size_t returnIndex){
-	std::cout<<"__func_exit ******\n";
 #if TIME
 	struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
 #endif
-	size_t offset = frameCur[frameIdx];
-	/*return is copied from calle to the caller*/
-	Real *returnReal = &(shadowStack[returnIndex + offset]);
-	mpfr_set(shadowStack[curRetIdx].mpfr_val, returnReal->mpfr_val, MPFR_RNDN);
-	shadowStack[curRetIdx].initFlag = 1;
-	std::cout<<"return copied from index:"<<returnIndex + offset<<" to index:"<<curRetIdx<<"\n";
-
+	if(returnIndex){	//if we are returning zero while recursing, we just need to set the frame index
+		size_t offset = frameCur[frameIdx];
+		/*return is copied from calle to the caller*/
+		Real *returnReal = &(shadowStack[returnIndex + offset]);
+		if(returnReal->initFlag){ // we don't need to do anything if return is not initialized
+			if(!shadowStack[curRetIdx].initFlag){
+				mpfr_init2(shadowStack[curRetIdx].mpfr_val, PRECISION);
+				shadowStack[curRetIdx].initFlag = 1;
+			}
+			mpfr_set(shadowStack[curRetIdx].mpfr_val, returnReal->mpfr_val, MPFR_RNDN);
+		}
+		if(debug)
+			std::cout<<"return copied from index:"<<returnIndex+offset<<" to index:"<<curRetIdx<<"\n";
+	}
 	frameIdx--;	
+	if(debug)
+		std::cout<<"__func_exit ******returnIndex:"<<returnIndex<<" frameIdx:"<<frameIdx<<" offset:"<<frameCur[frameIdx]<<"\n";
 #if TIME
 	gettimeofday(&tv2, NULL);
 	funcExitTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
@@ -212,7 +245,8 @@ extern "C" void __handle_f_to_sint(size_t op1Int, long val, size_t lineNo){
 	struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
 #endif
-	Real *real1 = &(shadowStack[op1Int]);
+	size_t op1Idx = getSlotIndex(op1Int);
+	Real *real1 = &(shadowStack[op1Idx]);
 	long res = mpfr_get_si(real1->mpfr_val, MPFR_RNDN);
 	if(res != val){
 		fprintf (eFile, "convert mismatch %lu real: %ld float: %ld\n", lineNo, res, val);
@@ -232,7 +266,11 @@ void handle_math_f(size_t funcCode, float op1, size_t op1Int,
 
   mpfrInit++;
   bool mpfrFlag1 = false; 
-  Real *real1 = &(shadowStack[op1Int]);
+
+	size_t op1Idx = getSlotIndex(op1Int);
+	size_t resIdx = getSlotIndex(insIndex);
+
+  Real *real1 = &(shadowStack[op1Idx]);
   if(op1Int == 0 || real1->initFlag == 0){
 		mpfr_init2(r1.mpfr_val, PRECISION);
 		mpfrInit++;
@@ -241,46 +279,46 @@ void handle_math_f(size_t funcCode, float op1, size_t op1Int,
 		mpfrFlag1 = true; 
   }
 	if(debug){
-		printf("handleMathFuncF: op1Addr:%p funcCode:%lu computed op1:%e real op1:\n", (void *)op1Int, funcCode, op1);
+		printf("handleMathFuncF: op1Addr:%lu funcCode:%lu computed op1:%e real op1:\n", op1Idx, funcCode, op1);
   	printReal(real1->mpfr_val);
  	}
   if(real1 != NULL){
     switch(funcCode){
       case 1: //sqrt
         //std::cout<<"handleMathFunc: sqrt:\n";
-        mpfr_sqrt(shadowStack[insIndex].mpfr_val, real1->mpfr_val, MPFR_RNDN);
+        mpfr_sqrt(shadowStack[resIdx].mpfr_val, real1->mpfr_val, MPFR_RNDN);
         break;
       case 2: //floor
         //std::cout<<"handleMathFunc: floor:\n";
-        mpfr_floor(shadowStack[insIndex].mpfr_val, real1->mpfr_val);
+        mpfr_floor(shadowStack[resIdx].mpfr_val, real1->mpfr_val);
         break;
       case 3: //tan
         //std::cout<<"handleMathFunc: tan:\n";
-        mpfr_tan(shadowStack[insIndex].mpfr_val, real1->mpfr_val, MPFR_RNDN);
+        mpfr_tan(shadowStack[resIdx].mpfr_val, real1->mpfr_val, MPFR_RNDN);
         break;
       case 4: //sin
         //std::cout<<"handleMathFunc: sin:\n";
-        mpfr_sin(shadowStack[insIndex].mpfr_val, real1->mpfr_val, MPFR_RNDN);
+        mpfr_sin(shadowStack[resIdx].mpfr_val, real1->mpfr_val, MPFR_RNDN);
         break;
       case 5: //cos
         //std::cout<<"handleMathFunc: cos:\n";
-        mpfr_cos(shadowStack[insIndex].mpfr_val, real1->mpfr_val, MPFR_RNDN);
+        mpfr_cos(shadowStack[resIdx].mpfr_val, real1->mpfr_val, MPFR_RNDN);
         break;
       case 6: //atan
         //std::cout<<"handleMathFunc: atan:\n";
-        mpfr_atan(shadowStack[insIndex].mpfr_val, real1->mpfr_val, MPFR_RNDN);
+        mpfr_atan(shadowStack[resIdx].mpfr_val, real1->mpfr_val, MPFR_RNDN);
         break;
       case 8: //atan
         //std::cout<<"handleMathFunc: abs:\n";
-        mpfr_abs(shadowStack[insIndex].mpfr_val, real1->mpfr_val, MPFR_RNDN);
+        mpfr_abs(shadowStack[resIdx].mpfr_val, real1->mpfr_val, MPFR_RNDN);
         break;
       case 9: //atan
         //std::cout<<"handleMathFunc: abs:\n";
-        mpfr_log(shadowStack[insIndex].mpfr_val, real1->mpfr_val, MPFR_RNDN);
+        mpfr_log(shadowStack[resIdx].mpfr_val, real1->mpfr_val, MPFR_RNDN);
         break;
       case 10: //asin
         //std::cout<<"handleMathFunc: abs:\n";
-        mpfr_asin(shadowStack[insIndex].mpfr_val, real1->mpfr_val, MPFR_RNDN);
+        mpfr_asin(shadowStack[resIdx].mpfr_val, real1->mpfr_val, MPFR_RNDN);
         break;
       default:
         break;
@@ -293,16 +331,12 @@ void handle_math_f(size_t funcCode, float op1, size_t op1Int,
     std::cout<<"handleMathFuncF op1:";
     std::cout<<"\n";
   }
-	shadowStack[insIndex].initFlag = 1;
 	
-  if(debug){
-		printf(" addr:%p\n", (void *)&shadowStack[insIndex]);
-	}
   if(mpfrFlag1){
     mpfr_clear(real1->mpfr_val);
     mpfrClear++;
   }
-	updateErrorF(shadowStack[insIndex].mpfr_val, computedRes, insIndex);
+	updateErrorF(shadowStack[resIdx].mpfr_val, computedRes, insIndex);
 }
 
 void handle_math_d(size_t funcCode, double op1, size_t op1Int, 
@@ -310,7 +344,10 @@ void handle_math_d(size_t funcCode, double op1, size_t op1Int,
   Real r1;
   mpfrInit++;
   bool mpfrFlag1 = false; 
-  Real *real1 = &(shadowStack[op1Int]);
+	size_t op1Idx = getSlotIndex(op1Int);
+	size_t resIdx = getSlotIndex(insIndex);
+
+  Real *real1 = &(shadowStack[op1Idx]);
   if(op1Int == 0 || real1->initFlag == 0){
 		mpfr_init2(r1.mpfr_val, PRECISION);
 		mpfrInit++;
@@ -319,46 +356,46 @@ void handle_math_d(size_t funcCode, double op1, size_t op1Int,
 		mpfrFlag1 = true; 
   }
 	if(debug){
-		printf("handleMathFuncD: op1Addr:%p funcCode:%lu computed op1:%e real op1:\n", (void *)op1Int, funcCode, op1);
+		printf("handleMathFuncD: op1Addr:%ld funcCode:%lu computed op1:%e real op1:\n", op1Idx, funcCode, op1);
   	printReal(real1->mpfr_val);
  	}
   if(real1 != NULL){
     switch(funcCode){
       case 1: //sqrt
         //std::cout<<"handleMathFunc: sqrt:\n";
-        mpfr_sqrt(shadowStack[insIndex].mpfr_val, real1->mpfr_val, MPFR_RNDN);
+        mpfr_sqrt(shadowStack[resIdx].mpfr_val, real1->mpfr_val, MPFR_RNDN);
         break;
       case 2: //floor
         //std::cout<<"handleMathFunc: floor:\n";
-        mpfr_floor(shadowStack[insIndex].mpfr_val, real1->mpfr_val);
+        mpfr_floor(shadowStack[resIdx].mpfr_val, real1->mpfr_val);
         break;
       case 3: //tan
         //std::cout<<"handleMathFunc: tan:\n";
-        mpfr_tan(shadowStack[insIndex].mpfr_val, real1->mpfr_val, MPFR_RNDN);
+        mpfr_tan(shadowStack[resIdx].mpfr_val, real1->mpfr_val, MPFR_RNDN);
         break;
       case 4: //sin
         //std::cout<<"handleMathFunc: sin:\n";
-        mpfr_sin(shadowStack[insIndex].mpfr_val, real1->mpfr_val, MPFR_RNDN);
+        mpfr_sin(shadowStack[resIdx].mpfr_val, real1->mpfr_val, MPFR_RNDN);
         break;
       case 5: //cos
         //std::cout<<"handleMathFunc: cos:\n";
-        mpfr_cos(shadowStack[insIndex].mpfr_val, real1->mpfr_val, MPFR_RNDN);
+        mpfr_cos(shadowStack[resIdx].mpfr_val, real1->mpfr_val, MPFR_RNDN);
         break;
       case 6: //atan
         //std::cout<<"handleMathFunc: atan:\n";
-        mpfr_atan(shadowStack[insIndex].mpfr_val, real1->mpfr_val, MPFR_RNDN);
+        mpfr_atan(shadowStack[resIdx].mpfr_val, real1->mpfr_val, MPFR_RNDN);
         break;
       case 8: //atan
         //std::cout<<"handleMathFunc: abs:\n";
-        mpfr_abs(shadowStack[insIndex].mpfr_val, real1->mpfr_val, MPFR_RNDN);
+        mpfr_abs(shadowStack[resIdx].mpfr_val, real1->mpfr_val, MPFR_RNDN);
         break;
       case 9: //atan
         //std::cout<<"handleMathFunc: abs:\n";
-        mpfr_log(shadowStack[insIndex].mpfr_val, real1->mpfr_val, MPFR_RNDN);
+        mpfr_log(shadowStack[resIdx].mpfr_val, real1->mpfr_val, MPFR_RNDN);
         break;
       case 10: //asin
         //std::cout<<"handleMathFunc: abs:\n";
-        mpfr_asin(shadowStack[insIndex].mpfr_val, real1->mpfr_val, MPFR_RNDN);
+        mpfr_asin(shadowStack[resIdx].mpfr_val, real1->mpfr_val, MPFR_RNDN);
         break;
       default:
         break;
@@ -371,19 +408,15 @@ void handle_math_d(size_t funcCode, double op1, size_t op1Int,
     std::cout<<"handleMathFuncD op1:";
     std::cout<<"\n";
   }
-	shadowStack[insIndex].initFlag = 1;
 	
-  if(debug){
-		printf(" addr:%p\n", (void *)&shadowStack[insIndex]);
-	}
   if(mpfrFlag1){
     mpfr_clear(real1->mpfr_val);
     mpfrClear++;
   }
-	updateError(shadowStack[insIndex].mpfr_val, computedRes, insIndex);
+	updateError(shadowStack[resIdx].mpfr_val, computedRes, insIndex);
 }
 
-extern "C" void* __handle_math_f(size_t funcCode, float op1, size_t op1Int, 
+extern "C" void __handle_math_f(size_t funcCode, float op1, size_t op1Int, 
                                 float computedRes, size_t insIndex){ 
 #if TIME
 	struct timeval  tv1, tv2;
@@ -409,10 +442,9 @@ extern "C" void* __handle_math_f(size_t funcCode, float op1, size_t op1Int,
 	mathFTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
          (double) (tv2.tv_sec - tv1.tv_sec); 
 #endif
-	return &shadowStack[insIndex];
 }
 
-extern "C" void* __handle_math_d(size_t funcCode, double op1, size_t op1Int, 
+extern "C" void __handle_math_d(size_t funcCode, double op1, size_t op1Int, 
                                 double computedRes, size_t insIndex){ 
 #if TIME
 	struct timeval  tv1, tv2;
@@ -438,7 +470,6 @@ extern "C" void* __handle_math_d(size_t funcCode, double op1, size_t op1Int,
 	mathDTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
          (double) (tv2.tv_sec - tv1.tv_sec); 
 #endif
-	return &shadowStack[insIndex];
 }
 
 
@@ -484,20 +515,24 @@ void handleOp(size_t opCode, mpfr_t *res, mpfr_t *op1, mpfr_t *op2){
 
 void handle_select(size_t AddrInt, size_t insIndex, double op){
 	Real *real1;
-	real1 = &(shadowStack[AddrInt]);
+
+	size_t op1Idx = getSlotIndex(AddrInt);
+	size_t resIdx = getSlotIndex(insIndex);
+
+	real1 = &(shadowStack[op1Idx]);
 	if(AddrInt == 0) {
-		mpfr_set_d(shadowStack[insIndex].mpfr_val, op, MPFR_RNDN);
+		mpfr_set_d(shadowStack[resIdx].mpfr_val, op, MPFR_RNDN);
 	}
 	else if(real1->initFlag == 0)
-		mpfr_set_d(shadowStack[insIndex].mpfr_val, op, MPFR_RNDN);
+		mpfr_set_d(shadowStack[resIdx].mpfr_val, op, MPFR_RNDN);
 	else
-		mpfr_set(shadowStack[insIndex].mpfr_val, real1->mpfr_val, MPFR_RNDN);
+		mpfr_set(shadowStack[resIdx].mpfr_val, real1->mpfr_val, MPFR_RNDN);
 	if(debug){
-		std::cout<<"handleSelect: set value in shadowStack at:"<<insIndex;
-		printf(" for addr:%p\n", (void *)AddrInt);
+		std::cout<<"handleSelect: set value in shadowStack at:"<<resIdx<<"\n";
 	}
 }
-extern "C" void* __handle_select(void *Addr, size_t insIndex, double opd){
+
+extern "C" void __handle_select(void *Addr, size_t insIndex, double opd){
 #if TIME
 	struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
@@ -519,10 +554,9 @@ extern "C" void* __handle_select(void *Addr, size_t insIndex, double opd){
 	selectTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
          (double) (tv2.tv_sec - tv1.tv_sec); 
 #endif
-	return &shadowStack[insIndex];
 }
 
-extern "C" void* __load_f(void *Addr, size_t insIndex, float opf, 
+extern "C" void __load_f(void *Addr, size_t insIndex, float opf, 
 																						bool castFlag){
 #if TIME
 	struct timeval  tv1, tv2;
@@ -530,45 +564,45 @@ extern "C" void* __load_f(void *Addr, size_t insIndex, float opf,
 #endif
 	size_t AddrInt = (size_t) Addr;
 	struct Real* dest = getAddrIndex(AddrInt);
+	size_t resIdx = getSlotIndex(insIndex);
+
 	if(debug){
 			std::cout<<"fpSanLoadFromShadowMem: opf:"<<opf;
 			printf(" from addr:%p\n", Addr);
 	}
 	if(dest->initFlag == 0){
 		if(castFlag)
-			mpfr_set_flt(shadowStack[insIndex].mpfr_val, 0, MPFR_RNDN);
+			mpfr_set_flt(shadowStack[resIdx].mpfr_val, 0, MPFR_RNDN);
 		else
-			mpfr_set_flt(shadowStack[insIndex].mpfr_val, opf, MPFR_RNDN);
+			mpfr_set_flt(shadowStack[resIdx].mpfr_val, opf, MPFR_RNDN);
 		if(debug){
-			size_t addr = (size_t) &shadowStack[insIndex];
+			size_t addr = (size_t) &shadowStack[resIdx];
 			std::cout<<"fpSanLoadFromShadowMemF: set value:";
-			printReal( shadowStack[insIndex].mpfr_val);
-			std::cout<<" in shadowStack at:"<<insIndex;;
+			printReal( shadowStack[resIdx].mpfr_val);
+			std::cout<<" in shadowStack at:"<<resIdx;;
 			printf(" for addr:%p ", (void *)addr);
 			std::cout<<" from op"<<"\n";
 		}
 	}
 	else{
-		mpfr_set(shadowStack[insIndex].mpfr_val, dest->mpfr_val, MPFR_RNDN);
+		mpfr_set(shadowStack[resIdx].mpfr_val, dest->mpfr_val, MPFR_RNDN);
 		if(debug){
-			size_t addr = (size_t) &shadowStack[insIndex];
+			size_t addr = (size_t) &shadowStack[resIdx];
 			std::cout<<"fpSanLoadFromShadowMemF: set value:";
-			printReal( shadowStack[insIndex].mpfr_val);
-			std::cout<<" in shadowStack at:"<<insIndex;
+			printReal( shadowStack[resIdx].mpfr_val);
+			std::cout<<" in shadowStack at:"<<resIdx;
 			printf(" for addr:%p ", (void *)addr);
 			printf(" from addr:%p\n", Addr);
 		}
 	}
-	shadowStack[insIndex].initFlag = 1;
 #if TIME
 	gettimeofday(&tv2, NULL);
 	loadFTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
          (double) (tv2.tv_sec - tv1.tv_sec); 
 #endif
-	return &shadowStack[insIndex];
 }
 
-extern "C" void* __load_d(void *Addr, size_t insIndex, double opd, 
+extern "C" void __load_d(void *Addr, size_t insIndex, double opd, 
 																								bool castFlag){
 #if TIME
 	struct timeval  tv1, tv2;
@@ -576,47 +610,47 @@ extern "C" void* __load_d(void *Addr, size_t insIndex, double opd,
 #endif
 	size_t AddrInt = (size_t) Addr;
 	struct Real* dest = getAddrIndex(AddrInt);
+	size_t resIdx = getSlotIndex(insIndex);
 	if(debug){
 			std::cout<<"fpSanLoadFromShadowMem: opd:"<<opd;
 			printf(" from addr:%p\n", Addr);
 	}
 	if(dest->initFlag == 0){
 		if(castFlag)
-			mpfr_set_d(shadowStack[insIndex].mpfr_val, 0, MPFR_RNDN);
+			mpfr_set_d(shadowStack[resIdx].mpfr_val, 0, MPFR_RNDN);
 		else
-			mpfr_set_d(shadowStack[insIndex].mpfr_val, opd, MPFR_RNDN);
+			mpfr_set_d(shadowStack[resIdx].mpfr_val, opd, MPFR_RNDN);
 		if(debug){
-			size_t addr = (size_t) &shadowStack[insIndex];
+			size_t addr = (size_t) &shadowStack[resIdx];
 			std::cout<<"fpSanLoadFromShadowMemD: set value:";
-			printReal( shadowStack[insIndex].mpfr_val);
-			std::cout<<" in shadowStack at:"<<insIndex;;
+			printReal( shadowStack[resIdx].mpfr_val);
+			std::cout<<" in shadowStack at:"<<resIdx;;
 			printf(" for addr:%p ", (void *)addr);
 			std::cout<<" from op"<<"\n";
 		}
 	}
 	else{
-		mpfr_set(shadowStack[insIndex].mpfr_val, dest->mpfr_val, MPFR_RNDN);
+		mpfr_set(shadowStack[resIdx].mpfr_val, dest->mpfr_val, MPFR_RNDN);
 		if(debug){
-			size_t addr = (size_t) &shadowStack[insIndex];
+			size_t addr = (size_t) &shadowStack[resIdx];
 			std::cout<<"fpSanLoadFromShadowMemD: set value:";
-			printReal( shadowStack[insIndex].mpfr_val);
-			std::cout<<" in shadowStack at:"<<insIndex;
+			printReal( shadowStack[resIdx].mpfr_val);
+			std::cout<<" in shadowStack at:"<<resIdx;
 			printf(" for addr:%p ", (void *)addr);
 			printf(" from addr:%p\n", Addr);
 		}
 	}
-	shadowStack[insIndex].initFlag = 1;
 #if TIME
 	gettimeofday(&tv2, NULL);
 	loadDTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
          (double) (tv2.tv_sec - tv1.tv_sec); 
 #endif
-	return &shadowStack[insIndex];
 }
 
 int handleCmp(mpfr_t *op1, mpfr_t *op2){
 	return mpfr_cmp(*op1, *op2); 
 }
+
 void check_branch(double op1, size_t op1Int, double op2, size_t op2Int, 
                             size_t fcmpFlag, bool computedRes, size_t insIndex, size_t lineNo){
   Real *real1;
@@ -626,6 +660,11 @@ void check_branch(double op1, size_t op1Int, double op2, size_t op2Int,
 
 	bool mpfrFlag1 = false;
 	bool mpfrFlag2 = false;
+
+	size_t op1Idx = getSlotIndex(op1Int);
+	size_t op2Idx = getSlotIndex(op2Int);
+	size_t resIdx = getSlotIndex(insIndex);
+
 	if(op1Int == 0){ //it is a constant
     if(debug)
       std::cout<<"checkBranch: real1 is null, using op1 value:"<<op1<<"\n";
@@ -636,10 +675,10 @@ void check_branch(double op1, size_t op1Int, double op2, size_t op2Int,
     mpfrFlag1 = true; 
   }
   else{
-    real1 = &(shadowStack[op1Int]);
+    real1 = &(shadowStack[op1Idx]);
     if(real1->initFlag == 0){
     	if(debug)
-      	std::cout<<"real1 is null\n";
+      	std::cout<<"checkBranch: real1 is null\n";
       mpfr_init2(r1.mpfr_val, PRECISION);
       mpfrInit++;
       real1 = &r1;
@@ -658,10 +697,10 @@ void check_branch(double op1, size_t op1Int, double op2, size_t op2Int,
     mpfrFlag2 = true; 
   } 
   else{
-    real2 = &(shadowStack[op2Int]);
+    real2 = &(shadowStack[op2Idx]);
     if(real2->initFlag == 0){
     	if(debug)
-      	std::cout<<"real2 is null\n";
+      	std::cout<<"checkBranch: real2 is null\n";
       mpfr_init2(r2.mpfr_val, PRECISION);
       mpfrInit++;
       real2 = &r2;
@@ -766,12 +805,12 @@ void check_branch(double op1, size_t op1Int, double op2, size_t op2Int,
 		std::cout<<"checkBranch: realRes:"<<realRes<<" computedRes:"<<computedRes<<"\n";
     std::cout<<"checkBranch: computed operands op1:"<<op1<<" op2:"<<op2<<"\n";
     std::cout<<"checkBranch fcmpFlag:"<<fcmpFlag<<"\n"; 
-		printf("checkBranch real operands op1Idx: :%p op1:", (void *)op1Int);
+    std::cout<<"checkBranch op1Idx:"<<op1Idx<<"\n"; 
     printReal(real1->mpfr_val);
   //  mpfr_out_str (stdout, 10, 0, real1->mpfr_val, MPFR_RNDN);
     std::cout<<"\n";
-		printf("checkBranch real operands op2Idx: :%p op2:", (void *)op2Int);
   //  mpfr_out_str (stdout, 10, 0, real2->mpfr_val, MPFR_RNDN);
+    std::cout<<"checkBranch op2Idx:"<<op2Idx<<"\n"; 
     printReal(real2->mpfr_val);
     std::cout<<"\n";
 		//exit(0);
@@ -797,6 +836,10 @@ void setOperandsFloat(size_t opCode, size_t op1Addr, size_t op2Addr,
   Real r2;
   bool mpfrFlag1 = false;
   bool mpfrFlag2 = false;
+
+	size_t op1Idx = getSlotIndex(op1Addr);
+	size_t op2Idx = getSlotIndex(op2Addr);
+	size_t resIdx = getSlotIndex(insIndex);
 	if(op1Addr == 0){ //it is a constant
     if(debugCR)
       std::cout<<"computeReal: real1 is null, using op1 value:"<<op1f<<"\n";
@@ -807,10 +850,10 @@ void setOperandsFloat(size_t opCode, size_t op1Addr, size_t op2Addr,
     mpfrFlag1 = true; 
 	}
 	else{
-		real1 = &(shadowStack[op1Addr]);
+		real1 = &(shadowStack[op1Idx]);
 		if(real1->initFlag == 0){
     	if(debugCR)
-				std::cout<<"real1 is null\n"; //why?
+				std::cout<<"computeReal: real1 is null\n"; //why?
     	mpfr_init2(r1.mpfr_val, PRECISION);
     	mpfrInit++;
 			real1 = &r1;
@@ -829,10 +872,10 @@ void setOperandsFloat(size_t opCode, size_t op1Addr, size_t op2Addr,
     mpfrFlag2 = true; 
 	}
 	else{
-		real2 = &(shadowStack[op2Addr]);
+		real2 = &(shadowStack[op2Idx]);
 			if(real2->initFlag == 0){
     		if(debugCR)
-					std::cout<<"real2 is null\n";
+					std::cout<<"computeReal: real2 is null\n";
     		mpfr_init2(r2.mpfr_val, PRECISION);
     		mpfrInit++;
 				real2 = &r2;
@@ -842,18 +885,16 @@ void setOperandsFloat(size_t opCode, size_t op1Addr, size_t op2Addr,
 	}
 	if(debugCR){
 		std::cout<<"computeReal: op1:"<<op1f<<" op2:"<<op2f<<"\n";
-		printf("computeReal: op1Addr:: %p op1:", (void *)op1Addr);
+		std::cout<<"computeReal: op1Idx:"<<op1Idx;
   	printReal(real1->mpfr_val);
-		printf("computeReal: op2Addr:: %p op2:", (void *)op2Addr);
+		std::cout<<"computeReal: op2Idx:"<<op2Idx;
   	printReal(real2->mpfr_val);
 	}
 	//start_counter();	
-  handleOp(opCode, &(shadowStack[insIndex].mpfr_val), &real1->mpfr_val, &real2->mpfr_val);
+  handleOp(opCode, &(shadowStack[resIdx].mpfr_val), &real1->mpfr_val, &real2->mpfr_val);
 	//stop();
-	shadowStack[insIndex].initFlag = 1;
 	if(debugCR){
-		std::cout<<"computeReal: stackTop:"<<insIndex;;
-		printf(" addr %p:\n", (void *)&shadowStack[insIndex]);
+		std::cout<<"computeReal: stackTop:"<<resIdx<<"\n";
 	}
   if(mpfrFlag1){
     mpfr_clear(r1.mpfr_val);
@@ -863,7 +904,7 @@ void setOperandsFloat(size_t opCode, size_t op1Addr, size_t op2Addr,
     mpfr_clear(r2.mpfr_val);
     mpfrClear++;
   }
-	updateErrorF(shadowStack[insIndex].mpfr_val, computedResf, insIndex);
+	updateErrorF(shadowStack[resIdx].mpfr_val, computedResf, insIndex);
 }
 
 void setOperandsDouble(size_t opCode, size_t op1Addr, size_t op2Addr, 
@@ -876,10 +917,20 @@ void setOperandsDouble(size_t opCode, size_t op1Addr, size_t op2Addr,
   bool mpfrFlag1 = false;
   bool mpfrFlag2 = false;
 
-	size_t offset = frameCur[frameIdx];
-	std::cout<<"setOperandsDouble: insIndex"<<insIndex<<" offset:"<<offset<<"\n";
-	insIndex += offset;
-	std::cout<<"op1Addr:"<<op1Addr<<" op2Addr:"<<op2Addr<<"\n";
+	size_t op1Idx = getSlotIndex(op1Addr);
+	size_t op2Idx = getSlotIndex(op2Addr);
+	size_t resIdx = getSlotIndex(insIndex);
+
+  if(debugCR){
+		std::cout<<"setOperandsDouble: op1Idx:"<<op1Idx<<"\n";
+		std::cout<<"setOperandsDouble: op2Idx:"<<op2Idx<<"\n";
+		std::cout<<"setOperandsDouble: resIdx:"<<resIdx<<"\n";
+	}
+
+  if(debugCR){
+		std::cout<<"op1d:"<<op1d<<" op2d:"<<op2d<<"\n";
+		std::cout<<"op1Addr:"<<op1Addr<<" op2Addr:"<<op2Addr<<"\n";
+	}
 	if(op1Addr == 0){ //it is a constant
     if(debugCR)
       std::cout<<"computeReal: real1 is null, using op1 value:"<<op1d<<"\n";
@@ -890,10 +941,10 @@ void setOperandsDouble(size_t opCode, size_t op1Addr, size_t op2Addr,
     mpfrFlag1 = true; 
 	}
 	else{
-		real1 = &(shadowStack[op1Addr + offset]);
+		real1 = &(shadowStack[op1Idx]);
 		if(real1->initFlag == 0){
     	if(debugCR)
-				std::cout<<"real1 is null\n";
+				std::cout<<"computeReal: real1 is null\n";
     	mpfr_init2(r1.mpfr_val, PRECISION);
     	mpfrInit++;
 			real1 = &r1;
@@ -912,10 +963,10 @@ void setOperandsDouble(size_t opCode, size_t op1Addr, size_t op2Addr,
     mpfrFlag2 = true; 
 	}
 	else{
-		real2 = &(shadowStack[op2Addr + offset]);
+		real2 = &(shadowStack[op2Idx]);
 			if(real2->initFlag == 0){
     		if(debugCR)
-					std::cout<<"real2 is null\n";
+					std::cout<<"computeReal: real2 is null\n";
     		mpfr_init2(r2.mpfr_val, PRECISION);
     		mpfrInit++;
 				real2 = &r2;
@@ -924,22 +975,24 @@ void setOperandsDouble(size_t opCode, size_t op1Addr, size_t op2Addr,
 			}
 	}
 	if(debugCR){
-		std::cout<<"computeReal: op1Addr:"<<op1Addr<<" op1:"<<op1d<<" op2Addr:"<<op2Addr<<" op2:"<<op2d<<"\n";
+		std::cout<<"computeReal: op1 index:"<<op1Idx<<" ";
   	printReal(real1->mpfr_val);
+		std::cout<<"\n";
+		std::cout<<"computeReal: op2 index:"<<op2Idx<<" ";
   	printReal(real2->mpfr_val);
+		std::cout<<"\n";
 	}
 	if(real1 == NULL || real2 == NULL)
 		std::cout<<"Error!!!!\n";
 		
 	//start_counter();	
-  handleOp(opCode, &(shadowStack[insIndex].mpfr_val), &real1->mpfr_val, &real2->mpfr_val);
+  handleOp(opCode, &(shadowStack[resIdx].mpfr_val), &real1->mpfr_val, &real2->mpfr_val);
 	//stop();
 
-	shadowStack[insIndex].initFlag = 1;
 
 	if(debugCR){
-		std::cout<<"computeReal: stackTop:"<<insIndex;;
-		printf(" addr %p:\n", (void *)&shadowStack[insIndex]);
+		std::cout<<"computeReal: stackTop:"<<resIdx;;
+		printf(" addr %p:\n", (void *)&shadowStack[resIdx]);
 	}
   if(mpfrFlag1){
     mpfr_clear(r1.mpfr_val);
@@ -949,14 +1002,14 @@ void setOperandsDouble(size_t opCode, size_t op1Addr, size_t op2Addr,
     mpfr_clear(r2.mpfr_val);
     mpfrClear++;
   }
-	updateError(shadowStack[insIndex].mpfr_val, computedResd, insIndex);
+	updateError(shadowStack[resIdx].mpfr_val, computedResd, insIndex);
 }
 
 int isNaN(mpfr_t real){
   return mpfr_nan_p(real);
 }
 
-extern "C" void* __compute_real_f(size_t opCode, size_t op1Addr, size_t op2Addr,
+extern "C" void __compute_real_f(size_t opCode, size_t op1Addr, size_t op2Addr,
                              float op1f, float op2f, float computedResf, size_t insIndex){
 #if TIME
 	struct timeval  tv1, tv2;
@@ -984,7 +1037,6 @@ extern "C" void* __compute_real_f(size_t opCode, size_t op1Addr, size_t op2Addr,
 	computeFTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
          (double) (tv2.tv_sec - tv1.tv_sec); 
 #endif
-	return &shadowStack[insIndex];
 }
 
 extern "C" void __compute_real_d(size_t opCode, size_t op1Addr, size_t op2Addr, 
@@ -1059,9 +1111,7 @@ extern "C" bool __check_branch(double op1, size_t op1Int, double op2, size_t op2
 
 extern "C" void* __handle_alloca(size_t index){
 }
-extern "C" void* __get_real_fun_arg(size_t index){
-}
-
+//TODO
 extern "C" void __set_real_fun_arg(size_t index, size_t funAddrInt, size_t toAddrInt, double op){
 #if TIME
 	struct timeval  tv1, tv2;
@@ -1115,42 +1165,31 @@ extern "C" void __set_real_cons_f(size_t toAddrInt, float value){
 }
 
 void set_real(size_t toAddrInt, size_t fromAddrInt, double op){
+	size_t fromIdx = getSlotIndex(fromAddrInt);
 	Real* dest = getAddrIndex(toAddrInt);
-	Real* real =  &(shadowStack[fromAddrInt]);
-	if(real->initFlag == 0)
+	Real* real =  &(shadowStack[fromIdx]);
+	if(real->initFlag == 0){
 		mpfr_set_d(dest->mpfr_val, op, MPFR_RNDN);
-	else
+		if(debug){
+			std::cout<<"setRealTemp: from:"<<op<<"\n";
+		}
+	}
+	else{
 		mpfr_set(dest->mpfr_val, real->mpfr_val, MPFR_RNDN);
+		if(debug){
+			std::cout<<"setRealTemp: from:";
+			printReal(real->mpfr_val);
+		}
+	}
 	dest->initFlag = 1;
 	if(debug){
 		std::cout<<"setRealTemp: dest->initFlag:"<<dest->initFlag<<"\n";
 		std::cout<<"setRealTemp: dest set to:";
 		printReal(dest->mpfr_val);
-		printf("from: %ld", fromAddrInt);
+		printf("from: %ld", fromIdx);
 		printf(" to addr:%p\n", (void *)toAddrInt);
 	}
 }
-
-extern "C" void __set_real_return(size_t toAddrInt){
-/*
-  if(!retTrack.empty()){
-    size_t idx = retTrack.top();
-    retTrack.pop();
-		MyShadow *shadow = existInStackOld(toAddrInt);
-		if(shadow != NULL){//just update the value in stack
-      mpfr_init2(toReal, PRECISION);
-      mpfrInit++;
-      mpfr_set(toReal->mpfr_val, shadow->real->mpfr_val, MPFR_RNDN);
-			//cleanup(idx);
-  		if(debug)
-    		std::cout<<"setRealReturn update shadow stack::"<<toAddrInt<<"\n";
-		}
-	}
-  else
-    std::cout<<"Error !!!! return value not found in stack\n";
-*/
-}
-
 
 extern "C" void __set_real(size_t toAddrInt, size_t fromAddrInt, double op1){
 #if TIME
@@ -1252,9 +1291,6 @@ extern "C" void __handle_memset(size_t toAddrInt, size_t val, size_t size){
 	memsetTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
          (double) (tv2.tv_sec - tv1.tv_sec); 
 #endif
-}
-
-extern "C" void handleAlloca(size_t toAddrInt){
 }
 
 extern "C" void __handle_memcpy(size_t toAddrInt, size_t fromAddrInt, size_t size){
@@ -1555,21 +1591,10 @@ extern "C" void __init(size_t totalSlots){
     //size_t len = 128 * sizeof(size_t);
     shadowStack = (Real *) mmap(0, length, PROT_READ|PROT_WRITE, MMAP_FLAGS, -1, 0);
     shadowMap = (Real **) mmap(0, memLen, PROT_READ|PROT_WRITE, MMAP_FLAGS, -1, 0);
-    //insMap = (size_t(*)[100]) mmap(0, len * 100, PROT_READ|PROT_WRITE, MMAP_FLAGS, -1, 0);
-    insMap = (size_t*)mmap(0, INSSIZE*sizeof(size_t), PROT_READ|PROT_WRITE, MMAP_FLAGS, -1, 0);
     frameCur = (size_t*) mmap(0, len, PROT_READ|PROT_WRITE, MMAP_FLAGS, -1, 0);
-    argCount = (size_t*) mmap(0, len, PROT_READ|PROT_WRITE, MMAP_FLAGS, -1, 0);
-    slotIdx = (size_t*) mmap(0, len, PROT_READ|PROT_WRITE, MMAP_FLAGS, -1, 0);
-    returnIdx = (size_t*) mmap(0, len, PROT_READ|PROT_WRITE, MMAP_FLAGS, -1, 0);                                                
     assert (shadowStack != (void*)-1);
     assert (shadowMap != (void*)-1);
-    assert (insMap != (void*)-1);
-    assert (varTrack != (void*)-1);
-    for(int i = 0; i <= MPFRINIT; i++)
-      mpfr_init2(shadowStack[i].mpfr_val, PRECISION);
     frameCur[0] = 0;
-    argCount[0] = 0;
-    slotIdx[0] = 0;
     __func_init(0, 0);
 
 		std::cout<<"init1\n";	

@@ -1,0 +1,65 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+
+#define Float	 double 	   /* Floating point type used in FFT */
+
+#define Asize	 2		   /* Array edge size */
+#define Passes	 1		   /* Number of FFT/Inverse passes */
+
+#define max(a,b) ((a)>(b)?(a):(b))
+#define min(a,b) ((a)<=(b)?(a):(b))
+
+
+int main()
+{
+	printf("inside main\n");
+	int i, j, k, l, m, npasses = Passes, faedge;
+	Float *fdata;
+	static int nsize[] = {0, 0, 0};
+	long fanum, fasize;
+	double mapbase, mapscale, rmin, rmax, imin, imax;
+
+	faedge = Asize; 	   /* FFT array edge size */
+	fanum = faedge * faedge;   /* Elements in FFT array */
+	fasize = ((fanum + 1) * 2 * sizeof(Float)); /* FFT array size */
+	nsize[1] = nsize[2] = faedge;
+
+	fdata = (Float *) malloc(fasize);
+	if (fdata == NULL) {
+           fprintf(stderr, "Can't allocate data array.\n");
+	   exit(1);
+	}
+
+	/*  Generate data array to process.  */
+
+
+	memset(fdata, 0, fasize);
+
+	for (i = 0; i <= fanum; i++) {
+				printf("loop1\n");
+	     fdata[i] = i * 0.3;
+	}
+	   double r, ij, ar, ai;
+	   rmin = 1e10; rmax = -1e10;
+	   imin = 1e10; imax = -1e10;
+	   ar = 0;
+	   ai = 0;
+
+	   for (i = 1; i <= fanum; i += 2) {
+				printf("loop2\n");
+	      r = fdata[i];
+	      ij = fdata[i + 1];
+	      rmin = min(r, rmin);
+	      rmax = max(r, rmax);
+				printf("rmax: %.4g, rmin: %.4g.\n", rmax, rmin);
+	   }
+		printf("rmax: %.4g, rmin: %.4g.\n", rmax, rmin);
+		printf("rmax: %u, rmin: %u\n", &rmax, &rmin);
+		mapscale = 255 / (rmax - rmin);
+		printf("rmax: %.4g", mapscale);
+
+
+	return 0;
+}

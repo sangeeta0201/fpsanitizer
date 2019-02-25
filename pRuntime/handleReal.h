@@ -19,9 +19,7 @@
 #define MMAP_FLAGS (MAP_PRIVATE| MAP_ANONYMOUS| MAP_NORESERVE)
 #define MAX_STACK_SIZE 1000000000
 #define MAX_SIZE 100000000
-#define INSSIZE 1000000
-//#define MPFRINIT 100000000 //for spec
-#define MPFRINIT 100
+//#define MPFRINIT 1000
 
 const size_t SS_PRIMARY_TABLE_ENTRIES = ((size_t) 4194304);//2^22
 const size_t SS_SEC_TABLE_ENTRIES = ((size_t) 64*(size_t) 1024 * (size_t) 1024); // 2^26
