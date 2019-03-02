@@ -13,8 +13,8 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <sys/mman.h>
-//#include "tbb/concurrent_queue.h"
-//#include "tbb/concurrent_hash_map.h"
+#include "tbb/concurrent_queue.h"
+#include "tbb/concurrent_hash_map.h"
 #define PRECISION 100
 #define MMAP_FLAGS (MAP_PRIVATE| MAP_ANONYMOUS| MAP_NORESERVE)
 #define MAX_STACK_SIZE 1000000000
@@ -51,6 +51,7 @@ Real *shadowStack;
 Real **shadowMap;
 
 struct Compute{
+	size_t argNo;
 	size_t opCode;
 	size_t op1Addr;
 	size_t op2Addr;
@@ -67,6 +68,10 @@ struct Compute{
 	size_t lineNo;
 	size_t totalSlots;
 	size_t returnIndex;
+	size_t size1;
+	size_t size2;
+	long val;
+	bool castFlag;
 	bool fcmpRes;
 };
 
@@ -120,7 +125,7 @@ size_t count4 = 0;
 size_t count5 = 0;
 size_t count6 = 0;
 std::stack<size_t> funcL;
-/*
+
 tbb::concurrent_queue<struct Compute*> worker;
 tbb::concurrent_queue<struct Compute*> ready1;
 tbb::concurrent_queue<struct Compute*> ready2;
@@ -128,7 +133,7 @@ tbb::concurrent_queue<struct Compute*> ready3;
 tbb::concurrent_queue<struct Compute*> ready4;
 tbb::concurrent_queue<struct Compute*> ready5;
 tbb::concurrent_queue<struct Compute*> ready6;
-*/
+
 std::map<size_t, struct ErrorAggregate*>errorMap;
 std::map<size_t, struct BrError*>errBrMap;
 //this will link ins index to index of result in shadow mem
@@ -147,7 +152,6 @@ void* consumer3(void *ptr);
 void* consumer4(void *ptr);
 void* consumer5(void *ptr);
 void* consumer6(void *ptr);
-void computeReal();
 
 extern "C" size_t __get_addr(void *Addr);
 extern "C"  void __finish();

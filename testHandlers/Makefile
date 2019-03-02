@@ -1,4 +1,4 @@
-CFLAGS=-O0 -fno-slp-vectorize -g -std=c11  -L$(FPROOT)/obj -lfpsanitizer -lmpfr -lm -pthread -ltbb
+CFLAGS=-O1 -fno-slp-vectorize -g -std=c11  -L$(FPROOT)/obj -lfpsanitizer -lmpfr -lm -pthread -ltbb
 #CFLAGS=-O1 -fno-slp-vectorize -g -std=c11 -L$(FPROOT)/obj -lfpsanitizer -lmpfr -lm ../SoftPosit/build/Linux-x86_64-GCC/softposit.a  -I../SoftPosit/source/include 
 CAMLFLAGs=
 CSRC = $(wildcard *.c)

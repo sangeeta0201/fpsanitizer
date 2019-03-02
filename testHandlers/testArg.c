@@ -5,6 +5,7 @@ double bar(double a, double b, double c, double d){
 
   return a+b*c+c*d;
 }
+
 double foo(double a, double b){
 
   double temp = 0.0;
@@ -25,6 +26,7 @@ int main(int argc, char** argv){
   
   volatile double sum = 0.0f;
   sum = sum + foo(a, sum);
+  sum += foo(a, sum);
 
   printf("The value of double is %f\n", sum);
   return 0;

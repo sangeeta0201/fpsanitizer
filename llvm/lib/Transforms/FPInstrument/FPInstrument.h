@@ -49,7 +49,7 @@ public:
   //void handleOp(Instruction *I, BinaryOperator* BO, Function &F);
   void handleOp(Instruction *I, BasicBlock *BB, BinaryOperator* BO, Function &F);
   //this is called inside from handleOp to handle each operand, it it could be constant, temp or loaded from memory
-  Constant* handleOperand(Instruction *I, Value* OP, Function &F);
+  Constant* handleOperand(Instruction *I, Value* OP, Function &F, Instruction **Index, bool *flag);
   //it gives unique index to every instruction
   void handleIns(Function &F);
   void handleCRIns();
