@@ -15,10 +15,10 @@
 #include <sys/mman.h>
 //#include "tbb/concurrent_queue.h"
 //#include "tbb/concurrent_hash_map.h"
-#define PRECISION 1000
+#define PRECISION 100
 #define MMAP_FLAGS (MAP_PRIVATE| MAP_ANONYMOUS| MAP_NORESERVE)
 #define MAX_STACK_SIZE 1000000000
-#define MAX_SIZE 100000000
+#define MAX_SIZE 1000
 //#define MPFRINIT 1000
 
 const size_t SS_PRIMARY_TABLE_ENTRIES = ((size_t) 4194304);//2^22
@@ -65,9 +65,14 @@ struct Compute{
 	size_t cmd;
 	size_t fcmpFlag;
 	size_t lineNo;
+	size_t totalSlots;
+	size_t returnIndex;
 	bool fcmpRes;
 };
+
+size_t totalMem = 0;
 size_t curRetIdx = 0;
+size_t stackTop = 0;
 size_t totalIns = 0;
 double sumIns = 0;
 double initTime = 0;
@@ -97,7 +102,7 @@ double loadDTime = 0;
 bool consumerFlag = false;
 size_t funcCount = 0;
 bool initFlag = false;
-int frameIdx = 0;
+int frameIdx = 1;
 size_t oldFrame = 0;
 size_t newRegIdx = 0;
 bool recurFlag = false;
@@ -114,6 +119,7 @@ size_t count3 = 0;
 size_t count4 = 0;
 size_t count5 = 0;
 size_t count6 = 0;
+std::stack<size_t> funcL;
 /*
 tbb::concurrent_queue<struct Compute*> worker;
 tbb::concurrent_queue<struct Compute*> ready1;

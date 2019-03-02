@@ -15,7 +15,7 @@
 #include <asm/unistd.h>
 
 #define MULTHITHREADED 0
-#define TIME 1
+#define TIME 0
 #define debug 1
 #define debugCR 1
 
@@ -98,9 +98,9 @@ size_t getSlotIndex(size_t InsIndex){
 		std::cout<<"idx:"<<idx;
 	}
 	assert(idx < MAX_STACK_SIZE);
-	if(!shadowStack[idx].initFlag){
+	if(!shadowStack[idx].initMPFRFlag){
   	mpfr_init2(shadowStack[idx].mpfr_val, PRECISION);
-		shadowStack[idx].initFlag = 1;
+		shadowStack[idx].initMPFRFlag = 1;
 	}
 	return idx;	
 }
@@ -136,33 +136,27 @@ extern "C" size_t __get_addr(void *Addr){
   return AddrInt;
 }
 
-//called from caller before calling function
-extern "C" void __add_fun_arg(size_t argNo, size_t opIdx, double op){
+void add_fun_arg(size_t argNo, size_t opIdx, double op){
 #if TIME
 	struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
 #endif
-//TODO assert, as it might crash here
 	size_t dest = getSlotIndex(argNo); // this is location where argument is need to be pushed
 	size_t src = frameCur[frameIdx - 1] + opIdx; //this is index of parameter passed to the function
 	if(opIdx == 0){
 		mpfr_set_d(shadowStack[dest].mpfr_val, op, MPFR_RNDN);
-//		std::cout<<"copying argument from:"<<op<<" to dest:"<<dest<<"\n";
 	}
 	else if(shadowStack[src].initFlag){
 		mpfr_set(shadowStack[dest].mpfr_val, shadowStack[src].mpfr_val, MPFR_RNDN);
-	//	std::cout<<"copying argument from:"<<src<<" to dest:"<<dest<<"\n";
-//		printReal(shadowStack[src].mpfr_val);
 	}
 	else{
 		mpfr_set_d(shadowStack[dest].mpfr_val, op, MPFR_RNDN);
-//		std::cout<<"copying argument from:"<<op<<" to dest:"<<dest<<"\n";
 	}
+	shadowStack[dest].initFlag = 1;
 	if(debug){
-		std::cout<<"shadowStack[dest].mpfr_val:";
+		std::cout<<"add_fun_arg: shadowStack[dest].mpfr_val:";
 		printReal(shadowStack[dest].mpfr_val);
 	}
-	
 #if TIME
 	gettimeofday(&tv2, NULL);
 	addFunTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
@@ -170,7 +164,22 @@ extern "C" void __add_fun_arg(size_t argNo, size_t opIdx, double op){
 #endif
 }
 
-extern "C" void __func_init(size_t totalSlots, size_t returnIdx){
+//called from caller before calling function
+extern "C" void __add_fun_arg(size_t argNo, size_t opIdx, double op){
+#if MULTHITHREADED
+	Compute *op = new Compute;
+	op->op1Addr = opIdx;
+	op->op1d = op;
+	op->argNo = argNo;
+	op->cmd = 8;
+
+	worker.push(op);
+#else
+	add_fun_arg(argNo, opIdx, op);
+#endif	
+}
+
+void func_init(size_t totalSlots){
 #if TIME
 	struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
@@ -179,25 +188,27 @@ extern "C" void __func_init(size_t totalSlots, size_t returnIdx){
 		__init(totalSlots);
 		initFlag = true;
 	}
+#if 0 //stack analysis
+	funcL.push((size_t)Addr);
+#endif
 /*
 	frameIdx is incremented for every func call
 */
 	frameIdx++;	
+	assert(frameIdx < MAX_SIZE);
 /*
 	frameCur points to the current frame frameIndex, which is sum of 
 old frame index and total number of slots of previous function 
 */
-	frameCur[frameIdx] = frameCur[frameIdx-1] + totalSlots;
+	frameCur[frameIdx] = frameCur[frameIdx-1] + stackTop;
+	stackTop += totalSlots;
+
 	if(debug){
 		std::cout<<"__func_init totalSlots:"<<totalSlots<<" frameIdx:"<<frameIdx<<" offset:"<<frameCur[frameIdx]<<"******\n";
 	}
 /*
 	curRetIdx stores the index where return needs to be copied in caller
 */
-	curRetIdx = frameCur[frameIdx - 1] + returnIdx;
-	if(debug){
-		std::cout<<"__func_init curRetIdx:"<<curRetIdx<<" returnIdx:"<<returnIdx<<"******\n";
-	}
 #if TIME
 	gettimeofday(&tv2, NULL);
 	funcInitTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
@@ -205,42 +216,92 @@ old frame index and total number of slots of previous function
 #endif
 }
 
-extern "C" void __func_exit(size_t returnIndex){
+extern "C" void __func_init(size_t totalSlots){
+#if MULTHITHREADED
+	Compute *op = new Compute;
+	op->totalSlots = totalSlots;
+	op->cmd = 9;
+
+	worker.push(op);
+#else
+	func_init(totalSlots);
+#endif	
+}
+
+void copy_return(size_t returnIndex){
+	if(returnIndex){	//if we are returning zero while recursing, we just need to set the frame index
+		size_t offset = frameCur[frameIdx];
+		size_t calleFrame = frameCur[frameIdx+1] + 1; 
+		/*return is copied from calle to the caller*/
+		std::cout<<"calleFrame:"<<calleFrame<<"\n";
+		Real *returnReal = &(shadowStack[calleFrame]); //return is copied to index 0
+		std::cout<<"returnReal->initFlag:"<<returnReal->initFlag<<"\n";
+		if(returnReal->initFlag){ // we don't need to do anything if return is not initialized
+			if(!shadowStack[returnIndex + offset].initMPFRFlag){
+				mpfr_init2(shadowStack[returnIndex + offset].mpfr_val, PRECISION);
+				shadowStack[returnIndex + offset].initMPFRFlag = 1;
+			}
+			mpfr_set(shadowStack[returnIndex + offset].mpfr_val, returnReal->mpfr_val, MPFR_RNDN);
+			shadowStack[returnIndex + offset].initFlag = 1;
+		}
+		if(debug){
+			std::cout<<"src:"; 
+			printReal(returnReal->mpfr_val);
+			std::cout<<"\ndst:"; 
+			printReal(shadowStack[returnIndex + offset].mpfr_val);
+			std::cout<<"\ncopied from index:"<<calleFrame<<" to index:"<<returnIndex + offset<<" addr:"<<&(shadowStack[returnIndex + offset])<<"\n";
+		}
+	}
+}
+
+extern "C" void __copy_return(size_t returnIndex){
+#if MULTHITHREADED
+	Compute *op = new Compute;
+	op->returnIndex = returnIndex;
+	op->cmd = 10
+
+	worker.push(op);
+#else
+	copy_return(returnIndex);
+#endif	
+}
+
+void func_exit(){
 #if TIME
 	struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
 #endif
-	if(returnIndex){	//if we are returning zero while recursing, we just need to set the frame index
-		size_t offset = frameCur[frameIdx];
-		/*return is copied from calle to the caller*/
-		Real *returnReal = &(shadowStack[returnIndex + offset]);
-		if(returnReal->initFlag){ // we don't need to do anything if return is not initialized
-			if(!shadowStack[curRetIdx].initFlag){
-				mpfr_init2(shadowStack[curRetIdx].mpfr_val, PRECISION);
-				shadowStack[curRetIdx].initFlag = 1;
-			}
-			mpfr_set(shadowStack[curRetIdx].mpfr_val, returnReal->mpfr_val, MPFR_RNDN);
-		}
-		if(debug)
-			std::cout<<"return copied from index:"<<returnIndex+offset<<" to index:"<<curRetIdx<<"\n";
-	}
 	frameIdx--;	
-	if(debug)
-		std::cout<<"__func_exit ******returnIndex:"<<returnIndex<<" frameIdx:"<<frameIdx<<" offset:"<<frameCur[frameIdx]<<"\n";
+#if 0 // stack analysis
+	size_t newAddr = (size_t)Addr;
+	size_t oldAddr = funcL.top();
+	if(oldAddr != newAddr){
+		print_trace();
+		std::cout<<"crash\n";
+		exit(0);
+	}
+	funcL.pop();
+#endif
 #if TIME
 	gettimeofday(&tv2, NULL);
 	funcExitTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
          (double) (tv2.tv_sec - tv1.tv_sec); 
 
 #endif
-/*
-	while(worker.unsafe_size() > 0 || ready1.unsafe_size() > 0 || ready2.unsafe_size() > 0){
-		printf("__func_exit waiting\n");
-	}
-*/
+}
+extern "C" void __func_exit(){
+#if MULTHITHREADED
+	Compute *op = new Compute;
+	op->returnIndex = returnIndex;
+	op->cmd = 11;
+
+	worker.push(op);
+#else
+	func_exit();
+#endif	
 }
 
-extern "C" void __handle_f_to_sint(size_t op1Int, long val, size_t lineNo){
+void handle_f_to_sint(size_t op1Int, long val, size_t lineNo){
 #if TIME
 	struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
@@ -259,6 +320,20 @@ extern "C" void __handle_f_to_sint(size_t op1Int, long val, size_t lineNo){
 #endif
 }
 
+extern "C" void __handle_f_to_sint(size_t op1Int, long val, size_t lineNo){
+#if MULTHITHREADED
+	Compute *op = new Compute;
+	op->op1Addr = op1Int;
+	op->val = val;
+	op->lineNo = lineNo;
+	op->cmd = 12;
+
+	worker.push(op);
+#else
+	handle_f_to_sint(op1Int, val, lineNo);
+#endif	
+}
+
 void handle_math_f(size_t funcCode, float op1, size_t op1Int, 
                                 float computedRes, size_t insIndex){ 
   
@@ -271,7 +346,7 @@ void handle_math_f(size_t funcCode, float op1, size_t op1Int,
 	size_t resIdx = getSlotIndex(insIndex);
 
   Real *real1 = &(shadowStack[op1Idx]);
-  if(op1Int == 0 || real1->initFlag == 0){
+  if(op1Int == 0 || real1->initMPFRFlag == 0){
 		mpfr_init2(r1.mpfr_val, PRECISION);
 		mpfrInit++;
 		mpfr_set_flt(r1.mpfr_val, op1, MPFR_RNDN);
@@ -336,6 +411,7 @@ void handle_math_f(size_t funcCode, float op1, size_t op1Int,
     mpfr_clear(real1->mpfr_val);
     mpfrClear++;
   }
+	shadowStack[resIdx].initFlag = 1;
 	updateErrorF(shadowStack[resIdx].mpfr_val, computedRes, insIndex);
 }
 
@@ -348,7 +424,7 @@ void handle_math_d(size_t funcCode, double op1, size_t op1Int,
 	size_t resIdx = getSlotIndex(insIndex);
 
   Real *real1 = &(shadowStack[op1Idx]);
-  if(op1Int == 0 || real1->initFlag == 0){
+  if(op1Int == 0 || real1->initMPFRFlag == 0){
 		mpfr_init2(r1.mpfr_val, PRECISION);
 		mpfrInit++;
 		mpfr_set_d(r1.mpfr_val, op1, MPFR_RNDN);
@@ -413,6 +489,7 @@ void handle_math_d(size_t funcCode, double op1, size_t op1Int,
     mpfr_clear(real1->mpfr_val);
     mpfrClear++;
   }
+	shadowStack[resIdx].initFlag = 1;
 	updateError(shadowStack[resIdx].mpfr_val, computedRes, insIndex);
 }
 
@@ -513,62 +590,17 @@ void handleOp(size_t opCode, mpfr_t *res, mpfr_t *op1, mpfr_t *op2){
   }
 }
 
-void handle_select(size_t AddrInt, size_t insIndex, double op){
-	Real *real1;
-
-	size_t op1Idx = getSlotIndex(AddrInt);
-	size_t resIdx = getSlotIndex(insIndex);
-
-	real1 = &(shadowStack[op1Idx]);
-	if(AddrInt == 0) {
-		mpfr_set_d(shadowStack[resIdx].mpfr_val, op, MPFR_RNDN);
-	}
-	else if(real1->initFlag == 0)
-		mpfr_set_d(shadowStack[resIdx].mpfr_val, op, MPFR_RNDN);
-	else
-		mpfr_set(shadowStack[resIdx].mpfr_val, real1->mpfr_val, MPFR_RNDN);
-	if(debug){
-		std::cout<<"handleSelect: set value in shadowStack at:"<<resIdx<<"\n";
-	}
-}
-
-extern "C" void __handle_select(void *Addr, size_t insIndex, double opd){
-#if TIME
-	struct timeval  tv1, tv2;
-	gettimeofday(&tv1, NULL);
-#endif
-	size_t AddrInt = (size_t) Addr;
-#if MULTHITHREADED
-	Compute *op = new Compute;
-	op->op1Addr = AddrInt;
-	op->op1d = opd;
-	op->insIndex = insIndex;
-	op->cmd = 6;
-
-	worker.push(op);	
-#else
-	handle_select(AddrInt, insIndex, opd);
-#endif
-#if TIME
-	gettimeofday(&tv2, NULL);
-	selectTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
-         (double) (tv2.tv_sec - tv1.tv_sec); 
-#endif
-}
-
-extern "C" void __load_f(void *Addr, size_t insIndex, float opf, 
+void load_f(size_t AddrInt, size_t insIndex, float opf, 
 																						bool castFlag){
 #if TIME
 	struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
 #endif
-	size_t AddrInt = (size_t) Addr;
 	struct Real* dest = getAddrIndex(AddrInt);
 	size_t resIdx = getSlotIndex(insIndex);
 
 	if(debug){
-			std::cout<<"fpSanLoadFromShadowMem: opf:"<<opf;
-			printf(" from addr:%p\n", Addr);
+			std::cout<<"fpSanLoadFromShadowMem: opf:"<<opf<<" AddrInt:"<<AddrInt<<"";
 	}
 	if(dest->initFlag == 0){
 		if(castFlag)
@@ -592,9 +624,10 @@ extern "C" void __load_f(void *Addr, size_t insIndex, float opf,
 			printReal( shadowStack[resIdx].mpfr_val);
 			std::cout<<" in shadowStack at:"<<resIdx;
 			printf(" for addr:%p ", (void *)addr);
-			printf(" from addr:%p\n", Addr);
+			printf(" from addr:%p\n",  (void *)AddrInt);
 		}
 	}
+	shadowStack[resIdx].initFlag = 1;
 #if TIME
 	gettimeofday(&tv2, NULL);
 	loadFTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
@@ -602,18 +635,33 @@ extern "C" void __load_f(void *Addr, size_t insIndex, float opf,
 #endif
 }
 
-extern "C" void __load_d(void *Addr, size_t insIndex, double opd, 
+extern "C" void __load_f(void *Addr, size_t insIndex, float opf, 
+																						bool castFlag){
+	size_t AddrInt = (size_t) Addr;
+#if MULTHITHREADED
+	Compute *op = new Compute;
+	op->op1Addr = AddrInt;
+	op->opf = opf;
+	op->castFlag = castFlag;
+	op->insIndex = insIndex;
+	op->cmd = 13; //TODO
+
+	worker.push(op);	
+#else
+	load_f(AddrInt, insIndex, opf, castFlag);
+#endif
+}
+
+void load_d(size_t AddrInt, size_t insIndex, double opd, 
 																								bool castFlag){
 #if TIME
 	struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
 #endif
-	size_t AddrInt = (size_t) Addr;
 	struct Real* dest = getAddrIndex(AddrInt);
 	size_t resIdx = getSlotIndex(insIndex);
 	if(debug){
-			std::cout<<"fpSanLoadFromShadowMem: opd:"<<opd;
-			printf(" from addr:%p\n", Addr);
+			std::cout<<"fpSanLoadFromShadowMem: opd:"<<opd<<" AddrInt:"<<AddrInt<<"\n";
 	}
 	if(dest->initFlag == 0){
 		if(castFlag)
@@ -637,13 +685,30 @@ extern "C" void __load_d(void *Addr, size_t insIndex, double opd,
 			printReal( shadowStack[resIdx].mpfr_val);
 			std::cout<<" in shadowStack at:"<<resIdx;
 			printf(" for addr:%p ", (void *)addr);
-			printf(" from addr:%p\n", Addr);
+			printf(" from addr:%p\n", (void *)AddrInt);
 		}
 	}
+	shadowStack[resIdx].initFlag = 1;
 #if TIME
 	gettimeofday(&tv2, NULL);
 	loadDTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
          (double) (tv2.tv_sec - tv1.tv_sec); 
+#endif
+}
+extern "C" void __load_d(void *Addr, size_t insIndex, double opd, 
+																								bool castFlag){
+	size_t AddrInt = (size_t) Addr;
+#if MULTHITHREADED
+	Compute *op = new Compute;
+	op->op1Addr = AddrInt;
+	op->opd = opd;
+	op->castFlag = castFlag;
+	op->insIndex = insIndex;
+	op->cmd = 14; 
+
+	worker.push(op);	
+#else
+	load_d(AddrInt, insIndex, opd, castFlag);
 #endif
 }
 
@@ -676,7 +741,7 @@ void check_branch(double op1, size_t op1Int, double op2, size_t op2Int,
   }
   else{
     real1 = &(shadowStack[op1Idx]);
-    if(real1->initFlag == 0){
+    if(real1->initMPFRFlag == 0){
     	if(debug)
       	std::cout<<"checkBranch: real1 is null\n";
       mpfr_init2(r1.mpfr_val, PRECISION);
@@ -698,7 +763,7 @@ void check_branch(double op1, size_t op1Int, double op2, size_t op2Int,
   } 
   else{
     real2 = &(shadowStack[op2Idx]);
-    if(real2->initFlag == 0){
+    if(real2->initMPFRFlag == 0){
     	if(debug)
       	std::cout<<"checkBranch: real2 is null\n";
       mpfr_init2(r2.mpfr_val, PRECISION);
@@ -851,7 +916,7 @@ void setOperandsFloat(size_t opCode, size_t op1Addr, size_t op2Addr,
 	}
 	else{
 		real1 = &(shadowStack[op1Idx]);
-		if(real1->initFlag == 0){
+		if(real1->initMPFRFlag == 0){
     	if(debugCR)
 				std::cout<<"computeReal: real1 is null\n"; //why?
     	mpfr_init2(r1.mpfr_val, PRECISION);
@@ -873,7 +938,7 @@ void setOperandsFloat(size_t opCode, size_t op1Addr, size_t op2Addr,
 	}
 	else{
 		real2 = &(shadowStack[op2Idx]);
-			if(real2->initFlag == 0){
+			if(real2->initMPFRFlag == 0){
     		if(debugCR)
 					std::cout<<"computeReal: real2 is null\n";
     		mpfr_init2(r2.mpfr_val, PRECISION);
@@ -892,6 +957,7 @@ void setOperandsFloat(size_t opCode, size_t op1Addr, size_t op2Addr,
 	}
 	//start_counter();	
   handleOp(opCode, &(shadowStack[resIdx].mpfr_val), &real1->mpfr_val, &real2->mpfr_val);
+	shadowStack[resIdx].initFlag = 1;
 	//stop();
 	if(debugCR){
 		std::cout<<"computeReal: stackTop:"<<resIdx<<"\n";
@@ -922,9 +988,9 @@ void setOperandsDouble(size_t opCode, size_t op1Addr, size_t op2Addr,
 	size_t resIdx = getSlotIndex(insIndex);
 
   if(debugCR){
-		std::cout<<"setOperandsDouble: op1Idx:"<<op1Idx<<"\n";
-		std::cout<<"setOperandsDouble: op2Idx:"<<op2Idx<<"\n";
-		std::cout<<"setOperandsDouble: resIdx:"<<resIdx<<"\n";
+		std::cout<<"setOperandsDouble: op1Idx:"<<op1Idx<<":"<<&(shadowStack[op1Idx])<<"\n";
+		std::cout<<"setOperandsDouble: op2Idx:"<<op2Idx<<":"<<&(shadowStack[op2Idx])<<"\n";
+		std::cout<<"setOperandsDouble: resIdx:"<<resIdx<<":"<<&(shadowStack[resIdx])<<"\n";
 	}
 
   if(debugCR){
@@ -942,7 +1008,7 @@ void setOperandsDouble(size_t opCode, size_t op1Addr, size_t op2Addr,
 	}
 	else{
 		real1 = &(shadowStack[op1Idx]);
-		if(real1->initFlag == 0){
+		if(real1->initMPFRFlag == 0){
     	if(debugCR)
 				std::cout<<"computeReal: real1 is null\n";
     	mpfr_init2(r1.mpfr_val, PRECISION);
@@ -964,7 +1030,7 @@ void setOperandsDouble(size_t opCode, size_t op1Addr, size_t op2Addr,
 	}
 	else{
 		real2 = &(shadowStack[op2Idx]);
-			if(real2->initFlag == 0){
+			if(real2->initMPFRFlag == 0){
     		if(debugCR)
 					std::cout<<"computeReal: real2 is null\n";
     		mpfr_init2(r2.mpfr_val, PRECISION);
@@ -988,8 +1054,7 @@ void setOperandsDouble(size_t opCode, size_t op1Addr, size_t op2Addr,
 	//start_counter();	
   handleOp(opCode, &(shadowStack[resIdx].mpfr_val), &real1->mpfr_val, &real2->mpfr_val);
 	//stop();
-
-
+	shadowStack[resIdx].initFlag = 1;
 	if(debugCR){
 		std::cout<<"computeReal: stackTop:"<<resIdx;;
 		printf(" addr %p:\n", (void *)&shadowStack[resIdx]);
@@ -1124,7 +1189,7 @@ extern "C" void __set_real_fun_arg(size_t index, size_t funAddrInt, size_t toAdd
 #endif
 }
 
-extern "C" void __set_real_cons_d(size_t toAddrInt, double value){
+void set_real_cons_d(size_t toAddrInt, double value){
 #if TIME
 	struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
@@ -1143,7 +1208,19 @@ extern "C" void __set_real_cons_d(size_t toAddrInt, double value){
 #endif
 }
 
-extern "C" void __set_real_cons_f(size_t toAddrInt, float value){
+extern "C" void __set_real_cons_d(size_t toAddrInt, double value){
+#if MULTHITHREADED
+	Compute *op = new Compute;
+	op->op1Addr = toAddrInt;
+	op->op1d = value;
+	op->cmd = 15;
+	worker.push(op);	
+#else
+	set_real_cons_d(toAddrInt, value);
+#endif
+}
+
+void set_real_cons_f(size_t toAddrInt, float value){
 #if TIME
 	struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
@@ -1164,6 +1241,18 @@ extern "C" void __set_real_cons_f(size_t toAddrInt, float value){
 #endif
 }
 
+extern "C" void __set_real_cons_f(size_t toAddrInt, float value){
+#if MULTHITHREADED
+	Compute *op = new Compute;
+	op->op1Addr = toAddrInt;
+	op->op1f = value;
+	op->cmd = 16;
+	worker.push(op);	
+#else
+	set_real_cons_f(toAddrInt, value);
+#endif
+}
+
 void set_real(size_t toAddrInt, size_t fromAddrInt, double op){
 	size_t fromIdx = getSlotIndex(fromAddrInt);
 	Real* dest = getAddrIndex(toAddrInt);
@@ -1171,19 +1260,18 @@ void set_real(size_t toAddrInt, size_t fromAddrInt, double op){
 	if(real->initFlag == 0){
 		mpfr_set_d(dest->mpfr_val, op, MPFR_RNDN);
 		if(debug){
-			std::cout<<"setRealTemp: from:"<<op<<"\n";
+			std::cout<<"setRealTemp: from double:"<<op<<"\n";
 		}
 	}
 	else{
 		mpfr_set(dest->mpfr_val, real->mpfr_val, MPFR_RNDN);
 		if(debug){
-			std::cout<<"setRealTemp: from:";
+			std::cout<<"setRealTemp from "<<fromAddrInt<<":";
 			printReal(real->mpfr_val);
 		}
 	}
 	dest->initFlag = 1;
 	if(debug){
-		std::cout<<"setRealTemp: dest->initFlag:"<<dest->initFlag<<"\n";
 		std::cout<<"setRealTemp: dest set to:";
 		printReal(dest->mpfr_val);
 		printf("from: %ld", fromIdx);
@@ -1213,7 +1301,7 @@ extern "C" void __set_real(size_t toAddrInt, size_t fromAddrInt, double op1){
 #endif
 }
 
-extern "C" void __handle_calloc(size_t toAddrInt, size_t size1, size_t size2){
+void handle_calloc(size_t toAddrInt, size_t size1, size_t size2){
 #if TIME
 	struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
@@ -1241,7 +1329,19 @@ extern "C" void __handle_calloc(size_t toAddrInt, size_t size1, size_t size2){
 #endif
 }
 
-extern "C" void __handle_malloc(size_t toAddrInt, size_t size){
+extern "C" void __handle_calloc(size_t toAddrInt, size_t size1, size_t size2){
+#if MULTHITHREADED
+	Compute *op = new Compute;
+	op->op1Addr = toAddrInt;
+	op->size1 = size1;
+	op->size2 = size2;
+	op->cmd = 7;
+#else
+	handle_calloc(toAddrInt, size1, size2);
+#endif
+}
+
+void handle_malloc(size_t toAddrInt, size_t size){
 #if TIME
 	struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
@@ -1266,15 +1366,24 @@ extern "C" void __handle_malloc(size_t toAddrInt, size_t size){
 #endif
 }
 
-extern "C" void __handle_memset(size_t toAddrInt, size_t val, size_t size){
+extern "C" void __handle_malloc(size_t toAddrInt, size_t size){
+#if MULTHITHREADED
+	Compute *op = new Compute;
+	op->op1Addr = toAddrInt;
+	op->size1 = size;
+	op->cmd = 7;
+#else
+	handle_malloc(toAddrInt, size);
+#endif
+}
+
+void handle_memset(size_t toAddrInt, size_t size){
 #if TIME
 	struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
 #endif
 	size_t tmp = 0;
 	if(debug){
-		printf("handleLLVMMemset to addr:%p val:%lu\n", (void *)toAddrInt, val);
-		std::cout<<"handleLLVMMemset val:"<<val<<"\n";
 		std::cout<<"handleLLVMMemset size:"<<size<<"\n";
 	}
 
@@ -1293,7 +1402,18 @@ extern "C" void __handle_memset(size_t toAddrInt, size_t val, size_t size){
 #endif
 }
 
-extern "C" void __handle_memcpy(size_t toAddrInt, size_t fromAddrInt, size_t size){
+extern "C" void __handle_memset(size_t toAddrInt, size_t size){
+#if MULTHITHREADED
+	Compute *op = new Compute;
+	op->op1Addr = toAddrInt;
+	op->size1 = size;
+	op->cmd = 19;
+#else
+	handle_memset(toAddrInt, size);
+#endif
+}
+
+void handle_memcpy(size_t toAddrInt, size_t fromAddrInt, size_t size){
 #if TIME
 	struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
@@ -1321,6 +1441,18 @@ extern "C" void __handle_memcpy(size_t toAddrInt, size_t fromAddrInt, size_t siz
 	gettimeofday(&tv2, NULL);
 	memcpyTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
          (double) (tv2.tv_sec - tv1.tv_sec); 
+#endif
+}
+
+extern "C" void __handle_memcpy(size_t toAddrInt, size_t fromAddrInt, size_t size){
+#if MULTHITHREADED
+	Compute *op = new Compute;
+	op->op1Addr = toAddrInt;
+	op->op2Addr = fromAddrInt;
+	op->size1 = size;
+	op->cmd = 20;
+#else
+	handle_memcpy(toAddrInt, fromAddrInt, size);
 #endif
 }
 
@@ -1595,7 +1727,7 @@ extern "C" void __init(size_t totalSlots){
     assert (shadowStack != (void*)-1);
     assert (shadowMap != (void*)-1);
     frameCur[0] = 0;
-    __func_init(0, 0);
+    __func_init(0);
 
 		std::cout<<"init1\n";	
   	// Create the threads
@@ -1628,7 +1760,6 @@ void* consumer(void *ptr) {
 	bool op1 = false;
 	bool op2 = false;
 	while(!consumerFlag || worker.unsafe_size() > 0){
-				pthread_mutex_lock(&the_mutex);
 			if(worker.try_pop(op) ) {
 				count++;
 				if(op->cmd == 6 || op->cmd == 3 || op->cmd == 4){
@@ -1687,7 +1818,6 @@ void* consumer(void *ptr) {
 					}
 				}
 			}
-				pthread_mutex_unlock(&the_mutex);
 		}	
 	return NULL;
 }
@@ -1696,7 +1826,6 @@ void* consumer1(void *ptr) {
 	
 	Compute *op; 
 	while(!consumerFlag || ready1.unsafe_size() > 0){
-				pthread_mutex_lock(&the_mutex);
 	if(ready1.try_pop(op)){
 			switch(op->cmd){
 				case 1:
@@ -1726,12 +1855,50 @@ void* consumer1(void *ptr) {
 				case 7:
   				set_real(op->op1Addr, op->op2Addr, op->op1d);  
 					break;
+				case 8:
+					add_fun_arg(op->argNo, op->op1Addr, op->op1d);
+					break;
+				case 9:
+					func_init(op->totalSlots);
+					break;
+				case 10:
+					copy_return(op->returnIndex);
+					break;
+				case 11:
+					func_exit();
+					break;
+				case 12:
+					handle_f_to_sint(op->op1Addr, op->val, op->lineNo);
+					break;
+				case 13:
+					load_f(op->op1Addr, op->insIndex, op->opf, op->castFlag);
+					break;
+				case 14:
+					load_d(op->op1Addr, op->insIndex, op->opd, op->castFlag);
+					break;
+				case 15:
+					set_real_cons_d(op->op1Addr, op->opd);
+					break;
+				case 16:
+					set_real_cons_f(op->op1Addr, op->opf);
+					break;
+				case 17:
+					handle_calloc(op->op1Addr, op->size1, op->size2);
+					break;
+				case 18:
+					handle_malloc((op->op1Addr, op->size1);
+					break;
+				case 19:
+					handle_memset(op->op1Addr, op->op1d, op->size1);
+					break;
+				case 20:
+					handle_memcpy(op->op1Addr, op->op2Addr, op->size1);
+					break;
 				default:
 					break;
 			delete op;
 			}
 		}	
-				pthread_mutex_unlock(&the_mutex);
 	}
 	return NULL;
 }
@@ -1739,7 +1906,6 @@ void* consumer1(void *ptr) {
 void* consumer2(void *ptr) {
 	Compute *op; 
 	while(!consumerFlag || ready2.unsafe_size() > 0){
-				pthread_mutex_lock(&the_mutex);
 		if(ready2.try_pop(op)){
 			switch(op->cmd){
 				case 1:
@@ -1774,7 +1940,6 @@ void* consumer2(void *ptr) {
 			delete op;
 			}
 		}	
-				pthread_mutex_unlock(&the_mutex);
 	}
 	return NULL;
 }

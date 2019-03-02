@@ -68,7 +68,7 @@ public:
   //this function looks one instruction ahead and return it
   Instruction* getNextInstruction(Instruction *I, BasicBlock *BB);
   void handleFuncExit(Instruction *I, ReturnInst *RI, Function &F);  
-  void handleFuncInit(Function *F, Constant* ConsInsIndex);  
+  void handleFuncInit(Function &F);  
   void handleAlloca(Instruction *I, BasicBlock *BB, AllocaInst *A, Function &F);  void handleCleanup(Instruction *I, ReturnInst *RI, Function &F); 
   void handleSelect(Instruction *I, BasicBlock *BB, SelectInst *SI, Function &F);
   void handleLoad(Instruction *I, LoadInst *LI, BasicBlock *BB, Function &F, bool flag);
@@ -85,12 +85,13 @@ private:
 	std::queue<StringRef> FunctionList;
   SmallVector<Function*, 8> AllFuncList;
   SmallVector<Instruction*, 8> AllInsList;
+  SmallVector<Instruction*, 8> AllRetList;
   SmallVector<Instruction*, 8> AllCRList;
   SmallVector<User*, 8> AllBrList;
   SmallVector<ReturnInst*, 8> AllReturn;
+  std::map<Function*, Instruction*> AllRet;
   std::map<Instruction*, Instruction*> TrackIToFCast;
   //this is used to track address of a variable loaded from memory 
-  std::map<Instruction*, Value*> LoadMap;
   //this is used to track reg index
   std::map<Instruction*, Instruction*> RegIdMap;
   //it is used for constant used in phi node, since phi node is of type size then we need to store
