@@ -27,8 +27,8 @@ all:
 	@make tool
 
 tool: $(OBJECTS)
-	ar ru $(TARGET).a $(OBJECTS)
-	@mv $(TARGET).a $(OBJDIR)
+	@$(LINKER) $(OBJECTS) $(LDFLAGS) -o $(TARGET).so
+	@mv $(TARGET).so $(OBJDIR)
 	@echo "Linking complete!"
 
 $(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.cpp

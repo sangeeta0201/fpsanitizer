@@ -19,6 +19,7 @@
 #define MMAP_FLAGS (MAP_PRIVATE| MAP_ANONYMOUS| MAP_NORESERVE)
 #define MAX_STACK_SIZE 1000000000
 #define MAX_SIZE 1000
+#define MAX_BUF_SIZE 20000
 //#define MPFRINIT 1000
 
 const size_t SS_PRIMARY_TABLE_ENTRIES = ((size_t) 4194304);//2^22
@@ -26,6 +27,7 @@ const size_t SS_SEC_TABLE_ENTRIES = ((size_t) 64*(size_t) 1024 * (size_t) 1024);
 //const size_t SS_SEC_TABLE_ENTRIES = ((size_t)4 *(size_t) 1024 * (size_t) 1024); // 2^22
 
 FILE *pFile = fopen ("error.log","w");
+FILE *pFile1 = fopen ("errorth.log","w");
 FILE *eFile = fopen ("branch.log","w");
 FILE *lbmRef = fopen ("ref.log","w");
 
@@ -75,11 +77,20 @@ struct Compute{
 	bool fcmpRes;
 };
 
+Compute *buf;
+
+size_t countM = 0;
+//size_t bufIdx = 0;
+tbb::atomic<size_t> bufIdx;
+size_t popCount = 0;
+size_t totComputations = 0;
 size_t totalMem = 0;
 size_t curRetIdx = 0;
 size_t stackTop = 0;
 size_t totalIns = 0;
 double sumIns = 0;
+double copyRetTime = 0;
+double popTime = 0;
 double initTime = 0;
 double computeTime = 0;
 double setRealTime = 0;
@@ -124,6 +135,32 @@ size_t count3 = 0;
 size_t count4 = 0;
 size_t count5 = 0;
 size_t count6 = 0;
+
+size_t add_fun_argC = 0;
+size_t func_initC = 0;
+size_t copy_returnC = 0;
+size_t func_exitC = 0;
+size_t handle_f_to_sintC = 0;
+size_t handle_math_fC = 0;
+size_t handle_math_dC = 0;
+size_t load_fC = 0;
+size_t load_dC = 0;
+size_t setOperandsFloatC = 0;
+size_t setOperandsDoubleC = 0;
+size_t check_branchC = 0;
+size_t set_real_cons_dC = 0;
+size_t set_real_cons_fC = 0;
+size_t set_realC = 0;
+size_t handle_callocC = 0;
+size_t handle_mallocC = 0;
+size_t handle_memsetC = 0;
+size_t handle_memcpyC = 0;
+size_t initC = 0;
+size_t finishC = 0;
+size_t conC = 0;
+size_t resCount = 0;
+long long totalC = 0;
+ 
 std::stack<size_t> funcL;
 
 tbb::concurrent_queue<struct Compute*> worker;
@@ -153,9 +190,8 @@ void* consumer4(void *ptr);
 void* consumer5(void *ptr);
 void* consumer6(void *ptr);
 
-extern "C" size_t __get_addr(void *Addr);
-extern "C"  void __finish();
-extern "C"  void __init(size_t totalSlots);
+extern "C" void __func_init(size_t totalSlots);
+extern "C" void __init(size_t totalSlots);
 extern "C"  void printToFile(void* op1Addr, void* op2Addr, void* op3Addr);
 size_t getFunOperands(size_t addr);
 void* get_real_fun_arg(size_t index);

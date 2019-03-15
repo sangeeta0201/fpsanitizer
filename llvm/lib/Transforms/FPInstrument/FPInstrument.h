@@ -122,6 +122,7 @@ private:
   Value* SetRealConstant;
   Value* SetRealTemp;
   Value* HandleOp;
+  Value* HandlePhi[100];
   Value* HandleFunc;
   Value* SetRealFunArg;
   Value* AddFunArg;

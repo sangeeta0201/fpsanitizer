@@ -49,6 +49,9 @@ bool FPInstrument::runOnModule(Module &M) {
 								name == "llvm.fabs.f64" || name == "log" || name == "asin"){
 							flag = true;
 						}
+            if(name == "exit") {
+            	handleMainRet(&I, F);
+            }
 					}
 				}
 			}
@@ -82,7 +85,8 @@ bool FPInstrument::runOnModule(Module &M) {
       	else if (SelectInst *SI = dyn_cast<SelectInst>(&I)){
 					Type *SIType = SI->getType();
 					if(SIType->getTypeID() == Type::DoubleTyID || SIType->getTypeID() == Type::FloatTyID){
-						//AllInsList.push_back(&I);
+						errs()<<"SelectInst added to list: "<<*SI<<"\n";
+						AllInsList.push_back(&I);
 					}
 				}	
 				else if(ExtractValueInst *EVI = dyn_cast<ExtractValueInst>(&I)){
@@ -133,7 +137,7 @@ bool FPInstrument::runOnModule(Module &M) {
 				else
 					AllInsList.push_back(&I); //if callee is null, then it can be function pointer
 				}
-        if(PHINode *PN = dyn_cast<PHINode>(&I)){
+        else if(PHINode *PN = dyn_cast<PHINode>(&I)){
           Type *phi_type = PN->getType();
           if(phi_type->getTypeID() == Type::DoubleTyID || phi_type->getTypeID() == Type::FloatTyID)
 						AllInsList.push_back(&I);
@@ -350,7 +354,8 @@ bool FPInstrument::runOnModule(Module &M) {
               handleCallInst(&I, CI, &BB, *F); // handle other functions in app
             }
           }
-					else{
+/*					else{
+							errs()<<"Callee:"<<I<<"\n";
 						//if(!Callee->getReturnType()->isVoidTy() || !Callee->getReturnType()->isIntegerTy()){
   						Instruction *Next = getNextInstruction(&I, &BB);
   						IRBuilder<> IRBN(Next);
@@ -366,7 +371,7 @@ bool FPInstrument::runOnModule(Module &M) {
 								IRBN.CreateCall(FuncInit, {ConsInsIndex, CI});
 							}
 						//}
-					}
+					}*/
         }
         if (FCmpInst *FCI = dyn_cast<FCmpInst>(&I)){
           handleFcmp(&I, &BB, FCI, *F);
@@ -1118,52 +1123,22 @@ void FPInstrument::handleMathFunc(Instruction *I, BasicBlock *BB, CallInst *CI, 
   Type *OpTy = OP->getType();
 
   Instruction *OpIns = dyn_cast<Instruction>(OP);
+	Instruction *Index1;
+	bool isReg1 = false;
 	
+  Constant* ConsIdx1 = handleOperand(I, OP, F, &Index1, &isReg1);
+
 	if(OpTy->getTypeID() == Type::FloatTyID){
-  	if (Callee) {
-    	std::string name = Callee->getName();
-    	//Assuming operand is a temp
-    	if (isa<ConstantFP>(OP) || TrackIToFCast.count(OpIns)) {
-      	//errs()<<"handleMathFunc: op is constant\n";
-      	HandleFunc = M->getOrInsertFunction("__handle_math_f", VoidTy, Int64Ty, Int64Ty, OpTy, Int64Ty, OpTy, Int64Ty);
-      	IRB.CreateCall(HandleFunc, {ConsFuncCode, OP, ConsZero, CI, ConsInsIndex});
-    	}
-    	else if(InsMap.count(OpIns) != 0){
-        //errs()<<"handleMathFunc: found in loadmap\n";
-        size_t OpIdx = InsMap.at(OpIns);
-        Constant* ConsOpIdx = ConstantInt::get(Type::getInt64Ty(M->getContext()), OpIdx); 
-        HandleFunc = M->getOrInsertFunction("__handle_math_f", VoidTy, Int64Ty, OpTy, Int64Ty, OpTy, Int64Ty);
-        IRB.CreateCall(HandleFunc, {ConsFuncCode, OP, ConsOpIdx, CI, ConsInsIndex});
-    	}
-    	else{
-        //errs()<<("handleMathFunc Not found in LoadMap\n");
-        HandleFunc = M->getOrInsertFunction("__handle_math_f", VoidTy, Int64Ty, OpTy, Int64Ty, OpTy, Int64Ty);
-        IRB.CreateCall(HandleFunc, {ConsFuncCode, OP, ConsZero, CI, ConsInsIndex});
-    	}
-  	}
+  	HandleFunc = M->getOrInsertFunction("__handle_math_f", VoidTy, Int64Ty, Int64Ty, OpTy, Int64Ty, OpTy, Int64Ty);
 	}
 	else if(OpTy->getTypeID() == Type::DoubleTyID){
-  	if (Callee) {
-    	std::string name = Callee->getName();
-    	//Assuming operand is a temp
-    	if (isa<ConstantFP>(OP) || TrackIToFCast.count(OpIns)) {
-      	//errs()<<"handleMathFunc: op is constant\n";
-      	HandleFunc = M->getOrInsertFunction("__handle_math_d", VoidTy, Int64Ty, OpTy, Int64Ty, OpTy, Int64Ty);
-      	IRB.CreateCall(HandleFunc, {ConsFuncCode, OP, ConsZero, CI, ConsInsIndex});
-    	}
-    	else if(InsMap.count(OpIns) != 0){
-        //errs()<<"handleMathFunc: found in loadmap\n";
-				size_t OpIdx = InsMap.at(OpIns);
-        Constant* ConsOpIdx = ConstantInt::get(Type::getInt64Ty(M->getContext()), OpIdx);
-        HandleFunc = M->getOrInsertFunction("__handle_math_d", VoidTy, Int64Ty, OpTy, Int64Ty, OpTy, Int64Ty);
-        IRB.CreateCall(HandleFunc, {ConsFuncCode, OP, ConsOpIdx, CI, ConsInsIndex});
-    	}
-    	else{
-        //errs()<<("handleMathFunc Not found in LoadMap\n");
-        HandleFunc = M->getOrInsertFunction("__handle_math_d", VoidTy, Int64Ty, OpTy, Int64Ty, OpTy, Int64Ty);
-        IRB.CreateCall(HandleFunc, {ConsFuncCode, OP, ConsZero, CI, ConsInsIndex});
-    	}
-  	}
+  	HandleFunc = M->getOrInsertFunction("__handle_math_d", VoidTy, Int64Ty, OpTy, Int64Ty, OpTy, Int64Ty);
+	}
+	if(isReg1){
+		IRB.CreateCall(HandleFunc, {ConsFuncCode, OP, Index1, CI, ConsInsIndex});
+	}
+	else{
+		IRB.CreateCall(HandleFunc, {ConsFuncCode, OP, ConsIdx1, CI, ConsInsIndex});
 	}
 }
 /**
@@ -1218,6 +1193,9 @@ void FPInstrument::handleNewPhi(Function &F){
 			}
       else{
         errs()<<"handleNewPhi: Error !!! IncValue not found:"<<*OldPhi<<"\n";
+        errs()<<"handleNewPhi: IncValue:"<<*IncValue<<"\n";
+        Constant* cons = ConstantInt::get(Type::getInt64Ty(M->getContext()), 0); 
+        iPHI->addIncoming(cons, IBB);
       }
     }
   }
@@ -1255,22 +1233,13 @@ Constant* FPInstrument::handleOperand(Instruction *I, Value* OP, Function &F,
   Instruction *OpIns = dyn_cast<Instruction>(OP);
 
   if (isa<ConstantFP>(OP) || TrackIToFCast.count(OpIns)) {
-		errs()<<"handleOperand: constant\n";
   	ConsInsIndex = ConstantInt::get(Type::getInt64Ty(M->getContext()), Idx); 
 	}
 	else if(isa<Argument>(OP) && (ArgMap.count(dyn_cast<Argument>(OP)) != 0)){
-		errs()<<"handleOperand: arg\n";
     Idx =  ArgMap.at(dyn_cast<Argument>(OP));
   	ConsInsIndex = ConstantInt::get(Type::getInt64Ty(M->getContext()), Idx); 
   }
-	else if(RegIdMap.count(OpIns) != 0){ //phi and select node
-		errs()<<"handleOperand: phi or select\n";
- 		*Index = RegIdMap.at(OpIns);
-		errs()<<"handleOperand: Index:"<<*Index<<"\n";
-		*isReg = true;
-	}
   else if(InsMap.count(dyn_cast<Instruction>(OP)) != 0){
-		errs()<<"handleOperand: ins\n";
   	Idx = InsMap.at(dyn_cast<Instruction>(OP));
   	ConsInsIndex = ConstantInt::get(Type::getInt64Ty(M->getContext()), Idx); 
   }
@@ -1290,6 +1259,7 @@ void FPInstrument::handleIns(Function &F){
   		InsCount++; 
 	} 
   for (Instruction *I : AllInsList) {
+//			errs()<<"handleIns:"<<*I<<"\n";
   		InsMap.insert(std::pair<Instruction*, size_t>(I, InsCount));
   		InsCount++; 
 	}
