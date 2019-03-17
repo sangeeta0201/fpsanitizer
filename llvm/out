@@ -1,0 +1,52 @@
+./lib/Transforms/Instrumentation/AddressSanitizer.cpp:static const char *const kAsanStackMallocNameTemplate = "__asan_stack_malloc_";
+./lib/Transforms/Instrumentation/AddressSanitizer.cpp:    //     ? __asan_stack_malloc_N(LocalStackSize)
+./test/Instrumentation/AddressSanitizer/do-not-instrument-promotable-allocas.ll:; CHECK-NOT: __asan_stack_malloc_0
+./test/Instrumentation/AddressSanitizer/stack-poisoning.ll:; CHECK-UAR: call i64 @__asan_stack_malloc_4
+./test/Instrumentation/AddressSanitizer/stack_dynamic_alloca.ll:; CHECK: [[FAKE_STACK_RT:%[0-9]+]] = call i64 @__asan_stack_malloc_
+Binary file ./test/tools/sancov/Inputs/test-darwin_x86_64 matches
+Binary file ./test/tools/sancov/Inputs/test-linux_android_aarch64 matches
+Binary file ./test/tools/sancov/Inputs/test-windows_x86_64 matches
+Binary file ./test/tools/sancov/Inputs/test-linux_x86_64 matches
+./test/DebugInfo/Generic/incorrect-variable-debugloc.ll:  %4 = call i64 @__asan_stack_malloc_0(i64 64, i64 %0), !dbg !39
+./test/DebugInfo/Generic/incorrect-variable-debugloc.ll:  %4 = call i64 @__asan_stack_malloc_0(i64 64, i64 %0), !dbg !48
+./test/DebugInfo/Generic/incorrect-variable-debugloc.ll:declare i64 @__asan_stack_malloc_0(i64, i64)
+./test/DebugInfo/Generic/incorrect-variable-debugloc.ll:declare i64 @__asan_stack_malloc_1(i64, i64)
+./test/DebugInfo/Generic/incorrect-variable-debugloc.ll:declare i64 @__asan_stack_malloc_2(i64, i64)
+./test/DebugInfo/Generic/incorrect-variable-debugloc.ll:declare i64 @__asan_stack_malloc_3(i64, i64)
+./test/DebugInfo/Generic/incorrect-variable-debugloc.ll:declare i64 @__asan_stack_malloc_4(i64, i64)
+./test/DebugInfo/Generic/incorrect-variable-debugloc.ll:declare i64 @__asan_stack_malloc_5(i64, i64)
+./test/DebugInfo/Generic/incorrect-variable-debugloc.ll:declare i64 @__asan_stack_malloc_6(i64, i64)
+./test/DebugInfo/Generic/incorrect-variable-debugloc.ll:declare i64 @__asan_stack_malloc_7(i64, i64)
+./test/DebugInfo/Generic/incorrect-variable-debugloc.ll:declare i64 @__asan_stack_malloc_8(i64, i64)
+./test/DebugInfo/Generic/incorrect-variable-debugloc.ll:declare i64 @__asan_stack_malloc_9(i64, i64)
+./test/DebugInfo/Generic/incorrect-variable-debugloc.ll:declare i64 @__asan_stack_malloc_10(i64, i64)
+Binary file ./test/DebugInfo/Inputs/fission-ranges.elf-x86_64 matches
+Binary file ./test/DebugInfo/Inputs/dwarfdump-inl-test.elf-x86-64 matches
+./test/DebugInfo/X86/debug-loc-asan.ll:  %4 = call i64 @__asan_stack_malloc_0(i64 64, i64 %0)
+./test/DebugInfo/X86/debug-loc-asan.ll:declare i64 @__asan_stack_malloc_0(i64, i64)
+Binary file ./.svn/pristine/f6/f6ae85432bad6f22bf392f90b9028e4a355d2b41.svn-base matches
+./.svn/pristine/c0/c03498cac5f3c8a0e10e0d4edd3d3313eb302638.svn-base:  %4 = call i64 @__asan_stack_malloc_0(i64 64, i64 %0)
+./.svn/pristine/c0/c03498cac5f3c8a0e10e0d4edd3d3313eb302638.svn-base:declare i64 @__asan_stack_malloc_0(i64, i64)
+./.svn/pristine/a0/a07a99a20e0aa73bebfa0e8c93a7d54de75a1392.svn-base:; CHECK-NOT: __asan_stack_malloc_0
+./.svn/pristine/44/44687bb1f53e46745066e82ef5fbccc8f6d36cd8.svn-base:  %4 = call i64 @__asan_stack_malloc_0(i64 64, i64 %0), !dbg !39
+./.svn/pristine/44/44687bb1f53e46745066e82ef5fbccc8f6d36cd8.svn-base:  %4 = call i64 @__asan_stack_malloc_0(i64 64, i64 %0), !dbg !48
+./.svn/pristine/44/44687bb1f53e46745066e82ef5fbccc8f6d36cd8.svn-base:declare i64 @__asan_stack_malloc_0(i64, i64)
+./.svn/pristine/44/44687bb1f53e46745066e82ef5fbccc8f6d36cd8.svn-base:declare i64 @__asan_stack_malloc_1(i64, i64)
+./.svn/pristine/44/44687bb1f53e46745066e82ef5fbccc8f6d36cd8.svn-base:declare i64 @__asan_stack_malloc_2(i64, i64)
+./.svn/pristine/44/44687bb1f53e46745066e82ef5fbccc8f6d36cd8.svn-base:declare i64 @__asan_stack_malloc_3(i64, i64)
+./.svn/pristine/44/44687bb1f53e46745066e82ef5fbccc8f6d36cd8.svn-base:declare i64 @__asan_stack_malloc_4(i64, i64)
+./.svn/pristine/44/44687bb1f53e46745066e82ef5fbccc8f6d36cd8.svn-base:declare i64 @__asan_stack_malloc_5(i64, i64)
+./.svn/pristine/44/44687bb1f53e46745066e82ef5fbccc8f6d36cd8.svn-base:declare i64 @__asan_stack_malloc_6(i64, i64)
+./.svn/pristine/44/44687bb1f53e46745066e82ef5fbccc8f6d36cd8.svn-base:declare i64 @__asan_stack_malloc_7(i64, i64)
+./.svn/pristine/44/44687bb1f53e46745066e82ef5fbccc8f6d36cd8.svn-base:declare i64 @__asan_stack_malloc_8(i64, i64)
+./.svn/pristine/44/44687bb1f53e46745066e82ef5fbccc8f6d36cd8.svn-base:declare i64 @__asan_stack_malloc_9(i64, i64)
+./.svn/pristine/44/44687bb1f53e46745066e82ef5fbccc8f6d36cd8.svn-base:declare i64 @__asan_stack_malloc_10(i64, i64)
+./.svn/pristine/a8/a83280444b50bfc77fe3827b625dfa7c60b57a2b.svn-base:static const char *const kAsanStackMallocNameTemplate = "__asan_stack_malloc_";
+./.svn/pristine/a8/a83280444b50bfc77fe3827b625dfa7c60b57a2b.svn-base:    //     ? __asan_stack_malloc_N(LocalStackSize)
+Binary file ./.svn/pristine/1b/1be849001b843cfe66cb9a01c26133d6b6cf595c.svn-base matches
+Binary file ./.svn/pristine/63/63cf43f9547b3808bf9cb4db83982cbdcb0b9616.svn-base matches
+Binary file ./.svn/pristine/41/4194cf83593ce4ab1bf5ab34a06fdf51f4169939.svn-base matches
+Binary file ./.svn/pristine/bb/bb3cdd5045aed83906f6adcc1c4daf7e2596a6b5.svn-base matches
+Binary file ./.svn/pristine/c8/c8af81f67f268c4e5d9f58fe7c874207da69b521.svn-base matches
+./.svn/pristine/a1/a119b63de4933f9c11465c2629d94e3a6365dc54.svn-base:; CHECK: [[FAKE_STACK_RT:%[0-9]+]] = call i64 @__asan_stack_malloc_
+./.svn/pristine/08/088419d77d0f7e06520a894747a9728f8d0baf30.svn-base:; CHECK-UAR: call i64 @__asan_stack_malloc_4

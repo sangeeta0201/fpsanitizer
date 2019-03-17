@@ -27,7 +27,7 @@ all:
 	@make tool
 
 tool: $(OBJECTS)
-	ar ru $(TARGET).a $(OBJECTS)
+	ar rcs $(TARGET).a $(OBJECTS)
 	@mv $(TARGET).a $(OBJDIR)
 	@echo "Linking complete!"
 

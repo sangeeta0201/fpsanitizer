@@ -135,6 +135,7 @@ size_t count3 = 0;
 size_t count4 = 0;
 size_t count5 = 0;
 size_t count6 = 0;
+size_t countDummy = 0;
 
 size_t add_fun_argC = 0;
 size_t func_initC = 0;
