@@ -2,6 +2,7 @@
 cwd="$( cd "$( dirname "${BASH_SOURCE[0]}" )" && pwd )" #
 export FPROOT="$cwd" #
 td_obj="$cwd/obj" #
+td_posit="$cwd/../SoftPosit/build/Linux-x86_64-GCC/softposit.a" #
 if [ -z "$CPATH" ]; then #
     export CPATH="${FPROOT}" #
 else #

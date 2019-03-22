@@ -48,8 +48,9 @@ public:
   //Its called for every BinaryOperator in floating point instruction
   //void handleOp(Instruction *I, BinaryOperator* BO, Function &F);
   void handleOp(Instruction *I, BasicBlock *BB, BinaryOperator* BO, Function &F);
+  //void handleOp(BasicBlock *BB, Function &F);
   //this is called inside from handleOp to handle each operand, it it could be constant, temp or loaded from memory
-  Constant* handleOperand(Instruction *I, Value* OP, Function &F, Instruction **Index, bool *flag);
+  Constant* handleOperand(Instruction *I, Value* OP, Function &F, Value **Index, bool *flag);
   //it gives unique index to every instruction
   void handleIns(Function &F);
   void handleCRIns();
@@ -86,7 +87,7 @@ private:
   SmallVector<Function*, 8> AllFuncList;
   SmallVector<Instruction*, 8> AllInsList;
   SmallVector<Instruction*, 8> AllRetList;
-  SmallVector<Instruction*, 8> AllCRList;
+  SmallVector<Instruction*, 8> AllBinOpList;
   SmallVector<User*, 8> AllBrList;
   SmallVector<ReturnInst*, 8> AllReturn;
   std::map<Function*, Instruction*> AllRet;
@@ -94,6 +95,7 @@ private:
   //this is used to track address of a variable loaded from memory 
   //this is used to track reg index
   std::map<Instruction*, Instruction*> RegIdMap;
+  std::map<Instruction*, Instruction*> LoadMap;
   //it is used for constant used in phi node, since phi node is of type size then we need to store
   //floating point constant in shadow memory and get its index in size_t. If we will leave constant
   //as it is then there will type mismatch because constant would be of type double and if run time 

@@ -1,21 +1,18 @@
 #include<stdio.h>
 #include<stdlib.h>
-
 double foo(double a, double b, int count){
 
-  double temp = 0.0;
+  volatile double temp = 0.1;
 
-  for(int i = 0; i < count; i++){
+//  for(int i = 0; i < count; i++){
     
-    a = b * 0.1;
-    temp = a + b * 0.2;
-  }
+    temp = a + b * temp;
+ // }
 
   return temp;
 }
 
 int main(int argc, char** argv){
-
   int count;
   double a, b;
   if (argc < 1){

@@ -1,0 +1,177 @@
+OVERVIEW: llvm system compiler
+
+USAGE: llc [options] <input bitcode>
+
+OPTIONS:
+
+Color Options:
+
+  -color                                            - Use colors in output (default=autodetect)
+
+General options:
+
+  -I=<string>                                       - include search path
+  -O=<char>                                         - Optimization level. [-O0, -O1, -O2, or -O3] (default = '-O2')
+  -aarch64-neon-syntax                              - Choose style of NEON code to emit from AArch64 backend:
+    =generic                                        -   Emit generic NEON assembly
+    =apple                                          -   Emit Apple-style NEON assembly
+  -amdgpu-dump-hsa-metadata                         - Dump AMDGPU HSA Metadata
+  -amdgpu-enable-merge-m0                           - Merge and hoist M0 initializations
+  -amdgpu-sdwa-peephole                             - Enable SDWA peepholer
+  -amdgpu-spill-sgpr-to-smem                        - Use scalar stores to spill SGPRs if supported by subtarget
+  -amdgpu-verify-hsa-metadata                       - Verify AMDGPU HSA Metadata
+  -amdgpu-vgpr-index-mode                           - Use GPR indexing mode instead of movrel for vector indexing
+  -arm-add-build-attributes                         - 
+  -arm-implicit-it                                  - Allow conditional instructions outdside of an IT block
+    =always                                         -   Accept in both ISAs, emit implicit ITs in Thumb
+    =never                                          -   Warn in ARM, reject in Thumb
+    =arm                                            -   Accept in ARM, reject in Thumb
+    =thumb                                          -   Warn in ARM, emit implicit ITs in Thumb
+  -asm-instrumentation                              - Instrumentation of inline assembly and assembly source files
+    =none                                           -   no instrumentation at all
+    =address                                        -   instrument instructions with memory arguments
+  -asm-show-inst                                    - Emit internal instruction representation to assembly file
+  -asm-verbose                                      - Add comments to directives.
+  -atomic-counter-update-promoted                   - Do counter update using atomic fetch add  for promoted counters only
+  -code-model                                       - Choose code model
+    =small                                          -   Small code model
+    =kernel                                         -   Kernel code model
+    =medium                                         -   Medium code model
+    =large                                          -   Large code model
+  -cvp-dont-process-adds                            - 
+  -data-sections                                    - Emit data into separate sections
+  -debugger-tune                                    - Tune debug info for a particular debugger
+    =gdb                                            -   gdb
+    =lldb                                           -   lldb
+    =sce                                            -   SCE targets (e.g. PS4)
+  -denormal-fp-math                                 - Select which denormal numbers the code is permitted to require
+    =ieee                                           -   IEEE 754 denormal numbers
+    =preserve-sign                                  -   the sign of a  flushed-to-zero number is preserved in the sign of 0
+    =positive-zero                                  -   denormals are flushed to positive zero
+  -disable-fp-elim                                  - Disable frame pointer elimination optimization
+  -disable-promote-alloca-to-vector                 - Disable promote alloca to vector
+  -disable-simplify-libcalls                        - Disable simplify-libcalls
+  -disable-tail-calls                               - Never emit tail calls
+  -do-counter-promotion                             - Do counter register promotion
+  -dwarf-version=<int>                              - Dwarf version
+  -emulated-tls                                     - Use emulated TLS model
+  -enable-load-pre                                  - 
+  -enable-name-compression                          - Enable name string compression
+  -enable-no-infs-fp-math                           - Enable FP math optimizations that assume no +-Infs
+  -enable-no-nans-fp-math                           - Enable FP math optimizations that assume no NaNs
+  -enable-no-signed-zeros-fp-math                   - Enable FP math optimizations that assume the sign of 0 is insignificant
+  -enable-no-trapping-fp-math                       - Enable setting the FP exceptions build attribute not to use exceptions
+  -enable-unsafe-fp-math                            - Enable optimizations that may decrease FP precision
+  -exception-model                                  - exception model
+    =default                                        -   default exception handling model
+    =dwarf                                          -   DWARF-like CFI based exception handling
+    =sjlj                                           -   SjLj exception handling
+    =arm                                            -   ARM EHABI exceptions
+    =wineh                                          -   Windows exception model
+    =wasm                                           -   WebAssembly exception handling
+  -expensive-combines                               - Enable expensive instruction combines
+  -fatal-warnings                                   - Treat warnings as errors
+  -filetype                                         - Choose a file type (not all types are supported by all targets):
+    =asm                                            -   Emit an assembly ('.s') file
+    =obj                                            -   Emit a native object ('.o') file
+    =null                                           -   Emit nothing, for performance testing
+  -float-abi                                        - Choose float ABI type
+    =default                                        -   Target default float ABI type
+    =soft                                           -   Soft float ABI (implied by -soft-float)
+    =hard                                           -   Hard float ABI (uses FP registers)
+  -fp-contract                                      - Enable aggressive formation of fused FP ops
+    =fast                                           -   Fuse FP ops whenever profitable
+    =on                                             -   Only fuse 'blessed' FP ops.
+    =off                                            -   Only fuse FP ops when the result won't be affected.
+  -function-sections                                - Emit functions into separate sections
+  -gpsize=<uint>                                    - Global Pointer Addressing Size.  The default size is 8.
+  -hash-based-counter-split                         - Rename counter variable of a comdat function based on cfg hash
+  -incremental-linker-compatible                    - When used with filetype=obj, emit an object file which can be used with an incremental linker
+  -instcombine-guard-widening-window=<uint>         - How wide an instruction window to bypass looking for another guard
+  -instcombine-max-num-phis=<uint>                  - Maximum number phis to handle in intptr/ptrint folding
+  -instcombine-maxarray-size=<uint>                 - Maximum array size considered when doing a combine
+  -internalize-public-api-file=<filename>           - A file containing list of symbol names to preserve
+  -internalize-public-api-list=<list>               - A list of symbol names to preserve
+  -iterative-counter-promotion                      - Allow counter promotion across the whole loop nest.
+  -load=<pluginfilename>                            - Load the specified plugin
+  -march=<string>                                   - Architecture to generate code for (see --version)
+  -mattr=<a1,+a2,-a3,...>                           - Target specific attributes (-mattr=help for details)
+  -max-counter-promotions=<int>                     - Max number of allowed counter promotions
+  -max-counter-promotions-per-loop=<uint>           - Max number counter promotions per loop to avoid increasing register pressure too much
+  -mc-relax-all                                     - When used with filetype=obj, relax all fixups in the emitted object file
+  -mcpu=<cpu-name>                                  - Target a specific cpu type (-mcpu=help for details)
+  -meabi                                            - Set EABI type (default depends on triple):
+    =default                                        -   Triple default EABI version
+    =4                                              -   EABI version 4
+    =5                                              -   EABI version 5
+    =gnu                                            -   EABI GNU
+  -memop-size-large=<uint>                          - Set large value thresthold in memory intrinsic size profiling. Value of 0 disables the large value profiling.
+  -memop-size-range=<string>                        - Set the range of size in memory intrinsic calls to be profiled precisely, in a format of <start_val>:<end_val>
+  -merror-missing-parenthesis                       - Error for missing parenthesis around predicate registers
+  -merror-noncontigious-register                    - Error for register names that aren't contigious
+  -mhvx                                             - Enable Hexagon Vector eXtensions
+    =v60                                            -   Build for HVX v60
+    =v62                                            -   Build for HVX v62
+    =v65                                            -   Build for HVX v65
+    =                                               -   
+  -mips-compact-branches                            - MIPS Specific: Compact branch policy.
+    =never                                          -   Do not use compact branches if possible.
+    =optimal                                        -   Use compact branches where appropiate (default).
+    =always                                         -   Always use compact branches if possible.
+  -mips16-constant-islands                          - Enable mips16 constant islands.
+  -mips16-hard-float                                - Enable mips16 hard float.
+  -mno-compound                                     - Disable looking for compound instructions for Hexagon
+  -mno-fixup                                        - Disable fixing up resolved relocations for Hexagon
+  -mno-ldc1-sdc1                                    - Expand double precision loads and stores to their single precision counterparts
+  -mno-pairing                                      - Disable looking for duplex instructions for Hexagon
+  -mtriple=<string>                                 - Override target triple for module
+  -mwarn-missing-parenthesis                        - Warn for missing parenthesis around predicate registers
+  -mwarn-noncontigious-register                     - Warn for register names that arent contigious
+  -mwarn-sign-mismatch                              - Warn for mismatching a signed and unsigned value
+  -no-deprecated-warn                               - Suppress all deprecated warnings
+  -no-warn                                          - Suppress all warnings
+  -nozero-initialized-in-bss                        - Don't place zero-initialized symbols into bss section
+  -nvptx-sched4reg                                  - NVPTX Specific: schedule for register pressue
+  -o=<filename>                                     - Output filename
+  -pass-remarks-output=<filename>                   - YAML output filename for pass remarks
+  -pie-copy-relocations                             - PIE Copy Relocations
+  -r600-ir-structurize                              - Use StructurizeCFG IR pass
+  -rdf-dump                                         - 
+  -rdf-limit=<uint>                                 - 
+  -relax-elf-relocations                            - Emit GOTPCRELX/REX_GOTPCRELX instead of GOTPCREL on x86-64 ELF
+  -relocation-model                                 - Choose relocation model
+    =static                                         -   Non-relocatable code
+    =pic                                            -   Fully relocatable, position independent code
+    =dynamic-no-pic                                 -   Relocatable external references, non-relocatable code
+    =ropi                                           -   Code and read-only data relocatable, accessed PC-relative
+    =rwpi                                           -   Read-write data relocatable, accessed relative to static base
+    =ropi-rwpi                                      -   Combination of ropi and rwpi
+  -run-pass=<pass-name>                             - Run compiler only for specified passes (comma separated list)
+  -safepoint-ir-verifier-print-only                 - 
+  -sample-profile-check-record-coverage=<N>         - Emit a warning if less than N% of records in the input profile are matched to the IR.
+  -sample-profile-check-sample-coverage=<N>         - Emit a warning if less than N% of samples in the input profile are matched to the IR.
+  -sample-profile-max-propagate-iterations=<uint>   - Maximum number of iterations to go through when propagating sample block/edge weights through the CFG.
+  -speculative-counter-promotion-max-exiting=<uint> - The max number of exiting blocks of a loop to allow  speculative counter promotion
+  -speculative-counter-promotion-to-loop            - When the option is false, if the target block is in a loop, the promotion will be disallowed unless the promoted counter  update can be further/iteratively promoted into an acyclic  region.
+  -split-dwarf-file=<string>                        - Specify the name of the .dwo file to encode in the DWARF output
+  -split-dwarf-output=<filename>                    - .dwo output filename
+  -stack-alignment=<uint>                           - Override default stack alignment
+  -stack-size-section                               - Emit a section containing stack size metadata
+  -stack-symbol-ordering                            - Order local stack symbols.
+  -stackrealign                                     - Force align the stack to the minimum alignment
+  -tailcallopt                                      - Turn fastcc calls into tail calls by (potentially) changing ABI.
+  -thread-model                                     - Choose threading model
+    =posix                                          -   POSIX thread model
+    =single                                         -   Single thread model
+  -unique-section-names                             - Give unique names to every section
+  -use-ctors                                        - Use .ctors instead of .init_array.
+  -verify-region-info                               - Verify region info (time consuming)
+  -vp-counters-per-site=<number>                    - The average number of profile counters allocated per value profiling site.
+  -vp-static-alloc                                  - Do static counter allocation for value profiler
+  -x=<string>                                       - Input language ('ir' or 'mir')
+
+Generic Options:
+
+  -help                                             - Display available options (-help-hidden for more)
+  -help-list                                        - Display list of available options (-help-list-hidden for more)
+  -version                                          - Display the version of this program

@@ -1,10 +1,10 @@
-CFLAGS=-O1 -fno-slp-vectorize -g -std=c11  -L$(FPROOT)/obj -lfpsanitizer -lmpfr -lm -pthread -ltbb -lstdc++
-#CFLAGS=-O1 -fno-slp-vectorize -g -std=c11 -L$(FPROOT)/obj -lfpsanitizer -lmpfr -lm ../SoftPosit/build/Linux-x86_64-GCC/softposit.a  -I../SoftPosit/source/include 
+#CFLAGS=-O1 -fno-slp-vectorize -std=c11  -L$(FPROOT)/obj -lfpsanitizer -lmpfr -lm -pthread -ltbb -lstdc++
+CFLAGS=-O1 -fno-slp-vectorize -g -std=c11 -L$(FPROOT)/obj -lfpsanitizer -lmpfr -lm $(td_posit)/build/Linux-x86_64-GCC/softposit.a  -I$(td_posit)/source/include -ltbb -lstdc++ 
 CAMLFLAGs=
 CSRC = $(wildcard *.c)
 COUT = $(patsubst %.c,%.o,$(CSRC))
 
-CC = clang -g -pg -Xclang -load -Xclang $(FPROOT)/../build/lib/LLVMFPInstrument.so
+CC = clang -pg -Xclang -load -Xclang $(FPROOT)/../build/lib/LLVMFPInstrument.so
 
 all: $(COUT) $(CAMLOUT)
 

@@ -12,10 +12,6 @@
 //  https://github.com/google/sanitizers/wiki/AddressSanitizerAlgorithm
 //
 //===----------------------------------------------------------------------===//
-#include "llvm/IR/DebugInfo.h"
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/LegacyPassManager.h"
-#include "llvm/Transforms/IPO/PassManagerBuilder.h"
 
 #include "llvm/ADT/ArrayRef.h"
 #include "llvm/ADT/DenseMap.h"
@@ -88,6 +84,10 @@
 #include <sstream>
 #include <string>
 #include <tuple>
+#include "llvm/IR/DebugInfo.h"
+#include "llvm/IR/IRBuilder.h"
+#include "llvm/IR/LegacyPassManager.h"
+#include "llvm/Transforms/IPO/PassManagerBuilder.h"
 
 using namespace llvm;
 
@@ -188,46 +188,46 @@ static const unsigned kAllocaRzSize = 32;
 // Command-line flags.
 
 static cl::opt<bool> ClEnableKasan(
-    "asan-kernel", cl::desc("Enable KernelAddressSanitizer instrumentation"),
+    "aasan-kernel", cl::desc("Enable KernelAddressSanitizer instrumentation"),
     cl::Hidden, cl::init(false));
 
 static cl::opt<bool> ClRecover(
-    "asan-recover",
+    "aasan-recover",
     cl::desc("Enable recovery mode (continue-after-error)."),
     cl::Hidden, cl::init(false));
 
 // This flag may need to be replaced with -f[no-]asan-reads.
-static cl::opt<bool> ClInstrumentReads("asan-instrument-reads",
+static cl::opt<bool> ClInstrumentReads("aasan-instrument-reads",
                                        cl::desc("instrument read instructions"),
                                        cl::Hidden, cl::init(true));
 
 static cl::opt<bool> ClInstrumentWrites(
-    "asan-instrument-writes", cl::desc("instrument write instructions"),
+    "aasan-instrument-writes", cl::desc("instrument write instructions"),
     cl::Hidden, cl::init(true));
 
 static cl::opt<bool> ClInstrumentAtomics(
-    "asan-instrument-atomics",
+    "aasan-instrument-atomics",
     cl::desc("instrument atomic instructions (rmw, cmpxchg)"), cl::Hidden,
     cl::init(true));
 
 static cl::opt<bool> ClAlwaysSlowPath(
-    "asan-always-slow-path",
+    "aasan-always-slow-path",
     cl::desc("use instrumentation with slow path for all accesses"), cl::Hidden,
     cl::init(false));
 
 static cl::opt<bool> ClForceDynamicShadow(
-    "asan-force-dynamic-shadow",
+    "aasan-force-dynamic-shadow",
     cl::desc("Load shadow address into a local variable for each function"),
     cl::Hidden, cl::init(false));
 
 static cl::opt<bool>
-    ClWithIfunc("asan-with-ifunc",
+    ClWithIfunc("aasan-with-ifunc",
                 cl::desc("Access dynamic shadow through an ifunc global on "
                          "platforms that support this"),
                 cl::Hidden, cl::init(true));
 
 static cl::opt<bool> ClWithIfuncSuppressRemat(
-    "asan-with-ifunc-suppress-remat",
+    "aasan-with-ifunc-suppress-remat",
     cl::desc("Suppress rematerialization of dynamic shadow address by passing "
              "it through inline asm in prologue."),
     cl::Hidden, cl::init(true));
@@ -237,54 +237,54 @@ static cl::opt<bool> ClWithIfuncSuppressRemat(
 // but due to http://llvm.org/bugs/show_bug.cgi?id=12652 we temporary
 // set it to 10000.
 static cl::opt<int> ClMaxInsnsToInstrumentPerBB(
-    "asan-max-ins-per-bb", cl::init(10000),
+    "aasan-max-ins-per-bb", cl::init(10000),
     cl::desc("maximal number of instructions to instrument in any given BB"),
     cl::Hidden);
 
 // This flag may need to be replaced with -f[no]asan-stack.
-static cl::opt<bool> ClStack("asan-stack", cl::desc("Handle stack memory"),
+static cl::opt<bool> ClStack("aasan-stack", cl::desc("Handle stack memory"),
                              cl::Hidden, cl::init(true));
 static cl::opt<uint32_t> ClMaxInlinePoisoningSize(
-    "asan-max-inline-poisoning-size",
+    "aasan-max-inline-poisoning-size",
     cl::desc(
         "Inline shadow poisoning for blocks up to the given size in bytes."),
     cl::Hidden, cl::init(64));
 
-static cl::opt<bool> ClUseAfterReturn("asan-use-after-return",
+static cl::opt<bool> ClUseAfterReturn("aasan-use-after-return",
                                       cl::desc("Check stack-use-after-return"),
                                       cl::Hidden, cl::init(true));
 
-static cl::opt<bool> ClRedzoneByvalArgs("asan-redzone-byval-args",
+static cl::opt<bool> ClRedzoneByvalArgs("aasan-redzone-byval-args",
                                         cl::desc("Create redzones for byval "
                                                  "arguments (extra copy "
                                                  "required)"), cl::Hidden,
                                         cl::init(true));
 
-static cl::opt<bool> ClUseAfterScope("asan-use-after-scope",
+static cl::opt<bool> ClUseAfterScope("aasan-use-after-scope",
                                      cl::desc("Check stack-use-after-scope"),
                                      cl::Hidden, cl::init(false));
 
 // This flag may need to be replaced with -f[no]asan-globals.
-static cl::opt<bool> ClGlobals("asan-globals",
+static cl::opt<bool> ClGlobals("aasan-globals",
                                cl::desc("Handle global objects"), cl::Hidden,
                                cl::init(true));
 
-static cl::opt<bool> ClInitializers("asan-initialization-order",
+static cl::opt<bool> ClInitializers("aasan-initialization-order",
                                     cl::desc("Handle C++ initializer order"),
                                     cl::Hidden, cl::init(true));
 
 static cl::opt<bool> ClInvalidPointerPairs(
-    "asan-detect-invalid-pointer-pair",
+    "aasan-detect-invalid-pointer-pair",
     cl::desc("Instrument <, <=, >, >=, - with pointer operands"), cl::Hidden,
     cl::init(false));
 
 static cl::opt<unsigned> ClRealignStack(
-    "asan-realign-stack",
+    "aasan-realign-stack",
     cl::desc("Realign stack to the value of this flag (power of two)"),
     cl::Hidden, cl::init(32));
 
 static cl::opt<int> ClInstrumentationWithCallsThreshold(
-    "asan-instrumentation-with-call-threshold",
+    "aasan-instrumentation-with-call-threshold",
     cl::desc(
         "If the function being instrumented contains more than "
         "this number of memory accesses, use callbacks instead of "
@@ -292,17 +292,17 @@ static cl::opt<int> ClInstrumentationWithCallsThreshold(
     cl::Hidden, cl::init(7000));
 
 static cl::opt<std::string> ClMemoryAccessCallbackPrefix(
-    "asan-memory-access-callback-prefix",
+    "aasan-memory-access-callback-prefix",
     cl::desc("Prefix for memory access callbacks"), cl::Hidden,
     cl::init("__asan_"));
 
 static cl::opt<bool>
-    ClInstrumentDynamicAllocas("asan-instrument-dynamic-allocas",
+    ClInstrumentDynamicAllocas("aasan-instrument-dynamic-allocas",
                                cl::desc("instrument dynamic allocas"),
                                cl::Hidden, cl::init(true));
 
 static cl::opt<bool> ClSkipPromotableAllocas(
-    "asan-skip-promotable-allocas",
+    "aasan-skip-promotable-allocas",
     cl::desc("Do not instrument promotable allocas"), cl::Hidden,
     cl::init(true));
 
@@ -310,51 +310,51 @@ static cl::opt<bool> ClSkipPromotableAllocas(
 // The shadow mapping looks like
 //    Shadow = (Mem >> scale) + offset
 
-static cl::opt<int> ClMappingScale("asan-mapping-scale",
+static cl::opt<int> ClMappingScale("aasan-mapping-scale",
                                    cl::desc("scale of asan shadow mapping"),
                                    cl::Hidden, cl::init(0));
 
 static cl::opt<unsigned long long> ClMappingOffset(
-    "asan-mapping-offset",
+    "aasan-mapping-offset",
     cl::desc("offset of asan shadow mapping [EXPERIMENTAL]"), cl::Hidden,
     cl::init(0));
 
 // Optimization flags. Not user visible, used mostly for testing
 // and benchmarking the tool.
 
-static cl::opt<bool> ClOpt("asan-opt", cl::desc("Optimize instrumentation"),
+static cl::opt<bool> ClOpt("aasan-opt", cl::desc("Optimize instrumentation"),
                            cl::Hidden, cl::init(true));
 
 static cl::opt<bool> ClOptSameTemp(
-    "asan-opt-same-temp", cl::desc("Instrument the same temp just once"),
+    "aasan-opt-same-temp", cl::desc("Instrument the same temp just once"),
     cl::Hidden, cl::init(true));
 
-static cl::opt<bool> ClOptGlobals("asan-opt-globals",
+static cl::opt<bool> ClOptGlobals("aasan-opt-globals",
                                   cl::desc("Don't instrument scalar globals"),
                                   cl::Hidden, cl::init(true));
 
 static cl::opt<bool> ClOptStack(
-    "asan-opt-stack", cl::desc("Don't instrument scalar stack variables"),
+    "aasan-opt-stack", cl::desc("Don't instrument scalar stack variables"),
     cl::Hidden, cl::init(false));
 
 static cl::opt<bool> ClDynamicAllocaStack(
-    "asan-stack-dynamic-alloca",
+    "aasan-stack-dynamic-alloca",
     cl::desc("Use dynamic alloca to represent stack variables"), cl::Hidden,
     cl::init(true));
 
 static cl::opt<uint32_t> ClForceExperiment(
-    "asan-force-experiment",
+    "aasan-force-experiment",
     cl::desc("Force optimization experiment (for testing)"), cl::Hidden,
     cl::init(0));
 
 static cl::opt<bool>
-    ClUsePrivateAliasForGlobals("asan-use-private-alias",
+    ClUsePrivateAliasForGlobals("aasan-use-private-alias",
                                 cl::desc("Use private aliases for global"
                                          " variables"),
                                 cl::Hidden, cl::init(false));
 
 static cl::opt<bool>
-    ClUseGlobalsGC("asan-globals-live-support",
+    ClUseGlobalsGC("aasan-globals-live-support",
                    cl::desc("Use linker features to support dead "
                             "code stripping of globals"),
                    cl::Hidden, cl::init(true));
@@ -362,25 +362,25 @@ static cl::opt<bool>
 // This is on by default even though there is a bug in gold:
 // https://sourceware.org/bugzilla/show_bug.cgi?id=19002
 static cl::opt<bool>
-    ClWithComdat("asan-with-comdat",
+    ClWithComdat("aasan-with-comdat",
                  cl::desc("Place ASan constructors in comdat sections"),
                  cl::Hidden, cl::init(true));
 
 // Debug flags.
 
-static cl::opt<int> ClDebug("asan-debug", cl::desc("debug"), cl::Hidden,
+static cl::opt<int> ClDebug("aasan-debug", cl::desc("debug"), cl::Hidden,
                             cl::init(0));
 
-static cl::opt<int> ClDebugStack("asan-debug-stack", cl::desc("debug stack"),
+static cl::opt<int> ClDebugStack("aasan-debug-stack", cl::desc("debug stack"),
                                  cl::Hidden, cl::init(0));
 
-static cl::opt<std::string> ClDebugFunc("asan-debug-func", cl::Hidden,
+static cl::opt<std::string> ClDebugFunc("aasan-debug-func", cl::Hidden,
                                         cl::desc("Debug func"));
 
-static cl::opt<int> ClDebugMin("asan-debug-min", cl::desc("Debug min inst"),
+static cl::opt<int> ClDebugMin("aasan-debug-min", cl::desc("Debug min inst"),
                                cl::Hidden, cl::init(-1));
 
-static cl::opt<int> ClDebugMax("asan-debug-max", cl::desc("Debug max inst"),
+static cl::opt<int> ClDebugMax("aasan-debug-max", cl::desc("Debug max inst"),
                                cl::Hidden, cl::init(-1));
 
 STATISTIC(NumInstrumentedReads, "Number of instrumented reads");
@@ -1065,6 +1065,18 @@ struct FunctionStackPoisoner : public InstVisitor<FunctionStackPoisoner> {
 
 char AddressSanitizer::ID = 0;
 
+void addFPPass(const PassManagerBuilder &Builder, legacy::PassManagerBase &PM) {
+  PM.add(new AddressSanitizer());
+}
+
+RegisterStandardPasses SOpt(PassManagerBuilder::EP_OptimizerLast,
+                        addFPPass);
+RegisterStandardPasses S(PassManagerBuilder::EP_EnabledOnOptLevel0,
+                         addFPPass);
+
+static const RegisterPass<AddressSanitizer> Y("aasan", "instrument fp operations", false, false); 
+
+/*
 INITIALIZE_PASS_BEGIN(
     AddressSanitizer, "asan",
     "AddressSanitizer: detects use-after-free and out-of-bounds bugs.", false,
@@ -1075,6 +1087,7 @@ INITIALIZE_PASS_END(
     AddressSanitizer, "asan",
     "AddressSanitizer: detects use-after-free and out-of-bounds bugs.", false,
     false)
+*/
 FunctionPass *llvm::createAddressSanitizerFunctionPass(bool CompileKernel,
                                                        bool Recover,
                                                        bool UseAfterScope) {
@@ -1512,7 +1525,9 @@ void AddressSanitizer::instrumentAddress(Instruction *OrigIns,
   bool IsMyriad = TargetTriple.getVendor() == llvm::Triple::Myriad;
 
   IRBuilder<> IRB(InsertBefore);
+	errs()<<"Addr:"<<Addr<<"\n";
   Value *AddrLong = IRB.CreatePointerCast(Addr, IntptrTy);
+	errs()<<"AddrLong:"<<*AddrLong<<" AddrLong:"<<AddrLong<<"\n";
   size_t AccessSizeIndex = TypeSizeToSizeIndex(TypeSize);
 
   if (UseCalls) {
@@ -1546,6 +1561,7 @@ void AddressSanitizer::instrumentAddress(Instruction *OrigIns,
       IntegerType::get(*C, std::max(8U, TypeSize >> Mapping.Scale));
   Type *ShadowPtrTy = PointerType::get(ShadowTy, 0);
   Value *ShadowPtr = memToShadow(AddrLong, IRB);
+	errs()<<"ShadowPtr:"<<*ShadowPtr<<":"<<ShadowPtr<<"\n";
   Value *CmpVal = Constant::getNullValue(ShadowTy);
   Value *ShadowValue =
       IRB.CreateLoad(IRB.CreateIntToPtr(ShadowPtr, ShadowPtrTy));
@@ -2248,6 +2264,7 @@ int AddressSanitizerModule::GetAsanVersion(const Module &M) const {
 }
 
 bool AddressSanitizerModule::runOnModule(Module &M) {
+	errs()<<"runOnModule\n";
   C = &(M.getContext());
   int LongSize = M.getDataLayout().getPointerSizeInBits();
   IntptrTy = Type::getIntNTy(*C, LongSize);
@@ -2459,10 +2476,12 @@ void AddressSanitizer::markEscapedLocalAllocas(Function &F) {
 }
 
 bool AddressSanitizer::runOnFunction(Function &F) {
+	errs()<<"runOnFunction\n";
   if (F.getLinkage() == GlobalValue::AvailableExternallyLinkage) return false;
   if (!ClDebugFunc.empty() && ClDebugFunc == F.getName()) return false;
   if (F.getName().startswith("__asan_")) return false;
 
+	errs()<<"runOnFunction1\n";
   bool FunctionModified = false;
 
   // If needed, insert __asan_init before checking for SanitizeAddress attr.
@@ -2471,9 +2490,12 @@ bool AddressSanitizer::runOnFunction(Function &F) {
   if (maybeInsertAsanInitAtFunctionEntry(F))
     FunctionModified = true;
   
+	errs()<<"runOnFunction2\n";
+	errs()<<F.getName()<<"\n";
   // Leave if the function doesn't need instrumentation.
-  if (!F.hasFnAttribute(Attribute::SanitizeAddress)) return FunctionModified;
+//  if (!F.hasFnAttribute(Attribute::SanitizeAddress)) return FunctionModified;
 
+	errs()<<"runOnFunction3\n";
   LLVM_DEBUG(dbgs() << "ASAN instrumenting:\n" << F << "\n");
 
   initializeCallbacks(*F.getParent());
@@ -2486,6 +2508,7 @@ bool AddressSanitizer::runOnFunction(Function &F) {
   // We can't instrument allocas used with llvm.localescape. Only static allocas
   // can be passed to that intrinsic.
   markEscapedLocalAllocas(F);
+	errs()<<"runOnFunction33\n";
 
   // We want to instrument every address only once per basic block (unless there
   // are calls between uses).
@@ -2537,8 +2560,9 @@ bool AddressSanitizer::runOnFunction(Function &F) {
           TempsToInstrument.clear();
           if (CS.doesNotReturn()) NoReturnCalls.push_back(CS.getInstruction());
         }
-        if (CallInst *CI = dyn_cast<CallInst>(&Inst))
-          maybeMarkSanitizerLibraryCallNoBuiltin(CI, TLI);
+        if (CallInst *CI = dyn_cast<CallInst>(&Inst)){
+          //maybeMarkSanitizerLibraryCallNoBuiltin(CI, TLI);
+				}
         continue;
       }
       ToInstrument.push_back(&Inst);
@@ -2590,6 +2614,7 @@ bool AddressSanitizer::runOnFunction(Function &F) {
   LLVM_DEBUG(dbgs() << "ASAN done instrumenting: " << FunctionModified << " "
                     << F << "\n");
 
+	F.dump();
   return FunctionModified;
 }
 

@@ -1,4 +1,5 @@
 add_subdirectory(Utils)
+add_subdirectory(AddrInstrumentation)
 add_subdirectory(Instrumentation)
 add_subdirectory(AggressiveInstCombine)
 add_subdirectory(InstCombine)
