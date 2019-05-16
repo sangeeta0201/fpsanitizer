@@ -14,14 +14,13 @@
 #include <asm/unistd.h>
 #include "handleReal.h"
 
-#define MULTHITHREADED 0
 #define PERF 0
 #define PERF1 0
 #define PERF2 0
 #define PERF22 0
-#define debug 0
-#define debugCR 0
-#define MPFRENABLED 0
+#define debug 1
+#define debugCR 1
+#define MPFRENABLED 1
 
 pthread_mutex_t the_mutex;
 pthread_cond_t condc, condp;
@@ -70,10 +69,6 @@ size_t stop(){
 	return count;
 }
 
-void updateIndex(){
-//	bufIdx.fetch_and_add(1);
-	bufIdx++;
-}
 
 /***MPFR functions***/
 void initMpfr(mpfr_t *val){
@@ -82,7 +77,7 @@ void initMpfr(mpfr_t *val){
 #endif
 }
 
-void initAndSetMpfr(mpfr_t *val, double d){
+void initAndSetMpfrD(mpfr_t *val, double d){
 #if MPFRENABLED
 	mpfr_init2(*val, PRECISION);
 	mpfr_set_d(*val, d, MPFR_RNDN);
@@ -93,6 +88,12 @@ void initAndSetMpfrF(mpfr_t *val, float f){
 #if MPFRENABLED
 	mpfr_init2(*val, PRECISION);
 	mpfr_set_flt(*val, f, MPFR_RNDN);
+#endif
+}
+void initAndSetMpfr(mpfr_t *val1, mpfr_t *val2){
+#if MPFRENABLED
+	mpfr_init2(*val1, PRECISION);
+	mpfr_set(*val1, *val2, MPFR_RNDN);
 #endif
 }
 void setMpfr(mpfr_t *val1, mpfr_t *val2){
@@ -114,32 +115,20 @@ void setMpfrF(mpfr_t *val, float f){
 
 void clearMpfr(mpfr_t *val){
 #if MPFRENABLED
-	mpfr_clear(val);
+	mpfr_clear(*val);
 #endif
 }
 
 float getFloat(mpfr_t mpfr_val){  
-#if MPFRENABLED
   return mpfr_get_flt(mpfr_val, MPFR_RNDN);
-#else
-	return 2.3;
-#endif
 }
 
 double getDouble(mpfr_t mpfr_val){  
-#if MPFRENABLED
   return mpfr_get_d(mpfr_val, MPFR_RNDN);
-#else
-	return 2.3;
-#endif
 }
 
 long double getLongDouble(Real *real){  
-#if MPFRENABLED
   return mpfr_get_ld(real->mpfr_val, MPFR_RNDN);
-#else
-	return 2.3;
-#endif
 }
 
 extern "C" void __dummy(){
@@ -190,6 +179,7 @@ void handleOp(size_t opCode, mpfr_t *res, mpfr_t *op1, mpfr_t *op2){
 }
 
 struct Real* getAddrIndex(size_t addrInt){
+	std::cout<<"getAddrIndex: addrInt:"<<addrInt<<"\n";
 //	addrInt = addrInt >> 4;
   //size_t primary_index = (addrInt >> 22) & 0x3fffff;
   size_t primary_index = (addrInt >> 26) & 0x3fffff;
@@ -223,6 +213,7 @@ struct Real* getSlotIndex(size_t InsIndex){
 		initMpfr(&(shadowStack[idx].mpfr_val));
 		shadowStack[idx].initMPFRFlag = 1;
 	}
+	std::cout<<"getSlotIndex idx:"<<idx<<"\n";
 	return &(shadowStack[idx]);
 }
 
@@ -248,16 +239,13 @@ extern "C" size_t __get_addr(void *Addr){
   return 0;
 }
 
-void add_fun_arg(size_t argNo, size_t opIdx, double op, bool arg1Flag){
+void add_fun_arg(size_t argNo, size_t opIdx, double op){
 #if PERF2
 	start_counter();
 #endif	
 	size_t dest = stackTop + argNo; // this is location where argument is need to be pushed
 	Real *src; //this is index of parameter passed to the function
 
-	if(arg1Flag)
-		src = getAddrIndex(opIdx);
-	else
 		src = getSlotIndex(opIdx);
 
 	if(!shadowStack[dest].initMPFRFlag){
@@ -287,71 +275,91 @@ void add_fun_arg(size_t argNo, size_t opIdx, double op, bool arg1Flag){
 
 }
 
-extern "C" void __add_fun_arg_1(size_t arg1No, size_t op1Idx, double opd1, bool arg1Flag){
+extern "C" void __handlePhi(size_t toIndex, size_t fromIndex, double op){
+		Real *dst = getSlotIndex(toIndex);
+		Real *src = getSlotIndex(fromIndex);
+	if(fromIndex){	
+		if(src->initFlag){
+			setMpfr(&(dst->mpfr_val), &( src->mpfr_val));
+			if(debug){
+				std::cout<<"__handlePhi copied to:"<<":"<<&(dst->mpfr_val)<<"\n";
+				printReal(dst->mpfr_val);
+			}
+		}
+	}
+	else{
+		setMpfrD(&(dst->mpfr_val), op);
+		if(debug){
+			printReal(dst->mpfr_val);
+		}
+	}
+	dst->initFlag = 1;
+}
+extern "C" void __add_fun_arg_1(size_t arg1No, size_t op1Idx, double opd1){
 #if PERF2
 	start_counter();
 #endif
-	add_fun_arg(arg1No, op1Idx, opd1, arg1Flag);	
+	add_fun_arg(arg1No, op1Idx, opd1);	
 #if PERF2
 	add_fun_argC += stop();
 #endif
 }
 
-extern "C" void __add_fun_arg_2(size_t arg1No, size_t op1Idx, double opd1, bool arg1Flag,
-                                size_t arg2No, size_t op2Idx, double opd2, bool arg2Flag){
+extern "C" void __add_fun_arg_2(size_t arg1No, size_t op1Idx, double opd1,
+                                size_t arg2No, size_t op2Idx, double opd2){
 #if PERF2
 	start_counter();
 #endif
-	add_fun_arg(arg1No, op1Idx, opd1, arg1Flag);	
-	add_fun_arg(arg2No, op2Idx, opd2, arg2Flag);
+	add_fun_arg(arg1No, op1Idx, opd1);	
+	add_fun_arg(arg2No, op2Idx, opd2);
 #if PERF2
 	add_fun_argC += stop();
 #endif
 }
 
-extern "C" void __add_fun_arg_3(size_t arg1No, size_t op1Idx, double opd1, bool arg1Flag,
-                                size_t arg2No, size_t op2Idx, double opd2, bool arg2Flag,
-                                size_t arg3No, size_t op3Idx, double opd3, bool arg3Flag){
+extern "C" void __add_fun_arg_3(size_t arg1No, size_t op1Idx, double opd1,
+                                size_t arg2No, size_t op2Idx, double opd2,
+                                size_t arg3No, size_t op3Idx, double opd3){
 #if PERF2
 	start_counter();
 #endif
-	add_fun_arg(arg1No, op1Idx, opd1, arg1Flag);	
-	add_fun_arg(arg2No, op2Idx, opd2, arg2Flag);
-	add_fun_arg(arg3No, op3Idx, opd3, arg3Flag);
+	add_fun_arg(arg1No, op1Idx, opd1);	
+	add_fun_arg(arg2No, op2Idx, opd2);
+	add_fun_arg(arg3No, op3Idx, opd3);
 #if PERF2
 	add_fun_argC += stop();
 #endif
 }
 
-extern "C" void __add_fun_arg_4(size_t arg1No, size_t op1Idx, double opd1, bool arg1Flag,
-                                size_t arg2No, size_t op2Idx, double opd2, bool arg2Flag,
-                                size_t arg3No, size_t op3Idx, double opd3, bool arg3Flag,
-																size_t arg4No, size_t op4Idx, double opd4, bool arg4Flag){
+extern "C" void __add_fun_arg_4(size_t arg1No, size_t op1Idx, double opd1,
+                                size_t arg2No, size_t op2Idx, double opd2,
+                                size_t arg3No, size_t op3Idx, double opd3,
+																size_t arg4No, size_t op4Idx, double opd4){
 #if PERF2
 	start_counter();
 #endif
-	add_fun_arg(arg1No, op1Idx, opd1, arg1Flag);	
-	add_fun_arg(arg2No, op2Idx, opd2, arg2Flag);
-	add_fun_arg(arg3No, op3Idx, opd3, arg3Flag);
-	add_fun_arg(arg4No, op4Idx, opd4, arg4Flag);
+	add_fun_arg(arg1No, op1Idx, opd1);	
+	add_fun_arg(arg2No, op2Idx, opd2);
+	add_fun_arg(arg3No, op3Idx, opd3);
+	add_fun_arg(arg4No, op4Idx, opd4);
 #if PERF2
 	add_fun_argC += stop();
 #endif
 }
 
-extern "C" void __add_fun_arg_5(size_t arg1No, size_t op1Idx, double opd1, bool arg1Flag,
-                                size_t arg2No, size_t op2Idx, double opd2, bool arg2Flag,
-                                size_t arg3No, size_t op3Idx, double opd3, bool arg3Flag,
-																size_t arg4No, size_t op4Idx, double opd4, bool arg4Flag,
-																size_t arg5No, size_t op5Idx, double opd5, bool arg5Flag){
+extern "C" void __add_fun_arg_5(size_t arg1No, size_t op1Idx, double opd1,
+                                size_t arg2No, size_t op2Idx, double opd2,
+                                size_t arg3No, size_t op3Idx, double opd3,
+																size_t arg4No, size_t op4Idx, double opd4,
+																size_t arg5No, size_t op5Idx, double opd5){
 #if PERF2
 	start_counter();
 #endif
-	add_fun_arg(arg1No, op1Idx, opd1, arg1Flag);	
-	add_fun_arg(arg2No, op2Idx, opd2, arg2Flag);
-	add_fun_arg(arg3No, op3Idx, opd3, arg3Flag);
-	add_fun_arg(arg4No, op4Idx, opd4, arg4Flag);
-	add_fun_arg(arg5No, op5Idx, opd5, arg5Flag);
+	add_fun_arg(arg1No, op1Idx, opd1);	
+	add_fun_arg(arg2No, op2Idx, opd2);
+	add_fun_arg(arg3No, op3Idx, opd3);
+	add_fun_arg(arg4No, op4Idx, opd4);
+	add_fun_arg(arg5No, op5Idx, opd5);
 #if PERF2
 	add_fun_argC += stop();
 #endif
@@ -398,17 +406,7 @@ extern "C" void __func_init(size_t totalSlots){
 #if PERF
 	start_counter();
 #endif
-#if MULTHITHREADED
-	//Compute *op = new Compute;
-	buf[bufIdx].totalSlots = totalSlots;
-	buf[bufIdx].cmd = 9;
-	updateIndex();
-
-//	worker.push(op);
-#else
 	func_init(totalSlots);
-	//func_init(op->totalSlots);
-#endif	
 #if PERF
 	func_initC += stop();
 #endif
@@ -428,6 +426,7 @@ void copy_return(size_t returnIndex, double op){
 				shadowStack[returnIndex + offset].initMPFRFlag = 1;
 			}
 			setMpfrD(&(shadowStack[returnIndex + offset].mpfr_val), op);
+			std::cout<<"copy_return: return set at index:"<<returnIndex + offset<<" to op:"<<op<<"\n";
 		}
 		else if(returnReal->initFlag){ // we don't need to do anything if return is not initialized
 			if(!shadowStack[returnIndex + offset].initMPFRFlag){
@@ -454,22 +453,104 @@ void copy_return(size_t returnIndex, double op){
 #endif	
 }
 
+extern "C" void __load_f(void *Addr, size_t insIndex, float opf, 
+																						bool castFlag){
+#if TIME
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
+#endif
+	size_t AddrInt = (size_t) Addr;
+	struct Real* dest = getAddrIndex(AddrInt);
+	Real *real1 = getSlotIndex(insIndex);
+	if(debug){
+			std::cout<<"fpSanLoadFromShadowMem: opf:"<<opf;
+			printf(" from addr:%p\n", Addr);
+	}
+	if(dest->initFlag == 0){
+		if(castFlag)
+			setMpfrF(&(real1->mpfr_val), 0);
+		else
+			setMpfrF(&(real1->mpfr_val), opf);
+		if(debug){
+			size_t addr = (size_t) &shadowStack[insIndex];
+			std::cout<<"fpSanLoadFromShadowMemF: set value:";
+			printReal( shadowStack[insIndex].mpfr_val);
+			std::cout<<" in shadowStack at:"<<insIndex;;
+			printf(" for addr:%p ", (void *)addr);
+			std::cout<<" from op"<<"\n";
+		}
+	}
+	else{
+		initAndSetMpfr(&(shadowStack[insIndex].mpfr_val), &(dest->mpfr_val));
+		if(debug){
+			size_t addr = (size_t) &shadowStack[insIndex];
+			std::cout<<"fpSanLoadFromShadowMemF: set value:";
+			printReal( shadowStack[insIndex].mpfr_val);
+			std::cout<<" in shadowStack at:"<<insIndex;
+			printf(" for addr:%p ", (void *)addr);
+			printf(" from addr:%p\n", Addr);
+		}
+	}
+	shadowStack[insIndex].initFlag = 1;
+#if TIME
+	gettimeofday(&tv2, NULL);
+	loadFTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec); 
+#endif
+}
+
+extern "C" void __load_d(void *Addr, size_t insIndex, double opd, 
+																								bool castFlag){
+#if TIME
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
+#endif
+	size_t AddrInt = (size_t) Addr;
+	struct Real* dest = getAddrIndex(AddrInt);
+	Real *real1 = getSlotIndex(insIndex);
+	if(debug){
+			std::cout<<"fpSanLoadFromShadowMem: opd:"<<opd;
+			printf(" from addr:%p\n", Addr);
+	}
+	if(dest->initFlag == 0){
+		if(castFlag)
+			setMpfrD(&(real1->mpfr_val), 0);
+		else
+			setMpfrD(&(real1->mpfr_val), opd);
+		if(debug){
+			size_t addr = (size_t) &shadowStack[insIndex];
+			std::cout<<"fpSanLoadFromShadowMemD: set value:";
+			printReal( shadowStack[insIndex].mpfr_val);
+			std::cout<<" in shadowStack at:"<<insIndex;;
+			printf(" for addr:%p ", (void *)addr);
+			std::cout<<" from op"<<"\n";
+		}
+	}
+	else{
+		initAndSetMpfr(&(shadowStack[insIndex].mpfr_val), &(dest->mpfr_val));
+		if(debug){
+			size_t addr = (size_t) &shadowStack[insIndex];
+			std::cout<<"fpSanLoadFromShadowMemD: set value:";
+			printReal( shadowStack[insIndex].mpfr_val);
+			std::cout<<" in shadowStack at:"<<insIndex;
+			printf(" for addr:%p ", (void *)addr);
+			printf(" from addr:%p\n", Addr);
+		}
+	}
+	shadowStack[insIndex].initFlag = 1;
+#if TIME
+	gettimeofday(&tv2, NULL);
+	loadDTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec); 
+#endif
+}
+
+
 extern "C" void __copy_return(size_t returnIndex, double opd){
 #if PERF
 	start_counter();
 #endif
-#if MULTHITHREADED
-	//Compute *op = new Compute;
-	buf[bufIdx].returnIndex = returnIndex;
-	buf[bufIdx].cmd = 10;
-	buf[bufIdx].op1d = opd;
-	updateIndex();
-
-	//worker.push(op);
-#else
 	copy_return(returnIndex, opd);
-	//copy_return(op->returnIndex, op->op1d);
-#endif
 #if PERF
 	copy_returnC += stop();
 #endif	
@@ -506,17 +587,7 @@ extern "C" void __func_exit(size_t retIndex){
 #if PERF
 	start_counter();
 #endif
-#if MULTHITHREADED
-//	Compute *op = new Compute;
-	buf[bufIdx].returnIndex = retIndex;
-	buf[bufIdx].cmd = 11;
-	updateIndex();
-
-	//worker.push(op);
-#else
 	func_exit(retIndex);
-	//func_exit(op->returnIndex);
-#endif	
 #if PERF
 	func_exitC += stop();
 #endif
@@ -543,19 +614,7 @@ extern "C" void __handle_f_to_sint(size_t op1Int, long val, size_t lineNo){
 #if PERF
 	start_counter();
 #endif
-#if MULTHITHREADED
-//	Compute *op = new Compute;
-	buf[bufIdx].op1Addr = op1Int;
-	buf[bufIdx].val = val;
-	buf[bufIdx].lineNo = lineNo;
-	buf[bufIdx].cmd = 12;
-
-	updateIndex();
-	//worker.push(op);
-#else
 	handle_f_to_sint(op1Int, val, lineNo);
-	//handle_f_to_sint(op->op1Addr, op->val, op->lineNo);
-#endif	
 #if PERF
 	handle_f_to_sintC += stop();
 #endif
@@ -661,7 +720,7 @@ void handle_math_d(size_t funcCode, double op1, size_t op1Int,
 	if(op1Int == 0){ //it is a constant
     if(debugCR)
       std::cout<<"handle_math_d: real1 is null, using op1 value:"<<op1<<"\n";
-		initAndSetMpfr(&(r1.mpfr_val), op1);
+		initAndSetMpfrD(&(r1.mpfr_val), op1);
     mpfrInit++;
 		real1 = &r1;
     mpfrFlag1 = true; 
@@ -708,23 +767,8 @@ extern "C" void __handle_math_f(size_t funcCode, float op1, size_t op1Int,
 #if PERF
 	start_counter();
 #endif
-#if MULTHITHREADED
-	//Compute *op = new Compute;
-	buf[bufIdx].opCode = funcCode;
-	buf[bufIdx].op1Addr = op1Int;
-	buf[bufIdx].op1f = op1;
-	buf[bufIdx].computedResf = computedRes;
-	buf[bufIdx].insIndex = insIndex;
-	buf[bufIdx].cmd = 4;
-
-	updateIndex();
-	//worker.push(op);
-#else
 	handle_math_f(funcCode, op1, op1Int, 
 								computedRes, insIndex);
-	//handle_math_f(op->opCode, op->op1f, op->op1Addr, 
-		//						op->computedResf, op->insIndex);
-#endif	
 #if PERF
 	handle_math_fC += stop(); 
 #endif
@@ -736,23 +780,8 @@ extern "C" void __handle_math_d(size_t funcCode, double op1, size_t op1Int,
 	start_counter();
 #endif
 
-#if MULTHITHREADED
-	//Compute *op = new Compute;
-	buf[bufIdx].opCode = funcCode;
-	buf[bufIdx].op1Addr = op1Int;
-	buf[bufIdx].op1d = op1;
-	buf[bufIdx].computedResd = computedRes;
-	buf[bufIdx].insIndex = insIndex;
-	buf[bufIdx].cmd = 3;
-
-	updateIndex();
-	//worker.push(op);	
-#else
 	handle_math_d(funcCode, op1, op1Int, 
 								computedRes, insIndex);
-	//handle_math_d(op->opCode, op->op1d, op->op1Addr, 
-		//						op->computedResd, op->insIndex);
-#endif
 #if PERF
 	handle_math_dC += stop();
 #endif	
@@ -778,7 +807,7 @@ void check_branch(double op1, size_t op1Int, double op2, size_t op2Int,
 	if(op1Int == 0){ //it is a constant
     if(debug)
       std::cout<<"checkBranch: real1 is null, using op1 value:"<<op1<<"\n";
-		initAndSetMpfr(&(r1.mpfr_val), op1);
+		initAndSetMpfrD(&(r1.mpfr_val), op1);
     mpfrInit++;
     real1 = &r1;
     mpfrFlag1 = true; 
@@ -787,14 +816,13 @@ void check_branch(double op1, size_t op1Int, double op2, size_t op2Int,
     real1 = getSlotIndex(op1Int);
 		if(real1->initFlag == 0){
 			setMpfrD(&(real1->mpfr_val), op1);
-			std::cout<<"checkBranch: real1 is null\n";
 		}
       //data might be set without store
   }
 	if(op2Int == 0){ //it is a constant
     if(debug)
       std::cout<<"checkBranch: real2 is null, using op2 value:"<<op2<<"\n";
-		initAndSetMpfr(&(r2.mpfr_val), op2);
+		initAndSetMpfrD(&(r2.mpfr_val), op2);
     mpfrInit++;
     real2 = &r2;
     mpfrFlag2 = true; 
@@ -803,7 +831,6 @@ void check_branch(double op1, size_t op1Int, double op2, size_t op2Int,
     real2 = getSlotIndex(op2Int);
 		if(real2->initFlag == 0){
 			setMpfrD(&(real2->mpfr_val), op2);
-			std::cout<<"checkBranch: real1 is null\n";
 		}
   }
 
@@ -911,9 +938,9 @@ void check_branch(double op1, size_t op1Int, double op2, size_t op2Int,
 #endif
 }
 
-void setOperandsFloat(size_t opCode, bool op1Flag, bool op2Flag, size_t op1Addr, size_t op2Addr, 
+void setOperandsFloat(size_t opCode, size_t op1Addr, size_t op2Addr, 
 												float op1f, float op2f, float computedResf, 
-												size_t insIndex, size_t dest){
+												size_t insIndex){
 #if PERF2
 	start_counter();
 #endif
@@ -925,42 +952,49 @@ void setOperandsFloat(size_t opCode, bool op1Flag, bool op2Flag, size_t op1Addr,
   bool mpfrFlag2 = false;
 
 	Real *res = getSlotIndex(insIndex);
+  if(debugCR){
+		std::cout<<"computeRealF: op1Addr:";
+		printf(":%p\n", (void *)op1Addr);
+		std::cout<<"computeRealF: op2Addr:";
+		printf(":%p\n", (void *)op2Addr);
+	}
 	if(op1Addr == 0){ //it is a constant
     if(debugCR)
-      std::cout<<"computeReal: real1 is null, using op1 value:"<<op1f<<"\n";
+      std::cout<<"computeRealF: real1 is null, using op1 value:"<<op1f<<"\n";
 		initAndSetMpfrF(&(r1.mpfr_val), op1f);
     mpfrInit++;
 		real1 = &r1;
     mpfrFlag1 = true; 
 	}
 	else{
-		if(op1Flag)
-			real1 = getAddrIndex(op1Addr);
-		else
 			real1 = getSlotIndex(op1Addr);
       //data might be set without store
   }
 	if(op2Addr == 0){
     if(debugCR)
-      std::cout<<"computeReal: real2 is null, using op2 value:"<<op2f<<"\n";
+      std::cout<<"computeRealF: real2 is null, using op2 value:"<<op2f<<"\n";
 		initAndSetMpfrF(&(r2.mpfr_val), op2f);
     mpfrInit++;
 		real2 = &r2;
     mpfrFlag2 = true; 
 	}
 	else{
-		if(op2Flag)
-			real2 = getAddrIndex(op2Addr);
-		else
 			real2 = getSlotIndex(op2Addr);
 	}
 	if(debugCR){
-		std::cout<<"computeReal: op1:"<<op1f<<" op2:"<<op2f<<"\n";
+		std::cout<<"computeRealF: op1:"<<op1f<<" op2:"<<op2f<<"\n";
+		std::cout<<"computeRealF: op1 real:";
   	printReal(real1->mpfr_val);
+		std::cout<<"\n";
+		std::cout<<"computeRealF: op2 real:";
   	printReal(real2->mpfr_val);
+		std::cout<<"\n";
 	}
   handleOp(opCode, &(res->mpfr_val), &real1->mpfr_val, &real2->mpfr_val);
 	res->initFlag = 1;
+	if(debugCR){
+		std::cout<<"computeRealF:insIndex:"<<insIndex<<" stackTop:"<<&(res->mpfr_val);
+	}
   if(mpfrFlag1){
 		clearMpfr(&(r1.mpfr_val));
     mpfrClear++;
@@ -969,19 +1003,22 @@ void setOperandsFloat(size_t opCode, bool op1Flag, bool op2Flag, size_t op1Addr,
 		clearMpfr(&(r2.mpfr_val));
     mpfrClear++;
   }
+	std::cout<<"\n\n";
+  mpfr_out_str (stdout, 10, 0, res->mpfr_val, MPFR_RNDN);
+	std::cout<<"\n\n";
 	updateErrorF(res->mpfr_val, computedResf, insIndex);
-	if(dest){
-		Real* RStore = getAddrIndex(dest);
-		setMpfr(&(RStore->mpfr_val), &(res->mpfr_val));
-	}
+	//if(dest){
+	//	Real* RStore = getAddrIndex(dest);
+	//	setMpfr(&(RStore->mpfr_val), &(res->mpfr_val));
+//	}
 #if PERF2
 	setOperandsFloatC += stop();
 #endif
 }
 
-void setOperandsDouble(size_t opCode, bool op1Flag, bool op2Flag, size_t op1Addr, size_t op2Addr, 
+void setOperandsDouble(size_t opCode, size_t op1Addr, size_t op2Addr, 
 													double op1d, double op2d, double computedResd, 
-														size_t insIndex, size_t dest){
+														size_t insIndex){
 #if PERF22
 	start_counter();
 #endif
@@ -996,8 +1033,10 @@ void setOperandsDouble(size_t opCode, bool op1Flag, bool op2Flag, size_t op1Addr
 	Real *res = getSlotIndex(insIndex);
 
   if(debugCR){
-		std::cout<<"computeReal: op1Addr:"<<op1Addr<<" op1Idx:"<<op1Idx<<":"<<&(shadowStack[op1Idx].mpfr_val)<<"\n";
-		std::cout<<"computeReal: op2Addr:"<<op2Addr<<" op2Idx:"<<op2Idx<<":"<<&(shadowStack[op2Idx].mpfr_val)<<"\n";
+		std::cout<<"computeRealD: op1Addr:"<<op1Addr<<":";
+		printf(":%p\n", (void *)op1Addr);
+		std::cout<<"computeRealD: op2Addr:"<<op2Addr<<":";
+		printf(":%p\n", (void *)op2Addr);
 	}
 
   if(debugCR){
@@ -1005,17 +1044,14 @@ void setOperandsDouble(size_t opCode, bool op1Flag, bool op2Flag, size_t op1Addr
 	}
 	if(op1Addr == 0){ //it is a constant
     if(debugCR)
-      std::cout<<"computeReal: real1 is null, using op1 value:"<<op1d<<"\n";
-		initAndSetMpfr(&(r1.mpfr_val), op1d);
+      std::cout<<"computeRealD: real1 is null, using op1 value:"<<op1d<<"\n";
+		initAndSetMpfrD(&(r1.mpfr_val), op1d);
     mpfrInit++;
 		real1 = &r1;
     mpfrFlag1 = true; 
 	}
 	else{
-		if(op1Flag)
-			real1 = getAddrIndex(op1Addr);
-		else
-			real1 = getSlotIndex(op1Addr);
+		real1 = getSlotIndex(op1Addr);
 		if(real1->initFlag == 0){
 			setMpfrD(&(real1->mpfr_val), op1d);
 		}
@@ -1023,25 +1059,24 @@ void setOperandsDouble(size_t opCode, bool op1Flag, bool op2Flag, size_t op1Addr
   }
 	if(op2Addr == 0){
     if(debugCR)
-      std::cout<<"computeReal: real2 is null, using op2 value:"<<op2d<<"\n";
-		initAndSetMpfr(&(r2.mpfr_val), op2d);
+      std::cout<<"computeRealD: real2 is null, using op2 value:"<<op2d<<"\n";
+		initAndSetMpfrD(&(r2.mpfr_val), op2d);
     mpfrInit++;
 		real2 = &r2;
     mpfrFlag2 = true; 
 	}
 	else{
 		real2 = &(shadowStack[op2Idx]);
-		if(op2Flag)
-			real2 = getAddrIndex(op2Addr);
-		else
 			real2 = getSlotIndex(op2Addr);
 		if(real2->initFlag == 0){
 			setMpfrD(&(real2->mpfr_val), op2d);
 		}
 	}
 	if(debugCR){
+		std::cout<<"computeRealD real1:";
   	printReal(real1->mpfr_val);
 		std::cout<<"\n";
+		std::cout<<"computeRealD real2:";
   	printReal(real2->mpfr_val);
 		std::cout<<"\n";
 	}
@@ -1051,7 +1086,7 @@ void setOperandsDouble(size_t opCode, bool op1Flag, bool op2Flag, size_t op1Addr
   handleOp(opCode, &(res->mpfr_val), &real1->mpfr_val, &real2->mpfr_val);
 	res->initFlag = 1;
 	if(debugCR){
-		std::cout<<"computeReal:insIndex:"<<insIndex<<" stackTop:"<<&(res->mpfr_val);
+		std::cout<<"computeRealD:insIndex:"<<insIndex<<" stackTop:"<<&(res->mpfr_val);
 	}
   if(mpfrFlag1){
 		clearMpfr(&(r1.mpfr_val));
@@ -1062,10 +1097,6 @@ void setOperandsDouble(size_t opCode, bool op1Flag, bool op2Flag, size_t op1Addr
     mpfrClear++;
   }
 	updateError(res->mpfr_val, computedResd, insIndex);
-	if(dest){
-		Real* RStore = getAddrIndex(dest);
-		setMpfr(&(RStore->mpfr_val), &(res->mpfr_val));
-	}
 #if PERF22
 	setOperandsDoubleC += stop(); 
 #endif
@@ -1075,257 +1106,91 @@ int isNaN(mpfr_t real){
   return mpfr_nan_p(real);
 }
 
-extern "C" void __compute_real_f(size_t opCode, bool opf1, bool opf2, size_t op1Addr, size_t op2Addr,
-                             float op1f, float op2f, float computedResf, size_t insIndex, size_t dest){
+extern "C" void __convertDtoP(double op, size_t toIndex){
+	Real *dst = getSlotIndex(toIndex);
+	setMpfrD(&(dst->mpfr_val), op);
+	if(debug){
+		printReal(dst->mpfr_val);
+	}
+
+	dst->initFlag = 1;
+}
+
+extern "C" void __compute_real_p(size_t opCode, size_t op1Addr, size_t op2Addr,
+                             posit16_t computedResp, size_t insIndex){
+	Real *real1;
+	Real *real2;
+  Real r1;
+  Real r2;
+  bool mpfrFlag1 = false;
+  bool mpfrFlag2 = false;
+	size_t op1Idx, op2Idx, resIdx;
+
+	Real *res = getSlotIndex(insIndex);
+	double tmp88=convertP16ToDouble(computedResp); printf("__compute_real_p tmp:%e\n",tmp88);
+  if(debugCR){
+		std::cout<<"computeRealP: op1Addr:";
+		printf(":%p\n", (void *)op1Addr);
+		std::cout<<"computeRealP: op2Addr:";
+		printf(":%p\n", (void *)op2Addr);
+	}
+
+	real1 = getSlotIndex(op1Addr);
+	real2 = getSlotIndex(op2Addr);
+
+	if(debugCR){
+		std::cout<<"__compute_real_p real1:";
+  	printReal(real1->mpfr_val);
+		std::cout<<"\n";
+		std::cout<<"__compute_real_p real2:";
+  	printReal(real2->mpfr_val);
+		std::cout<<"\n";
+	}
+	if(real1 == NULL || real2 == NULL)
+		std::cout<<"Error!!!!\n";
+		
+  handleOp(opCode, &(res->mpfr_val), &real1->mpfr_val, &real2->mpfr_val);
+	res->initFlag = 1;
+	if(debugCR){
+		std::cout<<"__compute_real_p:insIndex:"<<insIndex<<" stackTop:"<<&(res->mpfr_val);
+	}
+  if(mpfrFlag1){
+		clearMpfr(&(r1.mpfr_val));
+    mpfrClear++;
+  }
+  if(mpfrFlag2){
+		clearMpfr(&(r2.mpfr_val));
+    mpfrClear++;
+  }
+	updateErrorP(res->mpfr_val, computedResp, insIndex);	
+}
+
+extern "C" void __compute_real_f(size_t opCode, size_t op1Addr, size_t op2Addr,
+                             float op1f, float op2f, float computedResf, size_t insIndex){
 #if PERF
 	start_counter();
 #endif
 	
-#if MULTHITHREADED
-	//Compute *op = new Compute;
-	buf[bufIdx].opCode = opCode;
-	buf[bufIdx].op1Addr = op1Addr;
-	buf[bufIdx].op2Addr = op2Addr;
-	buf[bufIdx].op1f = op1f;
-	buf[bufIdx].op2f = op2f;
-	buf[bufIdx].computedResf = computedResf;
-	buf[bufIdx].insIndex = insIndex;
-	buf[bufIdx].cmd = 1;
-	updateIndex();
-//	worker.push(op);	
-#else
-	setOperandsFloat(opCode, opf1, opf2, op1Addr, op2Addr, 
-												op1f, op2f, computedResf, insIndex, dest);
-	//setOperandsFloat(op->opCode, op->op1Addr, op->op2Addr, 
-		//										op->op1f, op->op2f, op->computedResf, op->insIndex);
-#endif
+	setOperandsFloat(opCode, op1Addr, op2Addr, 
+												op1f, op2f, computedResf, insIndex);
 #if PERF
 	setOperandsFloatC += stop();
 #endif
 }
-/*
-extern "C" void __compute_real_d(size_t opCode, bool opf1, bool opf2, size_t op1Addr, size_t op2Addr, 
-                      double op1d, double op2d, double computedResd, size_t insIndex, size_t dest){
-#if PERF
-	start_counter();
-#endif
-#if MULTHITHREADED
-	//Compute *op = new Compute;
-	buf[bufIdx].opCode = opCode;
-	buf[bufIdx].op1Addr = op1Addr;
-	buf[bufIdx].op2Addr = op2Addr;
-	buf[bufIdx].op1d = op1d;
-	buf[bufIdx].op2d = op2d;
-	buf[bufIdx].computedResd = computedResd;
-	buf[bufIdx].insIndex = insIndex;
-	buf[bufIdx].cmd = 2;
-	updateIndex();
-//	worker.push(op);	
 
-//	else if(count == 2)
-//		ready2.push(op);	
-///	else if(count == 3)
-//		ready3.push(op);	
-//	else if(count == 4)
-//		ready4.push(op);	
-//	if(count == 3)
-//		count = 0;
-	
-#else
-	setOperandsDouble(opCode, opf1, opf2, op1Addr, op2Addr, 
-												op1d, op2d, computedResd, insIndex, dest);
-	//setOperandsDouble(op->opCode, op->op1Addr, op->op2Addr, 
-		//										op->op1d, op->op2d, op->computedResd, op->insIndex);
-#endif
-#if PERF
-	setOperandsDoubleC += stop(); 
-#endif
+extern "C" void __compute_real_d(size_t opCode, size_t op1Addr, size_t op2Addr, 
+                      double op1d, double op2d, double computedResd, size_t insIndex){
+	setOperandsDouble(opCode, op1Addr, op2Addr,  op1d, op2d, computedResd, insIndex);
 }
-*/
 
-extern "C" void __compute_real_d_1(size_t opCode, bool opf1, bool opf2, size_t op1Addr, size_t op2Addr, 
-                      double op1d, double op2d, double computedResd, size_t insIndex, size_t dest){
-#if PERF
-	start_counter();
-#endif
-#if MULTHITHREADED
-	//Compute *op = new Compute;
-	buf[bufIdx].opCode = opCode;
-	buf[bufIdx].op1Addr = op1Addr;
-	buf[bufIdx].op2Addr = op2Addr;
-	buf[bufIdx].op1d = op1d;
-	buf[bufIdx].op2d = op2d;
-	buf[bufIdx].computedResd = computedResd;
-	buf[bufIdx].insIndex = insIndex;
-	buf[bufIdx].cmd = 2;
-	updateIndex();
-//	worker.push(op);	
-
-//	else if(count == 2)
-//		ready2.push(op);	
-///	else if(count == 3)
-//		ready3.push(op);	
-//	else if(count == 4)
-//		ready4.push(op);	
-//	if(count == 3)
-//		count = 0;
-	
-#else
-	setOperandsDouble(opCode, opf1, opf2, op1Addr, op2Addr, 
-												op1d, op2d, computedResd, insIndex, dest);
-	//setOperandsDouble(op->opCode, op->op1Addr, op->op2Addr, 
-		//										op->op1d, op->op2d, op->computedResd, op->insIndex);
-#endif
-#if PERF
-	setOperandsDoubleC += stop(); 
-#endif
-}
-extern "C" void __compute_real_d_2(size_t op1Code, bool op1f1, bool op1f2, size_t op11Addr, size_t op12Addr, 
-                      double op11d, double op12d, double computedResd1, size_t insIndex1, size_t dest1,
-											size_t op2Code, bool op2f1, bool op2f2, size_t op21Addr, size_t op22Addr, 
-                      double op21d, double op22d, double computedResd2, size_t insIndex2, size_t dest2){
-#if PERF
-	start_counter();
-#endif
-#if MULTHITHREADED
-	//Compute *op = new Compute;
-	buf[bufIdx].opCode = opCode;
-	buf[bufIdx].op1Addr = op1Addr;
-	buf[bufIdx].op2Addr = op2Addr;
-	buf[bufIdx].op1d = op1d;
-	buf[bufIdx].op2d = op2d;
-	buf[bufIdx].computedResd = computedResd;
-	buf[bufIdx].insIndex = insIndex;
-	buf[bufIdx].cmd = 2;
-	updateIndex();
-//	worker.push(op);	
-
-//	else if(count == 2)
-//		ready2.push(op);	
-///	else if(count == 3)
-//		ready3.push(op);	
-//	else if(count == 4)
-//		ready4.push(op);	
-//	if(count == 3)
-//		count = 0;
-	
-#else
-	setOperandsDouble(op1Code, op1f1, op1f2, op11Addr, op12Addr, 
-												op11d, op12d, computedResd1, insIndex1, dest1);
-	setOperandsDouble(op2Code, op2f1, op2f2, op21Addr, op22Addr, 
-												op21d, op22d, computedResd2, insIndex2, dest2);
-	//setOperandsDouble(op->opCode, op->op1Addr, op->op2Addr, 
-		//										op->op1d, op->op2d, op->computedResd, op->insIndex);
-#endif
-#if PERF
-	setOperandsDoubleC += stop(); 
-#endif
-}
-extern "C" void __compute_real_d_3(size_t op1Code, bool op1f1, bool op1f2, size_t op11Addr, size_t op12Addr, 
-                      double op11d, double op12d, double computedResd1, size_t insIndex1, size_t dest1,
-											size_t op2Code, bool op2f1, bool op2f2, size_t op21Addr, size_t op22Addr, 
-                      double op21d, double op22d, double computedResd2, size_t insIndex2, size_t dest2,
-											size_t op3Code, bool op3f1, bool op3f2, size_t op31Addr, size_t op32Addr, 
-                      double op31d, double op32d, double computedResd3, size_t insIndex3, size_t dest3){
-#if PERF
-	start_counter();
-#endif
-#if MULTHITHREADED
-	//Compute *op = new Compute;
-	buf[bufIdx].opCode = opCode;
-	buf[bufIdx].op1Addr = op1Addr;
-	buf[bufIdx].op2Addr = op2Addr;
-	buf[bufIdx].op1d = op1d;
-	buf[bufIdx].op2d = op2d;
-	buf[bufIdx].computedResd = computedResd;
-	buf[bufIdx].insIndex = insIndex;
-	buf[bufIdx].cmd = 2;
-	updateIndex();
-//	worker.push(op);	
-
-//	else if(count == 2)
-//		ready2.push(op);	
-///	else if(count == 3)
-//		ready3.push(op);	
-//	else if(count == 4)
-//		ready4.push(op);	
-//	if(count == 3)
-//		count = 0;
-	
-#else
-	setOperandsDouble(op1Code, op1f1, op1f2, op11Addr, op12Addr, 
-												op11d, op12d, computedResd1, insIndex1, dest1);
-	setOperandsDouble(op2Code, op2f1, op2f2, op21Addr, op22Addr, 
-												op21d, op22d, computedResd2, insIndex2, dest2);
-	setOperandsDouble(op3Code, op3f1, op3f2, op31Addr, op32Addr, 
-												op31d, op32d, computedResd3, insIndex3, dest3);
-#endif
-#if PERF
-	setOperandsDoubleC += stop(); 
-#endif
-}
-extern "C" void __compute_real_d(size_t opCode, bool opf1, bool opf2, size_t op1Addr, size_t op2Addr, 
-                      double op1d, double op2d, double computedResd, size_t insIndex, size_t dest){
-#if PERF
-	start_counter();
-#endif
-#if MULTHITHREADED
-	//Compute *op = new Compute;
-	buf[bufIdx].opCode = opCode;
-	buf[bufIdx].op1Addr = op1Addr;
-	buf[bufIdx].op2Addr = op2Addr;
-	buf[bufIdx].op1d = op1d;
-	buf[bufIdx].op2d = op2d;
-	buf[bufIdx].computedResd = computedResd;
-	buf[bufIdx].insIndex = insIndex;
-	buf[bufIdx].cmd = 2;
-	updateIndex();
-//	worker.push(op);	
-
-//	else if(count == 2)
-//		ready2.push(op);	
-///	else if(count == 3)
-//		ready3.push(op);	
-//	else if(count == 4)
-//		ready4.push(op);	
-//	if(count == 3)
-//		count = 0;
-	
-#else
-	setOperandsDouble(opCode, opf1, opf2, op1Addr, op2Addr, 
-												op1d, op2d, computedResd, insIndex, dest);
-	//setOperandsDouble(op->opCode, op->op1Addr, op->op2Addr, 
-		//										op->op1d, op->op2d, op->computedResd, op->insIndex);
-#endif
-#if PERF
-	setOperandsDoubleC += stop(); 
-#endif
-}
 
 extern "C" bool __check_branch(double op1, size_t op1Int, double op2, size_t op2Int, 
                             size_t fcmpFlag, bool computedRes, size_t insIndex, size_t lineNo){
 #if PERF
 	start_counter();
 #endif
-#if MULTHITHREADED
-	//Compute *op = new Compute;
-	buf[bufIdx].op1Addr = op1Int;
-	buf[bufIdx].op2Addr = op2Int;
-	buf[bufIdx].op1d = op1;
-	buf[bufIdx].op2d = op2;
-	buf[bufIdx].fcmpRes = computedRes;
-	buf[bufIdx].fcmpFlag = fcmpFlag;
-	buf[bufIdx].insIndex = insIndex;
-	buf[bufIdx].lineNo = lineNo;
-	buf[bufIdx].cmd = 5;
-	updateIndex();
-//	worker.push(op);	
-#else
 	check_branch(op1, op1Int, op2, op2Int, 
                fcmpFlag, computedRes, insIndex, lineNo);
-	//check_branch(op->op1d, op->op1Addr, op->op2d, op->op2Addr, 
-    //           op->fcmpFlag, op->fcmpRes, op->insIndex, op->lineNo);
-#endif
 #if PERF
 	check_branchC += stop();
 #endif
@@ -1345,7 +1210,7 @@ void set_real_cons_d(size_t toAddrInt, double value){
 	start_counter();
 #endif
 	if(debug){
-		std::cout<<"setRealConstantD: set:"<<value;
+		std::cout<<"setRealConstantD: set:"<<value<<" to addr:";
 		printf(" to addr:%p\n", (void *)toAddrInt);
 	}
 	struct Real* dest = getAddrIndex(toAddrInt);
@@ -1361,17 +1226,7 @@ extern "C" void __set_real_cons_d(void* toAddr, double value){
 	start_counter();
 #endif
   size_t toAddrInt = (size_t) toAddr;
-#if MULTHITHREADED
-	//Compute *op = new Compute;
-	buf[bufIdx].op1Addr = toAddrInt;
-	buf[bufIdx].op1d = value;
-	buf[bufIdx].cmd = 15;
-	updateIndex();
-//	worker.push(op);	
-#else
 	set_real_cons_d(toAddrInt, value);
-	//set_real_cons_d(op->op1Addr, op->op1d);
-#endif
 #if PERF
 	set_real_cons_dC += stop();
 #endif
@@ -1394,17 +1249,8 @@ extern "C" void __set_real_cons_f(void* toAddr, float value){
 	start_counter();
 #endif
   size_t toAddrInt = (size_t) toAddr;
-#if MULTHITHREADED
-	//Compute *op = new Compute;
-	buf[bufIdx].op1Addr = toAddrInt;
-	buf[bufIdx].op1f = value;
-	buf[bufIdx].cmd = 16;
-	updateIndex();
-//	worker.push(op);	
-#else
+
 	set_real_cons_f(toAddrInt, value);
-	//set_real_cons_f(op->op1Addr, op->op1f);
-#endif
 #if PERF
 	set_real_cons_fC += stop();
 #endif
@@ -1446,18 +1292,8 @@ extern "C" void __set_real(void* toAddr, void* fromAddr, double op1){
 #endif
   size_t toAddrInt = (size_t) toAddr;
   size_t fromAddrInt = (size_t) fromAddr;
-#if MULTHITHREADED
-	//Compute *op = new Compute;
-	buf[bufIdx].op1Addr = toAddrInt;
-	buf[bufIdx].op2Addr = fromAddrInt;
-	buf[bufIdx].op1d = op1;
-	buf[bufIdx].cmd = 7;
-	updateIndex();
-//	worker.push(op);	
-#else
+
 	set_real(toAddrInt, fromAddrInt, op1);
-	//set_real(op->op1Addr, op->op2Addr, op->op1d);
-#endif
 #if PERF
 	set_realC += stop();
 #endif
@@ -1494,18 +1330,9 @@ extern "C" void __handle_calloc(size_t toAddrInt, size_t size1, size_t size2){
 #if PERF
 	start_counter();
 #endif
-#if MULTHITHREADED
-	//Compute *op = new Compute;
-	buf[bufIdx].op1Addr = toAddrInt;
-	buf[bufIdx].size1 = size1;
-	buf[bufIdx].size2 = size2;
-	buf[bufIdx].cmd = 17;
-	updateIndex();
-//	worker.push(op);	
-#else
+
 	handle_calloc(toAddrInt, size1, size2);
-	//handle_calloc(op->op1Addr, op->size1, op->size2);
-#endif
+
 #if PERF
 	handle_callocC += stop();
 #endif
@@ -1535,21 +1362,20 @@ void handle_malloc(size_t toAddrInt, size_t size){
 #endif
 }
 
+extern "C" void new_malloc(size_t startAddr, size_t oldSize){
+	std::cout<<"new_malloc startAddr:"<<startAddr<<"\n";
+	mallocStrAddr = startAddr;
+	mallocSize = oldSize;
+	mallocMap = ( mpfr_t *) mmap(0, oldSize*(sizeof(mpfr_t)), PROT_READ|PROT_WRITE, MMAP_FLAGS, -1, 0);		
+}
+
 extern "C" void __handle_malloc(size_t toAddrInt, size_t size){
 #if PERF
 	start_counter();
 #endif
-#if MULTHITHREADED
-//	Compute *op = new Compute;
-	buf[bufIdx].op1Addr = toAddrInt;
-	buf[bufIdx].size1 = size;
-	buf[bufIdx].cmd = 18;
-	updateIndex();
-//	worker.push(op);	
-#else
+
 	handle_malloc(toAddrInt, size);
-	//handle_malloc(op->op1Addr, op->size1);
-#endif
+
 #if PERF
 	handle_mallocC += stop();
 #endif
@@ -1584,18 +1410,8 @@ extern "C" void __handle_memset(void *Addr, size_t size){
 	start_counter();
 #endif
   size_t toAddrInt = (size_t) Addr;
-#if MULTHITHREADED
-	//Compute *op = new Compute;
-	buf[bufIdx].op1Addr = toAddrInt;
-	buf[bufIdx].size1 = size;
-	buf[bufIdx].cmd = 19;
 
-	updateIndex();
-	//worker.push(op);	
-#else
 	handle_memset(toAddrInt, size);
-	//handle_memset(op->op1Addr, op->size1);
-#endif
 #if PERF
 	handle_memsetC += stop();
 #endif
@@ -1637,18 +1453,8 @@ extern "C" void __handle_memcpy(void *toAddr, void *fromAddr, size_t size){
 #endif
   size_t toAddrInt = (size_t) toAddr;
   size_t fromAddrInt = (size_t) fromAddr;
-#if MULTHITHREADED
-	//Compute *op = new Compute;
-	buf[bufIdx].op1Addr = toAddrInt;
-	buf[bufIdx].op2Addr = fromAddrInt;
-	buf[bufIdx].size1 = size;
-	buf[bufIdx].cmd = 20;
-	updateIndex();
-	//worker.push(op);	
-#else
+
 	handle_memcpy(toAddrInt, fromAddrInt, size);
-	//handle_memcpy(op->op1Addr, op->op2Addr, op->size1);
-#endif
 #if PERF
 	handle_memcpyC += stop(); 
 #endif
@@ -1764,8 +1570,8 @@ double updateErrorF(mpfr_t realVal, float computedVal, size_t insIndex){
   eagg->num_evals += 1;
    if (debug){
     std::cout<<"\nThe shadow value is ";
-//    printReal(realVal);
-  	mpfr_out_str (stdout, 10, 0, realVal, MPFR_RNDN);
+    printReal(realVal);
+//  	mpfr_out_str (stdout, 10, 0, realVal, MPFR_RNDN);
     if (computedVal != computedVal){
       std::cout<<", but NaN was computed.\n";
     } else {
@@ -1793,6 +1599,56 @@ double updateErrorF(mpfr_t realVal, float computedVal, size_t insIndex){
   return bitsError;
 }
 
+double updateErrorP(mpfr_t realVal, posit16_t computedVal, size_t insIndex){
+  struct ErrorAggregate* eagg;
+  if(errorMap.count(insIndex) != 0){ 
+    eagg = errorMap.at(insIndex);
+  }
+  else{
+    eagg = new ErrorAggregate;
+    initializeErrorAggregate(eagg);
+  }
+
+  double shadowRounded = getDouble(realVal);
+	double computedD = convertP16ToDouble(computedVal); 
+  unsigned long ulpsError = ulpd(shadowRounded, computedD);
+                                                                                                    
+  double bitsError = log2(ulpsError + 1);
+  if (bitsError > eagg->max_error){
+    eagg->max_error = bitsError;
+  }
+  eagg->total_error += bitsError;
+  eagg->num_evals += 1;
+   if (debug){
+    std::cout<<"\nThe shadow value is ";
+    printReal(realVal);
+//  	mpfr_out_str (stdout, 10, 0, realVal, MPFR_RNDN);
+    if (computedD != computedD){
+      std::cout<<", but NaN was computed.\n";
+    } else {
+      std::cout<<", but ";
+      ppFloat(computedD);
+      std::cout<<" was computed.\n";
+    	std::cout<<"updateError: computedVal:"<<computedD<<" insIndex:"<<insIndex<<"\n";
+    }
+   printf("%f bits error (%lu ulps)\n",
+               bitsError, ulpsError);
+	//	std::cout<<bitsError<<" bits error ("<<ulpsError<<" ulps)\n";
+  	std::cout<<"****************\n\n"; 
+  }
+		if(bitsError>50){
+			//print_trace();
+		}
+//    printf("%f bits error (%llu ulps)\n",
+ //               bitsError, ulpsError);
+  std::map<size_t, struct ErrorAggregate*>::iterator it = errorMap.find(insIndex); 
+  if (it != errorMap.end()){
+    it->second = eagg; 
+  } 
+  errorMap.insert(std::pair<size_t, struct ErrorAggregate*>(insIndex, eagg)); 
+
+  return bitsError;
+}
 double updateError(mpfr_t realVal, double computedVal, size_t insIndex){
   struct ErrorAggregate* eagg;
   if(errorMap.count(insIndex) != 0){ 
@@ -1854,6 +1710,7 @@ unsigned long ulpf(float x, float y){
   xx = xx < 0 ? INT_MIN - xx : xx;
   int yy = *((int*) &y);
   yy = yy < 0 ? INT_MIN - yy : yy;
+	std::cout<<"xx:"<<xx<<" yy:"<<yy<<"\n";
   return xx >= yy ? xx - yy : yy - xx;
 }
 
@@ -1908,11 +1765,9 @@ extern "C" void __init(size_t totalSlots){
     assert (shadowMap != (void*)-1);
     frameCur[0] = 0;
 
-	std::cout<<"__init stop counting:"<<initC<<"\n";
 #if PERF
 	initC += stop(); 
 #endif
-	std::cout<<"__init stop counting:"<<initC<<"\n";
     __func_init(totalSlots);
 
 		std::cout<<"init1\n";	
@@ -1933,345 +1788,15 @@ extern "C" void __init(size_t totalSlots){
 
 }
 
-void* consumer1(void *ptr) {
-	bool flag = false;	
-	while(true){
-		if(resCount < bufIdx ){
-			switch(buf[resCount].cmd){
-				case 1:
-//					setOperandsFloat(buf[resCount].opCode, buf[resCount].op1Addr, buf[resCount].op2Addr, 
-	//											buf[resCount].op1f, buf[resCount].op2f, buf[resCount].computedResf, buf[resCount].insIndex);
-					resCount++;
-					break;
-				case 2:
-				//std::cout<<"buf[resCount].cmd:"<<buf[resCount].cmd<<"\n";
-		//			setOperandsDouble(buf[resCount].opCode, buf[resCount].op1Addr, buf[resCount].op2Addr, 
-			//									buf[resCount].op1d, buf[resCount].op2d, buf[resCount].computedResd, buf[resCount].insIndex);
-/*
-					if(buf[resCount].op1Addr == 0 && buf[resCount].op2Addr == 0){	
-						if(flag){
-							ready1[readyIdx] = resCount;
-							ready1Idx++;	
-							flag = true;
-						}
-						else{
-							ready2[readyIdx] = resCount;
-							ready2Idx++;	
-							flag = false;
-						}
-					}
-*/
-					resCount++;
-					break;
-				case 3:
-					handle_math_d(buf[resCount].opCode, buf[resCount].op1d, buf[resCount].op1Addr, 
-								buf[resCount].computedResd, buf[resCount].insIndex);
-					resCount++;
-					break;
-				case 4:
-					handle_math_f(buf[resCount].opCode, buf[resCount].op1f, buf[resCount].op1Addr, 
-								buf[resCount].computedResf, buf[resCount].insIndex);
-					resCount++;
-					break;
-				case 5:
-					check_branch(buf[resCount].op1d, buf[resCount].op1Addr, buf[resCount].op2d, buf[resCount].op2Addr, 
-                     buf[resCount].fcmpFlag, buf[resCount].fcmpRes, buf[resCount].insIndex, buf[resCount].lineNo);
-					resCount++;
-					break;
-				case 6:
-					//handle_select(op->op1Addr, op->insIndex, op->op1d);
-					break;
-				case 7:
-  				set_real(buf[resCount].op1Addr, buf[resCount].op2Addr, buf[resCount].op1d);  
-					resCount++;
-					break;
-				case 8:
-					//add_fun_arg(buf[resCount].argNo, buf[resCount].op1Addr, buf[resCount].op1d);
-					resCount++;
-					break;
-				case 9:
-					func_init(buf[resCount].totalSlots);
-					resCount++;
-					break;
-				case 10:
-					copy_return(buf[resCount].returnIndex, buf[resCount].op1d);
-					resCount++;
-					break;
-				case 11:
-					func_exit(buf[resCount].returnIndex);
-					resCount++;
-					break;
-				case 12:
-					handle_f_to_sint(buf[resCount].op1Addr, buf[resCount].val, buf[resCount].lineNo);
-					resCount++;
-					break;
-				case 13:
-					//load_f(buf[resCount].op1Addr, buf[resCount].insIndex, buf[resCount].op1f, buf[resCount].castFlag);
-					resCount++;
-					break;
-				case 14:
-					//load_d(buf[resCount].op1Addr, buf[resCount].insIndex, buf[resCount].op1d, buf[resCount].castFlag);
-					resCount++;
-					break;
-				case 15:
-					set_real_cons_d(buf[resCount].op1Addr, buf[resCount].op1d);
-					resCount++;
-					break;
-				case 16:
-					set_real_cons_f(buf[resCount].op1Addr, buf[resCount].op1f);
-					resCount++;
-					break;
-				case 17:
-					handle_calloc(buf[resCount].op1Addr, buf[resCount].size1, buf[resCount].size2);
-					resCount++;
-					break;
-				case 18:
-					handle_malloc(buf[resCount].op1Addr, buf[resCount].size1);
-					resCount++;
-					break;
-				case 19:
-					handle_memset(buf[resCount].op1Addr, buf[resCount].size1);
-					resCount++;
-					break;
-				case 20:
-					handle_memcpy(buf[resCount].op1Addr, buf[resCount].op2Addr, buf[resCount].size1);
-					resCount++;
-					break;
-				case 21:
-					std::cout<<"consumer1: cmd 21****\n";
-					return NULL; //we have finished 
-				default:
-					break;
-			}
-		}	
-	}
-	return NULL;
-}
-#if 0
-void* consumer2(void *ptr) {
-	Compute *op; 
-	while(true){
-		if(ready2.try_pop(op)){
-			switch(op->cmd){
-				case 1:
-					setOperandsFloat(op->opCode, op->op1Addr, op->op2Addr, 
-												op->op1f, op->op2f, op->computedResf, op->insIndex);
-					break;
-				case 2:
-					setOperandsDouble(op->opCode, op->op1Addr, op->op2Addr, 
-												op->op1d, op->op2d, op->computedResd, op->insIndex);
-					count2++;
-					break;
-				case 3:
-					handle_math_d(op->opCode, op->op1d, op->op1Addr, 
-								op->computedResd, op->insIndex);
-					break;
-				case 4:
-					handle_math_f(op->opCode, op->op1f, op->op1Addr, 
-								op->computedResf, op->insIndex);
-					break;
-				case 5:
-					check_branch(op->op1d, op->op1Addr, op->op2d, op->op2Addr, 
-                     op->fcmpFlag, op->computedResd, op->insIndex, op->lineNo);
-					break;
-				case 6:
-					handle_select(op->op1Addr, op->insIndex, op->op1d);
-					break;
-				case 7:
-  				set_real(op->op1Addr, op->op2Addr, op->op1d);  
-					break;
-				default:
-					break;
-			delete op;
-			}
-		}	
-	}
-	return NULL;
-}
-void* consumer3(void *ptr) {
-	Compute *op; 
-	while(!consumerFlag || ready3.unsafe_size() > 0){
-		if(ready3.try_pop(op)){
-			switch(op->cmd){
-				case 1:
-					setOperandsFloat(op->opCode, op->op1Addr, op->op2Addr, 
-												op->op1f, op->op2f, op->computedResf, op->insIndex);
-					break;
-				case 2:
-					setOperandsDouble(op->opCode, op->op1Addr, op->op2Addr, 
-												op->op1d, op->op2d, op->computedResd, op->insIndex);
-					count3++;
-					break;
-				case 3:
-					handle_math_d(op->opCode, op->op1d, op->op1Addr, 
-								op->computedResd, op->insIndex);
-					break;
-				case 4:
-					handle_math_f(op->opCode, op->op1f, op->op1Addr, 
-								op->computedResf, op->insIndex);
-					break;
-				case 5:
-					check_branch(op->op1d, op->op1Addr, op->op2d, op->op2Addr, 
-                     op->fcmpFlag, op->computedResd, op->insIndex, op->lineNo);
-					break;
-				case 6:
-					handle_select(op->op1Addr, op->insIndex, op->op1d);
-					break;
-				case 7:
-  				set_real(op->op1Addr, op->op2Addr, op->op1d);  
-					break;
-				default:
-					break;
-			}
-			delete op;
-		}	
-	}
-	return NULL;
-}
-void* consumer4(void *ptr) {
-	Compute *op; 
-	while(!consumerFlag || ready4.unsafe_size() > 0){
-	if(ready4.try_pop(op)){
-			switch(op->cmd){
-				case 1:
-					setOperandsFloat(op->opCode, op->op1Addr, op->op2Addr, 
-												op->op1f, op->op2f, op->computedResf, op->insIndex);
-					break;
-				case 2:
-					setOperandsDouble(op->opCode, op->op1Addr, op->op2Addr, 
-												op->op1d, op->op2d, op->computedResd, op->insIndex);
-					count4++;
-					break;
-				case 3:
-					handle_math_d(op->opCode, op->op1d, op->op1Addr, 
-								op->computedResd, op->insIndex);
-					break;
-				case 4:
-					handle_math_f(op->opCode, op->op1f, op->op1Addr, 
-								op->computedResf, op->insIndex);
-					break;
-				case 5:
-					check_branch(op->op1d, op->op1Addr, op->op2d, op->op2Addr, 
-                     op->fcmpFlag, op->computedResd, op->insIndex, op->lineNo);
-					break;
-				case 6:
-					handle_select(op->op1Addr, op->insIndex, op->op1d);
-					break;
-				case 7:
-  				set_real(op->op1Addr, op->op2Addr, op->op1d);  
-					break;
-				default:
-					break;
-			}
-			delete op;
-		}	
-	}
-	return NULL;
-}
-
-void* consumer5(void *ptr) {
-	Compute *op; 
-//	while(!consumerFlag || ready2.unsafe_size() > 0 || worker.unsafe_size() > 0){
-	while(!consumerFlag){
-		if(ready5.try_pop(op) ) {
-			switch(op->cmd){
-				case 1:
-					setOperandsFloat(op->opCode, op->op1Addr, op->op2Addr, 
-												op->op1f, op->op2f, op->computedResf, op->insIndex);
-					break;
-				case 2:
-					setOperandsDouble(op->opCode, op->op1Addr, op->op2Addr, 
-												op->op1d, op->op2d, op->computedResd, op->insIndex);
-					count4++;
-					break;
-				case 3:
-					handle_math_d(op->opCode, op->op1d, op->op1Addr, 
-								op->computedResd, op->insIndex);
-					break;
-				case 4:
-					handle_math_f(op->opCode, op->op1f, op->op1Addr, 
-								op->computedResf, op->insIndex);
-					break;
-				case 5:
-					check_branch(op->op1d, op->op1Addr, op->op2d, op->op2Addr, 
-                     op->fcmpFlag, op->computedResd, op->insIndex, op->lineNo);
-					break;
-				case 6:
-					handle_select(op->op1Addr, op->insIndex, op->op1d);
-					break;
-				case 7:
-  				set_real(op->op1Addr, op->op2Addr, op->op1d);  
-					break;
-				default:
-					break;
-			}
-		}	
-	}
-	return NULL;
-}
-
-void* consumer6(void *ptr) {
-	Compute *op; 
-//	while(!consumerFlag || ready2.unsafe_size() > 0 || worker.unsafe_size() > 0){
-		while(!consumerFlag || ready6.unsafe_size() > 0 ){
-		if(ready6.try_pop(op) ) {
-			switch(op->cmd){
-				case 1:
-					setOperandsFloat(op->opCode, op->op1Addr, op->op2Addr, 
-												op->op1f, op->op2f, op->computedResf, op->insIndex);
-					break;
-				case 2:
-					setOperandsDouble(op->opCode, op->op1Addr, op->op2Addr, 
-												op->op1d, op->op2d, op->computedResd, op->insIndex);
-					count4++;
-					break;
-				case 3:
-					handle_math_d(op->opCode, op->op1d, op->op1Addr, 
-								op->computedResd, op->insIndex);
-					break;
-				case 4:
-					handle_math_f(op->opCode, op->op1f, op->op1Addr, 
-								op->computedResf, op->insIndex);
-					break;
-				case 5:
-					check_branch(op->op1d, op->op1Addr, op->op2d, op->op2Addr, 
-                     op->fcmpFlag, op->computedResd, op->insIndex, op->lineNo);
-					break;
-				case 6:
-					handle_select(op->op1Addr, op->insIndex, op->op1d);
-					break;
-				case 7:
-  				set_real(op->op1Addr, op->op2Addr, op->op1d);  
-					break;
-				default:
-					break;
-			}
-		}	
-	}
-	return NULL;
-}
-#endif
 extern "C" void __finish(){
 	
-#if MULTHITHREADED
-//	Compute *op = new Compute;
-	buf[bufIdx].cmd = 21;
-	bufIdx++;
-	buf[bufIdx].cmd = 21;
-	bufIdx++;
-	std::cout<<"bufIdx:"<<bufIdx;
-//	worker.push(op);
-
-	consumerFlag = true;
-	std::cout<<"waiting for consumer\n";
-	pthread_join(con1, NULL);
-#endif
 #if PERF
 	start_counter();
 #endif
 
 	//std::cout<<"__finish: worker.unsafe_size():"<<worker.unsafe_size()<<"\n";
 //	std::cout<<"Avg Instructions:"<<(double)sumIns/totalIns<<"\n";
+/*
 	std::cout<<"countDummy:"<<countDummy<<"\n";
 	std::cout<<"initTime:"<<initTime<<"\n";
 	std::cout<<"computeTime:"<<computeTime<<"\n";
@@ -2300,7 +1825,7 @@ extern "C" void __finish(){
 	std::cout<<"copyRetTime:"<<copyRetTime<<"\n";
 	std::cout<<"popTime:"<<popTime<<"\n";
 	std::cout<<"popCount:"<<popCount<<"\n";
-
+*/
 /*
 	time_t begin = time(NULL);
   	pthread_create(&con1, NULL, consumer1, NULL);
@@ -2325,8 +1850,8 @@ extern "C" void __finish(){
   for (std::map<size_t, struct ErrorAggregate*>::iterator it=errorMap.begin(); it!=errorMap.end(); ++it){
     double avg = it->second->total_error/it->second->num_evals;
 		if(it->second->total_error > 0) {
-    	fprintf (pFile, "%f bits average error\n",avg);
-    	fprintf (pFile, "%f max  error\n\n",  it->second->max_error);
+    	fprintf (ppFile, "%f bits average error\n",avg);
+    	fprintf (ppFile, "%f max  error\n\n",  it->second->max_error);
 		}
   }
 
@@ -2342,6 +1867,7 @@ extern "C" void __finish(){
 #if PERF
 	finishC += stop();
 #endif
+/*
 	std::cout<<"add_fun_argC:         "<<add_fun_argC<<"\n";
 	std::cout<<"func_initC:         "<<func_initC<<"\n";
 	std::cout<<"copy_returnC:         "<<copy_returnC<<"\n";
@@ -2370,6 +1896,7 @@ extern "C" void __finish(){
 						check_branchC+set_real_cons_dC+set_real_cons_fC+set_realC+handle_callocC+handle_memsetC+
 						handle_memcpyC+initC+finishC;
 	std::cout<<"totalC:         "<<totalC<<"\n";
+*/
 //  fclose (pFile);
 
 }

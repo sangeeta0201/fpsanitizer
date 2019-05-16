@@ -6,9 +6,9 @@ LINKER=g++
 LDFLAGS+= -shared
 OPT=-O3
 
-CXXFLAGS+=-fPIC -g -rdynamic -Wall -lmpfr -pthread  
+CXXFLAGS+=-fPIC /home/sangeeta/fpsanitizer/SoftPosit//build/Linux-x86_64-GCC/softposit.a  -g -rdynamic -Wall -lmpfr -pthread  
 
-INCPATH=-I.  
+INCPATH=-I. -I/home/sangeeta/fpsanitizer/SoftPosit//source/include 
 ARFLAGS=-rcs
 
 # change these to set the proper directories where each files shoould be

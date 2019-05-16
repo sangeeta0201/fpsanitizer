@@ -69,9 +69,12 @@ public:
   static char ID; // Pass identification, replacement for typeid
 private:
   SmallVector<Function*, 8> AllFuncList;
+  SmallVector<Function*, 8> AllMalloc;
   std::map<Instruction*, Instruction*> TrackIToFCast;
   //this is used to track address of a variable loaded from memory 
   std::map<Instruction*, Value*> LoadMap;
+  std::map<Instruction*, Instruction*> AddrMap;
+  std::map<Instruction*, Instruction*> MallocMap;
   //this is used to track reg index
   std::map<Instruction*, Instruction*> RegIdMap;
   //it is used for constant used in phi node, since phi node is of type size then we need to store

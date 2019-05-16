@@ -15,7 +15,8 @@
 #include <sys/mman.h>
 #include "tbb/concurrent_queue.h"
 #include "tbb/concurrent_hash_map.h"
-#define PRECISION 100
+#include "softposit.h"
+#define PRECISION 1000
 #define MMAP_FLAGS (MAP_PRIVATE| MAP_ANONYMOUS| MAP_NORESERVE)
 #define MAX_STACK_SIZE 1000000000
 #define MAX_SIZE 1000
@@ -26,7 +27,7 @@ const size_t SS_PRIMARY_TABLE_ENTRIES = ((size_t) 4194304);//2^22
 const size_t SS_SEC_TABLE_ENTRIES = ((size_t) 64*(size_t) 1024 * (size_t) 1024); // 2^26
 //const size_t SS_SEC_TABLE_ENTRIES = ((size_t)4 *(size_t) 1024 * (size_t) 1024); // 2^22
 
-FILE *pFile = fopen ("error.log","w");
+FILE *ppFile = fopen ("error.log","w");
 FILE *pFile1 = fopen ("errorth.log","w");
 FILE *eFile = fopen ("branch.log","w");
 FILE *lbmRef = fopen ("ref.log","w");
@@ -50,6 +51,9 @@ struct Real{
 };
 
 Real *shadowStack;
+mpfr_t *mallocMap;
+size_t mallocStrAddr;
+size_t mallocSize;
 Real **shadowMap;
 
 struct Compute{
@@ -230,5 +234,6 @@ void handleMalloc(size_t toAddrInt, size_t size);
 void handleLLVMMemset(size_t toAddrInt, size_t val, size_t size);
 void handleLLVMMemcpy(size_t toAddrInt, size_t fromAddrInt, size_t size);
 int isNaN(mpfr_t real);
+double updateErrorP(mpfr_t realVal, posit16_t computedVal, size_t insIndex);
 
 #endif

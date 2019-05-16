@@ -45,6 +45,7 @@ public:
   void handleNewPhi(Function &F);
   //its called for CallInst to handle functions other than math functions
   void handleCallInst(Instruction *I, CallInst *CI, BasicBlock *BB, Function &F);
+  void handleCallPLib(Instruction *I, CallInst *CI, BasicBlock *BB, Function &F);
   //Its called for every BinaryOperator in floating point instruction
   //void handleOp(Instruction *I, BinaryOperator* BO, Function &F);
   void handleOp(Instruction *I, BasicBlock *BB, BinaryOperator* BO, Function &F);
@@ -81,6 +82,7 @@ public:
 	void handleCalloc(Instruction *I,  BasicBlock *BB, CallInst *CI, Function &F);
 	void handleFread(Instruction *I,  BasicBlock *BB, CallInst *CI, Function &F);
 	void handleFloatToInt(Instruction *I, BasicBlock *BB, FPToSIInst *FSI, Function &F);
+	bool search(Type *t, std::string str);
   static char ID; // Pass identification, replacement for typeid
 private:
 	std::queue<StringRef> FunctionList;
