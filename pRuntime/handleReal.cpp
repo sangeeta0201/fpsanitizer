@@ -73,12 +73,14 @@ size_t stop(){
 /***MPFR functions***/
 void initMpfr(mpfr_t *val){
 #if MPFRENABLED
+	mpfrInit++;
 	mpfr_init2(*val, PRECISION);
 #endif
 }
 
 void initAndSetMpfrD(mpfr_t *val, double d){
 #if MPFRENABLED
+	mpfrInit++;
 	mpfr_init2(*val, PRECISION);
 	mpfr_set_d(*val, d, MPFR_RNDN);
 #endif
@@ -86,12 +88,14 @@ void initAndSetMpfrD(mpfr_t *val, double d){
 
 void initAndSetMpfrF(mpfr_t *val, float f){
 #if MPFRENABLED
+	mpfrInit++;
 	mpfr_init2(*val, PRECISION);
 	mpfr_set_flt(*val, f, MPFR_RNDN);
 #endif
 }
 void initAndSetMpfr(mpfr_t *val1, mpfr_t *val2){
 #if MPFRENABLED
+	mpfrInit++;
 	mpfr_init2(*val1, PRECISION);
 	mpfr_set(*val1, *val2, MPFR_RNDN);
 #endif
@@ -179,7 +183,6 @@ void handleOp(size_t opCode, mpfr_t *res, mpfr_t *op1, mpfr_t *op2){
 }
 
 struct Real* getAddrIndex(size_t addrInt){
-	std::cout<<"getAddrIndex: addrInt:"<<addrInt<<"\n";
 //	addrInt = addrInt >> 4;
   //size_t primary_index = (addrInt >> 22) & 0x3fffff;
   size_t primary_index = (addrInt >> 26) & 0x3fffff;
@@ -202,7 +205,7 @@ struct Real* getAddrIndex(size_t addrInt){
 	return realAddr;
 }
 
-struct Real* getSlotIndex(size_t InsIndex){
+struct Real* getSlotIndex(size_t InsIndex, size_t *curIdx){
 	size_t offset = frameCur[frameIdx];
 	size_t idx = offset + InsIndex;
 	if(idx >= MAX_STACK_SIZE){
@@ -213,7 +216,7 @@ struct Real* getSlotIndex(size_t InsIndex){
 		initMpfr(&(shadowStack[idx].mpfr_val));
 		shadowStack[idx].initMPFRFlag = 1;
 	}
-	std::cout<<"getSlotIndex idx:"<<idx<<"\n";
+	*curIdx = idx;
 	return &(shadowStack[idx]);
 }
 
@@ -245,8 +248,8 @@ void add_fun_arg(size_t argNo, size_t opIdx, double op){
 #endif	
 	size_t dest = stackTop + argNo; // this is location where argument is need to be pushed
 	Real *src; //this is index of parameter passed to the function
-
-		src = getSlotIndex(opIdx);
+	size_t curIdx;
+	src = getSlotIndex(opIdx, &curIdx);
 
 	if(!shadowStack[dest].initMPFRFlag){
 		initMpfr(&(shadowStack[dest].mpfr_val));
@@ -275,14 +278,42 @@ void add_fun_arg(size_t argNo, size_t opIdx, double op){
 
 }
 
-extern "C" void __handlePhi(size_t toIndex, size_t fromIndex, double op){
-		Real *dst = getSlotIndex(toIndex);
-		Real *src = getSlotIndex(fromIndex);
+extern "C" void __handlePhiD(size_t toIndex, size_t fromIndex, double op){
+
+	size_t curIdxto;
+	size_t curIdxfrom;
+	Real *dst = getSlotIndex(toIndex, &curIdxto);
+	Real *src = getSlotIndex(fromIndex, &curIdxfrom);
+	std::cout<<"__handlePhiD op:"<<op<<"\n";
 	if(fromIndex){	
 		if(src->initFlag){
 			setMpfr(&(dst->mpfr_val), &( src->mpfr_val));
 			if(debug){
-				std::cout<<"__handlePhi copied to:"<<":"<<&(dst->mpfr_val)<<"\n";
+				std::cout<<"__handlePhiD copied to:"<<curIdxto<<" from:"<<curIdxfrom<<"\n";
+				printReal(dst->mpfr_val);
+			}
+		}
+	}
+	else{
+		setMpfrD(&(dst->mpfr_val), op);
+		if(debug){
+			std::cout<<"__handlePhiD copied to:"<<curIdxto<<" from op:"<<op<<"\n";
+		}
+	}
+	dst->initFlag = 1;
+
+}
+
+extern "C" void __handlePhiF(size_t toIndex, size_t fromIndex, float op){
+	size_t curIdxto;
+	size_t curIdxfrom;
+	Real *dst = getSlotIndex(toIndex, &curIdxto);
+	Real *src = getSlotIndex(fromIndex, &curIdxfrom);
+	if(fromIndex){	
+		if(src->initFlag){
+			setMpfr(&(dst->mpfr_val), &( src->mpfr_val));
+			if(debug){
+				std::cout<<"__handlePhiF copied to:"<<":"<<&(dst->mpfr_val)<<"\n";
 				printReal(dst->mpfr_val);
 			}
 		}
@@ -295,6 +326,7 @@ extern "C" void __handlePhi(size_t toIndex, size_t fromIndex, double op){
 	}
 	dst->initFlag = 1;
 }
+
 extern "C" void __add_fun_arg_1(size_t arg1No, size_t op1Idx, double opd1){
 #if PERF2
 	start_counter();
@@ -367,6 +399,7 @@ extern "C" void __add_fun_arg_5(size_t arg1No, size_t op1Idx, double opd1,
 //called from caller before calling function
 
 void func_init(size_t totalSlots){
+	std::cout<<"func_init***\n";
 #if PERF2
 	start_counter();
 #endif
@@ -426,9 +459,8 @@ void copy_return(size_t returnIndex, double op){
 				shadowStack[returnIndex + offset].initMPFRFlag = 1;
 			}
 			setMpfrD(&(shadowStack[returnIndex + offset].mpfr_val), op);
-			std::cout<<"copy_return: return set at index:"<<returnIndex + offset<<" to op:"<<op<<"\n";
 		}
-		else if(returnReal->initFlag){ // we don't need to do anything if return is not initialized
+		else{ // we don't need to do anything if return is not initialized
 			if(!shadowStack[returnIndex + offset].initMPFRFlag){
 				initMpfr(&(shadowStack[returnIndex + offset].mpfr_val));
 				shadowStack[returnIndex + offset].initMPFRFlag = 1;
@@ -444,9 +476,6 @@ void copy_return(size_t returnIndex, double op){
 						<<" to index:"<<returnIndex + offset<<":"<<&(shadowStack[returnIndex + offset].mpfr_val)<<"\n";
 			}
 		}
-		else
-			if(debug)
-				std::cout<<"copy_return src:"<<calleFrame<<" is not set\n";
 	}
 #if PERF2
 	copy_returnC += stop();
@@ -461,9 +490,10 @@ extern "C" void __load_f(void *Addr, size_t insIndex, float opf,
 #endif
 	size_t AddrInt = (size_t) Addr;
 	struct Real* dest = getAddrIndex(AddrInt);
-	Real *real1 = getSlotIndex(insIndex);
+	size_t curIdx;
+	Real *real1 = getSlotIndex(insIndex, &curIdx);
 	if(debug){
-			std::cout<<"fpSanLoadFromShadowMem: opf:"<<opf;
+			std::cout<<"__load_f: opf:"<<opf;
 			printf(" from addr:%p\n", Addr);
 	}
 	if(dest->initFlag == 0){
@@ -473,7 +503,7 @@ extern "C" void __load_f(void *Addr, size_t insIndex, float opf,
 			setMpfrF(&(real1->mpfr_val), opf);
 		if(debug){
 			size_t addr = (size_t) &shadowStack[insIndex];
-			std::cout<<"fpSanLoadFromShadowMemF: set value:";
+			std::cout<<"__load_f: set value:";
 			printReal( shadowStack[insIndex].mpfr_val);
 			std::cout<<" in shadowStack at:"<<insIndex;;
 			printf(" for addr:%p ", (void *)addr);
@@ -484,7 +514,7 @@ extern "C" void __load_f(void *Addr, size_t insIndex, float opf,
 		initAndSetMpfr(&(shadowStack[insIndex].mpfr_val), &(dest->mpfr_val));
 		if(debug){
 			size_t addr = (size_t) &shadowStack[insIndex];
-			std::cout<<"fpSanLoadFromShadowMemF: set value:";
+			std::cout<<"__load_f: set value:";
 			printReal( shadowStack[insIndex].mpfr_val);
 			std::cout<<" in shadowStack at:"<<insIndex;
 			printf(" for addr:%p ", (void *)addr);
@@ -499,45 +529,72 @@ extern "C" void __load_f(void *Addr, size_t insIndex, float opf,
 #endif
 }
 
-extern "C" void __load_d(void *Addr, size_t insIndex, double opd, 
+extern "C" void __load_d_i(void *Addr, size_t insIndex, 
 																								bool castFlag){
+	std::cout<<"__load_d_i opd:";
 #if TIME
 	struct timeval  tv1, tv2;
 	gettimeofday(&tv1, NULL);
 #endif
 	size_t AddrInt = (size_t) Addr;
 	struct Real* dest = getAddrIndex(AddrInt);
-	Real *real1 = getSlotIndex(insIndex);
-	if(debug){
-			std::cout<<"fpSanLoadFromShadowMem: opd:"<<opd;
-			printf(" from addr:%p\n", Addr);
-	}
-	if(dest->initFlag == 0){
-		if(castFlag)
-			setMpfrD(&(real1->mpfr_val), 0);
-		else
-			setMpfrD(&(real1->mpfr_val), opd);
+	size_t curIdx;
+	Real *real1 = getSlotIndex(insIndex, &curIdx);
+	if(dest->initFlag){
+		setMpfr(&(real1->mpfr_val), &(dest->mpfr_val));
 		if(debug){
 			size_t addr = (size_t) &shadowStack[insIndex];
-			std::cout<<"fpSanLoadFromShadowMemD: set value:";
-			printReal( shadowStack[insIndex].mpfr_val);
-			std::cout<<" in shadowStack at:"<<insIndex;;
-			printf(" for addr:%p ", (void *)addr);
-			std::cout<<" from op"<<"\n";
+			std::cout<<"__load_d_i: set value:";
+			printReal( real1->mpfr_val);
+			std::cout<<" in shadowStack at:"<<curIdx;
+			printf(" from addr:%p\n\n\n", Addr);
+		}
+		real1->initFlag = 1;
+	}
+#if TIME
+	gettimeofday(&tv2, NULL);
+	loadDTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
+         (double) (tv2.tv_sec - tv1.tv_sec); 
+#endif
+}
+
+extern "C" void __load_d(void *Addr, size_t insIndex, double opd, 
+																								bool castFlag){
+	std::cout<<"__load_d opd:";
+#if TIME
+	struct timeval  tv1, tv2;
+	gettimeofday(&tv1, NULL);
+#endif
+	size_t AddrInt = (size_t) Addr;
+	struct Real* dest = getAddrIndex(AddrInt);
+	size_t curIdx;
+	Real *real1 = getSlotIndex(insIndex, &curIdx);
+	if(dest->initFlag == 0){
+		if(castFlag){
+			setMpfrD(&(real1->mpfr_val), 0);
+		}
+		else{
+			setMpfrD(&(real1->mpfr_val), opd);
+		}
+		if(debug){
+			size_t addr = (size_t) &shadowStack[insIndex];
+			std::cout<<"__load_d: set value:";
+			printReal( real1->mpfr_val);
+			std::cout<<" in shadowStack at:"<<curIdx;;
+			std::cout<<" from op"<<"\n\n\n";
 		}
 	}
 	else{
-		initAndSetMpfr(&(shadowStack[insIndex].mpfr_val), &(dest->mpfr_val));
+		setMpfr(&(real1->mpfr_val), &(dest->mpfr_val));
 		if(debug){
 			size_t addr = (size_t) &shadowStack[insIndex];
-			std::cout<<"fpSanLoadFromShadowMemD: set value:";
-			printReal( shadowStack[insIndex].mpfr_val);
-			std::cout<<" in shadowStack at:"<<insIndex;
-			printf(" for addr:%p ", (void *)addr);
-			printf(" from addr:%p\n", Addr);
+			std::cout<<"__load_d: set value:";
+			printReal( real1->mpfr_val);
+			std::cout<<" in shadowStack at:"<<curIdx;
+			printf(" from addr:%p\n\n\n", Addr);
 		}
 	}
-	shadowStack[insIndex].initFlag = 1;
+	real1->initFlag = 1;
 #if TIME
 	gettimeofday(&tv2, NULL);
 	loadDTime += (double) (tv2.tv_usec - tv1.tv_usec) / 1000000 +
@@ -558,6 +615,7 @@ extern "C" void __copy_return(size_t returnIndex, double opd){
 
 //This copies retIndex to index 1
 void func_exit(size_t retIndex){
+	std::cout<<"func_exit***\n";
 #if PERF2
 	start_counter();
 #endif
@@ -597,7 +655,8 @@ void handle_f_to_sint(size_t op1Int, long val, size_t lineNo){
 #if PERF2
 	start_counter();
 #endif
-	Real *real1 = getSlotIndex(op1Int);
+	size_t curIdx;
+	Real *real1 = getSlotIndex(op1Int, &curIdx);
 
 	long res = mpfr_get_si(real1->mpfr_val, MPFR_RNDN);
 	if(res != val){
@@ -670,9 +729,10 @@ void handle_math_f(size_t funcCode, float op1, size_t op1Int,
 
   mpfrInit++;
   bool mpfrFlag1 = false; 
-
-	Real* res = getSlotIndex(insIndex);
-  Real *real1 = getSlotIndex(op1Int);
+	size_t curIdx1;
+	size_t curIdx2;
+	Real* res = getSlotIndex(insIndex, &curIdx1);
+  Real *real1 = getSlotIndex(op1Int, &curIdx2);
   if(op1Int == 0 || real1->initMPFRFlag == 0){
 		initMpfr(&(r1.mpfr_val));
 		mpfrInit++;
@@ -712,7 +772,8 @@ void handle_math_d(size_t funcCode, double op1, size_t op1Int,
   mpfrInit++;
   bool mpfrFlag1 = false; 
 
-	Real* res = getSlotIndex(insIndex);
+	size_t curIdx;
+	Real* res = getSlotIndex(insIndex, &curIdx);
 	if(debug){
 		std::cout<<"handle_math_d: funcCode:"<<funcCode<<" op1:"<<op1<<"\n";
 	}
@@ -726,16 +787,17 @@ void handle_math_d(size_t funcCode, double op1, size_t op1Int,
     mpfrFlag1 = true; 
 	}
 	else{
-  	real1 = getSlotIndex(op1Int);
+		size_t curIdx1;
+  	real1 = getSlotIndex(op1Int, &curIdx1);
 		if(real1->initFlag == 0){
 			setMpfrD(&(real1->mpfr_val), op1);
-			std::cout<<"handle_math_d: real1 is null\n";
 		}
   }
 
-	std::cout<<"handle_math_d: real:";
-	printReal(real1->mpfr_val);
-	std::cout<<"\n";
+	if(debug){
+		printReal(real1->mpfr_val);
+		std::cout<<"\n";
+	}
 
   if(real1 != NULL){
 		handleMathLib(funcCode, res, real1);
@@ -761,6 +823,36 @@ void handle_math_d(size_t funcCode, double op1, size_t op1Int,
 #endif	
 }
 
+void bin32(unsigned long n) 
+{ 
+    unsigned i; 
+		int count = 0;
+    for (i = 1 << 31; i > 0; i = i / 2){
+				if(count == 1)printf(" ");
+				if(count == 9)printf(" ");
+				count++;
+        (n & i)? printf("1"): printf("0"); 
+		}
+} 
+
+void bin64(uint64_t n) {
+    int i;
+    uint64_t base = 1;
+    
+    std::cout << (n & (base << 63)) << " ";
+    
+    for (i = 62; i > 51; --i) {
+        std::cout << ((n & (base << i)) >> i);
+    }
+    
+    std::cout << " ";
+    
+    for (; i >= 0; --i) {
+        std::cout << ((n & (base << i)) >> i);
+    }
+    
+    std::cout <<"\n";
+}     
 extern "C" void __handle_math_f(size_t funcCode, float op1, size_t op1Int, 
                                 float computedRes, size_t insIndex){ 
 
@@ -813,7 +905,8 @@ void check_branch(double op1, size_t op1Int, double op2, size_t op2Int,
     mpfrFlag1 = true; 
   }
   else{
-    real1 = getSlotIndex(op1Int);
+		size_t curIdx;
+    real1 = getSlotIndex(op1Int, &curIdx);
 		if(real1->initFlag == 0){
 			setMpfrD(&(real1->mpfr_val), op1);
 		}
@@ -828,7 +921,8 @@ void check_branch(double op1, size_t op1Int, double op2, size_t op2Int,
     mpfrFlag2 = true; 
   } 
   else{
-    real2 = getSlotIndex(op2Int);
+		size_t curIdx;
+    real2 = getSlotIndex(op2Int, &curIdx);
 		if(real2->initFlag == 0){
 			setMpfrD(&(real2->mpfr_val), op2);
 		}
@@ -951,7 +1045,17 @@ void setOperandsFloat(size_t opCode, size_t op1Addr, size_t op2Addr,
   bool mpfrFlag1 = false;
   bool mpfrFlag2 = false;
 
-	Real *res = getSlotIndex(insIndex);
+
+//	std::cout<<"setOperandsFloat op1:\n";
+//  unsigned long long xx = *((long long*) &op1f);
+//	bin32(xx);
+//	std::cout<<"setOperandsFloat op2:\n";
+//  unsigned long long yy = *((long long*) &op2f);
+//	bin32(yy);
+
+
+	size_t curIdx;
+	Real *res = getSlotIndex(insIndex, &curIdx);
   if(debugCR){
 		std::cout<<"computeRealF: op1Addr:";
 		printf(":%p\n", (void *)op1Addr);
@@ -967,7 +1071,8 @@ void setOperandsFloat(size_t opCode, size_t op1Addr, size_t op2Addr,
     mpfrFlag1 = true; 
 	}
 	else{
-			real1 = getSlotIndex(op1Addr);
+			size_t curIdx;
+			real1 = getSlotIndex(op1Addr, &curIdx);
       //data might be set without store
   }
 	if(op2Addr == 0){
@@ -979,7 +1084,8 @@ void setOperandsFloat(size_t opCode, size_t op1Addr, size_t op2Addr,
     mpfrFlag2 = true; 
 	}
 	else{
-			real2 = getSlotIndex(op2Addr);
+			size_t curIdx;
+			real2 = getSlotIndex(op2Addr, &curIdx);
 	}
 	if(debugCR){
 		std::cout<<"computeRealF: op1:"<<op1f<<" op2:"<<op2f<<"\n";
@@ -1003,9 +1109,6 @@ void setOperandsFloat(size_t opCode, size_t op1Addr, size_t op2Addr,
 		clearMpfr(&(r2.mpfr_val));
     mpfrClear++;
   }
-	std::cout<<"\n\n";
-  mpfr_out_str (stdout, 10, 0, res->mpfr_val, MPFR_RNDN);
-	std::cout<<"\n\n";
 	updateErrorF(res->mpfr_val, computedResf, insIndex);
 	//if(dest){
 	//	Real* RStore = getAddrIndex(dest);
@@ -1015,7 +1118,19 @@ void setOperandsFloat(size_t opCode, size_t op1Addr, size_t op2Addr,
 	setOperandsFloatC += stop();
 #endif
 }
-
+/*
+void bin64(unsigned long long n) 
+{ 
+    unsigned long long i; 
+		int count = 0;
+    for (i = 1ULL << 61; i > 0; i = i / 2){
+				if(count == 1)printf(" ");
+				if(count == 12)printf(" ");
+				count++;
+        (n & i)? printf("1"): printf("0"); 
+		}
+} 
+*/
 void setOperandsDouble(size_t opCode, size_t op1Addr, size_t op2Addr, 
 													double op1d, double op2d, double computedResd, 
 														size_t insIndex){
@@ -1030,14 +1145,11 @@ void setOperandsDouble(size_t opCode, size_t op1Addr, size_t op2Addr,
   bool mpfrFlag2 = false;
 	size_t op1Idx, op2Idx, resIdx;
 
-	Real *res = getSlotIndex(insIndex);
+	size_t curIdxOp1 = 0;
+	size_t curIdxOp2 = 0;
+	size_t curIdx;
+	Real *res = getSlotIndex(insIndex, &curIdx);
 
-  if(debugCR){
-		std::cout<<"computeRealD: op1Addr:"<<op1Addr<<":";
-		printf(":%p\n", (void *)op1Addr);
-		std::cout<<"computeRealD: op2Addr:"<<op2Addr<<":";
-		printf(":%p\n", (void *)op2Addr);
-	}
 
   if(debugCR){
 		std::cout<<"op1d:"<<op1d<<" op2d:"<<op2d<<"\n";
@@ -1051,7 +1163,7 @@ void setOperandsDouble(size_t opCode, size_t op1Addr, size_t op2Addr,
     mpfrFlag1 = true; 
 	}
 	else{
-		real1 = getSlotIndex(op1Addr);
+		real1 = getSlotIndex(op1Addr, &curIdxOp1);
 		if(real1->initFlag == 0){
 			setMpfrD(&(real1->mpfr_val), op1d);
 		}
@@ -1066,11 +1178,14 @@ void setOperandsDouble(size_t opCode, size_t op1Addr, size_t op2Addr,
     mpfrFlag2 = true; 
 	}
 	else{
-		real2 = &(shadowStack[op2Idx]);
-			real2 = getSlotIndex(op2Addr);
+		real2 = getSlotIndex(op2Addr, &curIdxOp2);
 		if(real2->initFlag == 0){
 			setMpfrD(&(real2->mpfr_val), op2d);
 		}
+	}
+  if(debugCR){
+		std::cout<<"computeRealD: op1Addr:"<<curIdxOp1<<"\n";
+		std::cout<<"computeRealD: op2Addr:"<<curIdxOp2<<"\n";
 	}
 	if(debugCR){
 		std::cout<<"computeRealD real1:";
@@ -1086,7 +1201,7 @@ void setOperandsDouble(size_t opCode, size_t op1Addr, size_t op2Addr,
   handleOp(opCode, &(res->mpfr_val), &real1->mpfr_val, &real2->mpfr_val);
 	res->initFlag = 1;
 	if(debugCR){
-		std::cout<<"computeRealD:insIndex:"<<insIndex<<" stackTop:"<<&(res->mpfr_val);
+		std::cout<<"computeRealD:insIndex:"<<curIdx<<" stackTop:"<<&(res->mpfr_val);
 	}
   if(mpfrFlag1){
 		clearMpfr(&(r1.mpfr_val));
@@ -1107,7 +1222,8 @@ int isNaN(mpfr_t real){
 }
 
 extern "C" void __convertDtoP(double op, size_t toIndex){
-	Real *dst = getSlotIndex(toIndex);
+	size_t curIdx;
+	Real *dst = getSlotIndex(toIndex, &curIdx);
 	setMpfrD(&(dst->mpfr_val), op);
 	if(debug){
 		printReal(dst->mpfr_val);
@@ -1117,7 +1233,7 @@ extern "C" void __convertDtoP(double op, size_t toIndex){
 }
 
 extern "C" void __compute_real_p(size_t opCode, size_t op1Addr, size_t op2Addr,
-                             posit16_t computedResp, size_t insIndex){
+                             posit32_t computedResp, size_t insIndex){
 	Real *real1;
 	Real *real2;
   Real r1;
@@ -1126,8 +1242,9 @@ extern "C" void __compute_real_p(size_t opCode, size_t op1Addr, size_t op2Addr,
   bool mpfrFlag2 = false;
 	size_t op1Idx, op2Idx, resIdx;
 
-	Real *res = getSlotIndex(insIndex);
-	double tmp88=convertP16ToDouble(computedResp); printf("__compute_real_p tmp:%e\n",tmp88);
+	size_t curIdx;
+	Real *res = getSlotIndex(insIndex, &curIdx);
+	double tmp88=convertP32ToDouble(computedResp); printf("__compute_real_p tmp:%e\n",tmp88);
   if(debugCR){
 		std::cout<<"computeRealP: op1Addr:";
 		printf(":%p\n", (void *)op1Addr);
@@ -1135,8 +1252,10 @@ extern "C" void __compute_real_p(size_t opCode, size_t op1Addr, size_t op2Addr,
 		printf(":%p\n", (void *)op2Addr);
 	}
 
-	real1 = getSlotIndex(op1Addr);
-	real2 = getSlotIndex(op2Addr);
+	size_t curIdx1;
+	size_t curIdx2;
+	real1 = getSlotIndex(op1Addr, &curIdx1);
+	real2 = getSlotIndex(op2Addr, &curIdx2);
 
 	if(debugCR){
 		std::cout<<"__compute_real_p real1:";
@@ -1162,6 +1281,9 @@ extern "C" void __compute_real_p(size_t opCode, size_t op1Addr, size_t op2Addr,
 		clearMpfr(&(r2.mpfr_val));
     mpfrClear++;
   }
+//	std::cout<<"\nposit<32,2> in binary\n";
+//	printBinary((uint64_t*)&computedResp, 32);
+//	std::cout<<"\n";
 	updateErrorP(res->mpfr_val, computedResp, insIndex);	
 }
 
@@ -1256,11 +1378,37 @@ extern "C" void __set_real_cons_f(void* toAddr, float value){
 #endif
 }
 
+extern "C" void __set_real_i(size_t toAddrInt, size_t fromAddrInt){
+#if PERF2
+	start_counter();
+#endif
+	size_t curIdx1;
+	Real* real = getSlotIndex(fromAddrInt, &curIdx1);
+	Real* dest = getAddrIndex(toAddrInt);
+	if(real->initFlag){
+		setMpfr(&(dest->mpfr_val), &(real->mpfr_val));
+		if(debug){
+			std::cout<<"__set_real_i from "<<curIdx1<<":";
+			printReal(real->mpfr_val);
+		}
+	}
+	dest->initFlag = 1;
+	if(debug){
+		std::cout<<"__set_real_i: dest set to:";
+		printReal(dest->mpfr_val);
+		printf(" to addr:%p\n", (void *)toAddrInt);
+	}
+#if PERF2
+	set_realC += stop();
+#endif
+}
+
 void set_real(size_t toAddrInt, size_t fromAddrInt, double op){
 #if PERF2
 	start_counter();
 #endif
-	Real* real = getSlotIndex(fromAddrInt);
+	size_t curIdx1;
+	Real* real = getSlotIndex(fromAddrInt, &curIdx1);
 	Real* dest = getAddrIndex(toAddrInt);
 	if(real->initFlag == 0){
 		setMpfrD(&(dest->mpfr_val), op);
@@ -1271,7 +1419,7 @@ void set_real(size_t toAddrInt, size_t fromAddrInt, double op){
 	else{
 		setMpfr(&(dest->mpfr_val), &(real->mpfr_val));
 		if(debug){
-			std::cout<<"setRealTemp from "<<fromAddrInt<<":";
+			std::cout<<"setRealTemp from "<<curIdx1<<":";
 			printReal(real->mpfr_val);
 		}
 	}
@@ -1363,7 +1511,6 @@ void handle_malloc(size_t toAddrInt, size_t size){
 }
 
 extern "C" void new_malloc(size_t startAddr, size_t oldSize){
-	std::cout<<"new_malloc startAddr:"<<startAddr<<"\n";
 	mallocStrAddr = startAddr;
 	mallocSize = oldSize;
 	mallocMap = ( mpfr_t *) mmap(0, oldSize*(sizeof(mpfr_t)), PROT_READ|PROT_WRITE, MMAP_FLAGS, -1, 0);		
@@ -1599,7 +1746,7 @@ double updateErrorF(mpfr_t realVal, float computedVal, size_t insIndex){
   return bitsError;
 }
 
-double updateErrorP(mpfr_t realVal, posit16_t computedVal, size_t insIndex){
+double updateErrorP(mpfr_t realVal, posit32_t computedVal, size_t insIndex){
   struct ErrorAggregate* eagg;
   if(errorMap.count(insIndex) != 0){ 
     eagg = errorMap.at(insIndex);
@@ -1610,7 +1757,7 @@ double updateErrorP(mpfr_t realVal, posit16_t computedVal, size_t insIndex){
   }
 
   double shadowRounded = getDouble(realVal);
-	double computedD = convertP16ToDouble(computedVal); 
+	double computedD = convertP32ToDouble(computedVal); 
   unsigned long ulpsError = ulpd(shadowRounded, computedD);
                                                                                                     
   double bitsError = log2(ulpsError + 1);
@@ -1658,11 +1805,17 @@ double updateError(mpfr_t realVal, double computedVal, size_t insIndex){
     eagg = new ErrorAggregate;
     initializeErrorAggregate(eagg);
   }
+	mpfr_exp_t emin = mpfr_get_emin ();
+	mpfr_exp_t emax = mpfr_get_emax ();
 
   double shadowRounded = getDouble(realVal);
+  float shadowRoundedF = getFloat(realVal);
+  float computedF = computedVal;
   unsigned long ulpsError = ulpd(shadowRounded, computedVal);
+  unsigned long ulpsErrorF = ulpf(shadowRoundedF, computedF);
                                                                                                     
   double bitsError = log2(ulpsError + 1);
+  double bitsErrorF = log2(ulpsErrorF + 1);
   if (bitsError > eagg->max_error){
     eagg->max_error = bitsError;
   }
@@ -1710,7 +1863,6 @@ unsigned long ulpf(float x, float y){
   xx = xx < 0 ? INT_MIN - xx : xx;
   int yy = *((int*) &y);
   yy = yy < 0 ? INT_MIN - yy : yy;
-	std::cout<<"xx:"<<xx<<" yy:"<<yy<<"\n";
   return xx >= yy ? xx - yy : yy - xx;
 }
 
@@ -1722,10 +1874,10 @@ unsigned long ulpd(double x, double y){
   if (x != x) return ULLONG_MAX - 1; // Maximum error
   if (y != y) return ULLONG_MAX - 1; // Maximum error
 
-  long long xx = *((long long*) &x);
+  unsigned long long xx = *((long long*) &x);
   xx = xx < 0 ? LLONG_MIN - xx : xx;
 
-  long long yy = *((long long*) &y);
+  unsigned long long yy = *((long long*) &y);
   yy = yy < 0 ? LLONG_MIN - yy : yy;
   return xx >= yy ? xx - yy : yy - xx;
 }
@@ -1785,7 +1937,18 @@ extern "C" void __init(size_t totalSlots){
 
 #endif
   }
+}
 
+extern "C" void pWrite(void *a, void *b, void *c){
+	size_t AddrInt1 = (size_t) a;
+	struct Real* dest1 = getAddrIndex(AddrInt1);
+  mpfr_out_str (lbmRef, 10, 15, dest1->mpfr_val, MPFR_RNDN);
+	size_t AddrInt2 = (size_t) b;
+	struct Real* dest2 = getAddrIndex(AddrInt2);
+  mpfr_out_str (lbmRef, 10, 15, dest2->mpfr_val, MPFR_RNDN);
+	size_t AddrInt3 = (size_t) c;
+	struct Real* dest3 = getAddrIndex(AddrInt3);
+  mpfr_out_str (lbmRef, 10, 15, dest3->mpfr_val, MPFR_RNDN);
 }
 
 extern "C" void __finish(){
@@ -1793,7 +1956,7 @@ extern "C" void __finish(){
 #if PERF
 	start_counter();
 #endif
-
+	std::cout<<"init called:"<<mpfrInit<<"\n";
 	//std::cout<<"__finish: worker.unsafe_size():"<<worker.unsafe_size()<<"\n";
 //	std::cout<<"Avg Instructions:"<<(double)sumIns/totalIns<<"\n";
 /*

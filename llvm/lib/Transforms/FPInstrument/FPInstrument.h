@@ -90,6 +90,7 @@ private:
   SmallVector<Instruction*, 8> AllInsList;
   SmallVector<Instruction*, 8> AllRetList;
   SmallVector<Instruction*, 8> AllBinOpList;
+  SmallVector<Instruction*, 8> AllPhiList;
   SmallVector<User*, 8> AllBrList;
   SmallVector<ReturnInst*, 8> AllReturn;
   std::map<Function*, Instruction*> AllRet;
@@ -97,6 +98,7 @@ private:
   //this is used to track address of a variable loaded from memory 
   //this is used to track reg index
   std::map<Instruction*, Instruction*> RegIdMap;
+  std::map<PHINode*, bool> PhiNodesMap;
   std::map<Instruction*, Instruction*> LoadMap;
   //it is used for constant used in phi node, since phi node is of type size then we need to store
   //floating point constant in shadow memory and get its index in size_t. If we will leave constant

@@ -90,10 +90,19 @@ bool FPInstrument::runOnModule(Module &M) {
 						if(search(GEP->getOperand(0)->getType(), "posit"))
 							AllInsList.push_back(&I);
 					}
+  				if (BitCastInst *BI = dyn_cast<BitCastInst>(Addr)){
+						llvm::errs()<<"load operand is bitcast\n";
+						BI->getOperand(0)->getType()->getPointerElementType()->dump();
+						if(BI->getOperand(0)->getType()->getPointerElementType()->getTypeID() == Type::DoubleTyID){
+							AllInsList.push_back(&I);
+						}
+						if(BI->getOperand(0)->getType()->getPointerElementType()->getTypeID() == Type::FloatTyID)
+							AllInsList.push_back(&I);
+						}
 				}
 				else if (StoreInst *Store = dyn_cast<StoreInst>(&I)){
-					if(Store->getType()->getTypeID() == Type::DoubleTyID || Store->getType()->getTypeID() == Type::FloatTyID)
-						AllInsList.push_back(&I);
+						if(Store->getType()->getTypeID() == Type::DoubleTyID || Store->getType()->getTypeID() == Type::FloatTyID)
+								AllInsList.push_back(&I);
 				}
       	else if (SelectInst *SI = dyn_cast<SelectInst>(&I)){
 					Type *SIType = SI->getType();
@@ -203,6 +212,8 @@ bool FPInstrument::runOnModule(Module &M) {
       for (auto &I : BB) {
         if(PHINode *PN = dyn_cast<PHINode>(&I)){
           Type *phi_type = PN->getType();
+  				AllPhiList.push_back(&I); 
+					PhiNodesMap.insert(std::pair<PHINode*, bool>(PN, false));
           if(phi_type->getTypeID() == Type::DoubleTyID || phi_type->getTypeID() == Type::FloatTyID){
           	handlePhi(&I, PN, *F);
 					}
@@ -212,7 +223,7 @@ bool FPInstrument::runOnModule(Module &M) {
     for (auto &BB : *F) {
       for (auto &I : BB) {
         if (LoadInst *Load = dyn_cast<LoadInst>(&I)){
-					if(Load->getType()->getTypeID() == Type::DoubleTyID || Load->getType()->getTypeID() == Type::FloatTyID)
+					//if(Load->getType()->getTypeID() == Type::DoubleTyID || Load->getType()->getTypeID() == Type::FloatTyID)
           	handleLoad(&I, Load, &BB, *F, false);
         }
         if (dyn_cast<FPTruncInst>(&I)){ // it means we have new fp
@@ -411,6 +422,8 @@ bool FPInstrument::runOnModule(Module &M) {
     }
     handleNewPhi(*F);
     NewPhiMap.clear(); 
+		AllPhiList.clear();
+//		F->dump();
   }
 	errs()<<"Total slots required for this bm:"<<TotalIns<<"\n";
 	//M.dump();
@@ -548,13 +561,14 @@ void FPInstrument::setReal(Instruction *I, Value *ToAddr, Value *OP, Function &F
   IRBuilder<> IRB(I);
   Type *OpTy = OP->getType();
 	bool flag = false;
+  	Type* Int64Ty = Type::getInt64Ty(M->getContext());
+  	Type* VoidTy = Type::getVoidTy(M->getContext());
+  	Type* PtrVoidTy = PointerType::getUnqual(Type::getInt8Ty(M->getContext()));
 	Type *StoreTy = I->getOperand(0)->getType();
-	llvm::errs()<<"setReal\n";
   if (BitCastInst *BI = dyn_cast<BitCastInst>(ToAddr)){
 		Type *BITy = BI->getOperand(0)->getType();
 		if(BITy->getPointerElementType()->getTypeID() == Type::FloatTyID || BITy->getPointerElementType()->getTypeID() == Type::DoubleTyID){
 			flag = true;
-	llvm::errs()<<"setReal 1\n";
 		}
 		else if(BITy->getPointerElementType()->getTypeID() == Type::StructTyID){
 			StructType *STyL = cast<StructType>(BITy->getPointerElementType());
@@ -565,17 +579,24 @@ void FPInstrument::setReal(Instruction *I, Value *ToAddr, Value *OP, Function &F
   		}
 		}
 	}
-	if(StoreTy->getTypeID() == Type::DoubleTyID || StoreTy->getTypeID() == Type::FloatTyID){
-	llvm::errs()<<"setReal 2\n";
-		flag = true;
-	}
 	if(flag){
-	llvm::errs()<<"setReal 4\n";
+  		BitCastInst* BCToAddr = new BitCastInst(ToAddr, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
+    	Instruction *OpIns = dyn_cast<Instruction>(I->getOperand(0));
+    	SetRealTemp = M->getOrInsertFunction("__set_real_i", VoidTy, PtrVoidTy, Int64Ty);
+
+    	if(RegIdMap.count(OpIns) != 0){ //handling registers
+      	Instruction *Index = RegIdMap.at(OpIns);
+				IRB.CreateCall(SetRealTemp, {BCToAddr, Index});
+    	}
+    	else if(InsMap.count(OpIns) != 0){ //handling registers
+      	size_t index = InsMap.at(OpIns);
+  			Constant* ConsInsIndex = ConstantInt::get(Type::getInt64Ty(M->getContext()), index); 
+				IRB.CreateCall(SetRealTemp, {BCToAddr, ConsInsIndex});
+    	}
+	}
+	if(StoreTy->getTypeID() == Type::DoubleTyID || StoreTy->getTypeID() == Type::FloatTyID){
   	BitCastInst* BCToAddr = new BitCastInst(ToAddr, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
 
-  	Type* Int64Ty = Type::getInt64Ty(M->getContext());
-  	Type* VoidTy = Type::getVoidTy(M->getContext());
-  	Type* PtrVoidTy = PointerType::getUnqual(Type::getInt8Ty(M->getContext()));
   	if(OpTy->getTypeID() == Type::PointerTyID){
     //if its not a constant, not a temp, then it could be a pointer, 
     //since we already have address of variable inside pointer, we will pass it to runtime 
@@ -1083,8 +1104,13 @@ void FPInstrument::handleLoad(Instruction *I, LoadInst *LI, BasicBlock *BB, Func
 	bool BTFlagD = false;
   Value *Addr = LI->getPointerOperand();
   if (BitCastInst *BI = dyn_cast<BitCastInst>(Addr)){
-		if(BI->getOperand(0)->getType()->getPointerElementType()->getTypeID() == Type::DoubleTyID)
+		llvm::errs()<<"LOAD I:"<<*I<<"\n";
+		llvm::errs()<<"load operand is bitcast\n";
+		BI->getOperand(0)->getType()->getPointerElementType()->dump();
+		if(BI->getOperand(0)->getType()->getPointerElementType()->getTypeID() == Type::DoubleTyID){
 			BTFlagD = true;
+			llvm::errs()<<"load bitcast type is double\n";
+		}
 		if(BI->getOperand(0)->getType()->getPointerElementType()->getTypeID() == Type::FloatTyID)
 			BTFlagF = true;
 	}
@@ -1124,7 +1150,7 @@ void FPInstrument::handleLoad(Instruction *I, LoadInst *LI, BasicBlock *BB, Func
 
 			IRB.CreateCall(GetAddr, {BCToAddr, ConsInsIndex, LI, CBTFlagF});
 		}
-		else if(load_type->getTypeID() == Type::DoubleTyID || BTFlagD){
+		else if(load_type->getTypeID() == Type::DoubleTyID){
   		size_t InsIndex;
 			if(InsMap.count(I) != 0){
   			InsIndex = InsMap.at(I);
@@ -1133,10 +1159,20 @@ void FPInstrument::handleLoad(Instruction *I, LoadInst *LI, BasicBlock *BB, Func
   			GetAddr = M->getOrInsertFunction("__load_d", VoidTy, PtrVoidTy, Int64Ty, load_type, Int1Ty);
 				IRB.CreateCall(GetAddr, {BCToAddr, ConsInsIndex, LI, CBTFlagD});
 			}
+		}
+			else if(BTFlagD){
+  			size_t InsIndex;
+				if(InsMap.count(I) != 0){
+  				InsIndex = InsMap.at(I);
+  				Constant* CBTFlagD = ConstantInt::get(Type::getInt1Ty(M->getContext()), BTFlagD);
+  				Constant* ConsInsIndex = ConstantInt::get(Type::getInt64Ty(M->getContext()), InsIndex); 
+  				GetAddr = M->getOrInsertFunction("__load_d_i", VoidTy, PtrVoidTy, Int64Ty, Int1Ty);
+					IRB.CreateCall(GetAddr, {BCToAddr, ConsInsIndex, CBTFlagD});
+				}
+			}
 			else
 				errs()<<"Error!!! __load_d I:"<<*I<<"\n";
 		}
-	}
 //	else
 	//	errs()<<"handleLoad load not instrumented:"<<*I<<"\n"; 
 }
@@ -1304,16 +1340,25 @@ void FPInstrument::handleNewPhi(Function &F){
   Instruction* Next;
   Type* Int64Ty = Type::getInt64Ty(M->getContext());
   Type* VoidTy = Type::getVoidTy(M->getContext());
+	size_t NumPhi = 0;
+	SmallVector<Value*, 8> ArgsV[NewPhiMap.size()];
+	PHINode *PN;
+	Instruction* OldPhi;
+  Instruction *N;// = getNextInstruction(PN, BB);
+	
   for(auto it = NewPhiMap.begin(); it != NewPhiMap.end(); ++it)
   {
-    Instruction* OldPhi = it->first;
+    OldPhi = it->first;
     Instruction* NewPhi = it->second;
-    PHINode *PN = dyn_cast<PHINode>(OldPhi);
+    PN = dyn_cast<PHINode>(OldPhi);
     PHINode* iPHI = dyn_cast<PHINode>(NewPhi);
-
+  	size_t Idx1 = InsMap.at(dyn_cast<Instruction>(PN));
+    ArgsV[NumPhi].push_back(ConstantInt::get(Type::getInt64Ty(M->getContext()), Idx1)); 
     for (unsigned PI = 0, PE = PN->getNumIncomingValues(); PI != PE; ++PI) {
       BasicBlock *IBB = PN->getIncomingBlock(PI);
-      Value *IncValue = PN->getIncomingValue(PI);  
+      Value *IncValue = PN->getIncomingValue(PI);
+			ArgsV[NumPhi].push_back(IncValue); 
+
      	for (BasicBlock::iterator BBit = IBB->begin(), BBend = IBB->end(); 
              	BBit != BBend; ++BBit) {
       	Next = &*BBit;
@@ -1340,16 +1385,17 @@ void FPInstrument::handleNewPhi(Function &F){
   			size_t Idx = InsMap.at(dyn_cast<Instruction>(IValue));
         Constant* consIndex = ConstantInt::get(Type::getInt64Ty(M->getContext()), Idx); 
         iPHI->addIncoming(consIndex, IBB);
-					//	for (Use &U : IValue->uses()) {
-    		//			User *UR = U.getUser();
-				//			errs()<<"UR:"<<*UR<<"\n";
-  						size_t Idx1 = InsMap.at(dyn_cast<Instruction>(PN));
-        			Constant* consIndex1 = ConstantInt::get(Type::getInt64Ty(M->getContext()), Idx1); 
-							FuncInit = M->getOrInsertFunction("__handlePhi", VoidTy, Int64Ty, Int64Ty, OldPhi->getType());
-  						IRBuilder<> IRBN(dyn_cast<Instruction>(IValue));
-							IRBN.CreateCall(FuncInit, {consIndex1, NewPhi, OldPhi});
-					//		break;
-				//		}
+				
+        if(OldPhi->getType()->getTypeID() == Type::DoubleTyID){
+//					FuncInit = M->getOrInsertFunction("__handlePhiD", VoidTy, Int64Ty, Int64Ty, OldPhi->getType());	
+				}
+				
+        if(OldPhi->getType()->getTypeID()  == Type::FloatTyID){
+	//				FuncInit = M->getOrInsertFunction("__handlePhiF", VoidTy, Int64Ty, Int64Ty, OldPhi->getType());
+				}
+  		//	IRBuilder<> IRBN(dyn_cast<Instruction>(IValue));
+				//IRBN.CreateCall(FuncInit, {consIndex1, NewPhi, OldPhi});
+				
       }
       else if (isa<ConstantFP>(IncValue) || TrackIToFCast.count(IValue) || isa<BitCastInst>(IncValue)) {  
         Constant* consIndex = ConstantInt::get(Type::getInt64Ty(M->getContext()), 0); 
@@ -1374,7 +1420,27 @@ void FPInstrument::handleNewPhi(Function &F){
         iPHI->addIncoming(cons, IBB);
       }
     }
+		NumPhi++;
   }
+/*
+  Type* DoubleTy = Type::getDoubleTy(M->getContext());
+//  BasicBlock *BB = PN->getIncomingBlock(PN);
+//  Instruction *N = getNextInstruction(PN, BB);
+	Instruction *Ins = AllPhiList.back();
+	N = getNextInstruction(Ins, Ins->getParent());
+  IRBuilder<> IRBN(dyn_cast<Instruction>(N));
+	for(size_t i = 0; i<NumPhi; i++){
+		if(ArgsV[i].size() == 3){ //Usually
+			FuncInit = M->getOrInsertFunction("__handlePhiD2", VoidTy, Int64Ty, DoubleTy, DoubleTy);	
+		}
+		else if(ArgsV[i].size() == 4){
+			FuncInit = M->getOrInsertFunction("__handlePhiD3", VoidTy, Int64Ty, DoubleTy, DoubleTy, DoubleTy);	
+		}
+		else
+			llvm::errs()<<"Error !!!! Phi node has more than 3 operands\n";
+*/
+//		IRBN.CreateCall(FuncInit, ArgsV[i]);
+//	}
 }
 
 /**
@@ -1390,7 +1456,7 @@ void FPInstrument::handlePhi(Instruction *I, PHINode *PN, Function &F){
   //why need to track it and keep it in RegIdMap
   RegIdMap.insert(std::pair<Instruction*, Instruction*>(PN, iPHI)); 
   //We need mapping of old phi node with new phi node while filling new phi node later.
-  NewPhiMap.insert(std::pair<Instruction*, Instruction*>(I, iPHI)); 
+ 	NewPhiMap.insert(std::pair<Instruction*, Instruction*>(I, iPHI)); 
 }
 
 /**
@@ -1401,12 +1467,33 @@ Constant* FPInstrument::handleOperand(Instruction *I, Value* OP, Function &F,
 																			Value **Index, bool *isReg){
   IRBuilder<> IRB(I);
   Module *M = F.getParent();
+  Type* Int64Ty = Type::getInt64Ty(M->getContext());
+  Type* VoidTy = Type::getVoidTy(M->getContext());
+  Type* DoubleTy = Type::getDoubleTy(M->getContext());
 
 	size_t Idx = 0;
 
 	Constant* ConsInsIndex;
   Instruction *OpIns = dyn_cast<Instruction>(OP);
-
+//we can't handle phi just after phi nodes, as there can be constants also.
+//we are relying on the fact that if operand is a phinode then we need to create a 
+//its entry in shadow memory
+//we also want to do that only once.
+  if(isa<PHINode>(OP)){
+		PHINode *PN = dyn_cast<PHINode>(OpIns);
+		if(!PhiNodesMap.at(PN)){
+  		size_t Idx1 = InsMap.at(dyn_cast<Instruction>(PN));
+    	Constant *PhiIdx = ConstantInt::get(Type::getInt64Ty(M->getContext()), Idx1); 
+		//find index of phi incoming node
+    	if(RegIdMap.count(PN) != 0){ //handling registers
+    		Instruction *Index = RegIdMap.at(PN);
+//    	Constant *PhiChildIdx = ConstantInt::get(Type::getInt64Ty(M->getContext()), <Con>Index); 
+				FuncInit = M->getOrInsertFunction("__handlePhiD", VoidTy, Int64Ty, Int64Ty, OP->getType());	
+				IRB.CreateCall(FuncInit, {PhiIdx, Index, OP});
+			}
+			PhiNodesMap.at(PN) = true;
+		}
+	}
   if (isa<ConstantFP>(OP) || TrackIToFCast.count(OpIns)) {
   	ConsInsIndex = ConstantInt::get(Type::getInt64Ty(M->getContext()), Idx); 
 	}
@@ -1436,7 +1523,7 @@ Constant* FPInstrument::handleOperand(Instruction *I, Value* OP, Function &F,
 		errs()<<"Error !!! operand not found I:"<<*I<<" OP:"<<*OP<<"\n";
   	ConsInsIndex = ConstantInt::get(Type::getInt64Ty(M->getContext()), Idx); 
 	}
-	//F.dump();
+//	F.dump();
 	return ConsInsIndex;
 }
 
