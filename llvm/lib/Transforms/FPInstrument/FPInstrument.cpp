@@ -49,7 +49,7 @@ bool FPInstrument::runOnModule(Module &M) {
           if (Callee) {
             std::string name = Callee->getName();
             //TODO: find some better way to do it
-            if(name == "sqrt" || name == "llvm.sqrt.f64" || name == "tan" || 
+            if(name == "sqrt" || name == "sqrtf" || name == "p32_sqrt" || name == "llvm.sqrt.f64" || name == "tan" || 
 								name == "sin" || name == "llvm.sin.f64" || 
 								name == "cos" || name == "llvm.cos.f64" || 
 								name == "atan" || name == "llvm.fma.f64" ||
@@ -83,7 +83,7 @@ bool FPInstrument::runOnModule(Module &M) {
         if (dyn_cast<FCmpInst>(&I))
 						AllInsList.push_back(&I);
         if (LoadInst *LI = dyn_cast<LoadInst>(&I)){
-					if(LI->getType()->getTypeID() == Type::DoubleTyID || LI->getType()->getTypeID() == Type::FloatTyID)
+					//if(LI->getType()->getTypeID() == Type::DoubleTyID || LI->getType()->getTypeID() == Type::FloatTyID)
 						AllInsList.push_back(&I);
   				Value *Addr = LI->getPointerOperand();
 					if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(Addr)) {
@@ -101,7 +101,7 @@ bool FPInstrument::runOnModule(Module &M) {
 						}
 				}
 				else if (StoreInst *Store = dyn_cast<StoreInst>(&I)){
-						if(Store->getType()->getTypeID() == Type::DoubleTyID || Store->getType()->getTypeID() == Type::FloatTyID)
+//						if(Store->getType()->getTypeID() == Type::DoubleTyID || Store->getType()->getTypeID() == Type::FloatTyID)
 								AllInsList.push_back(&I);
 				}
       	else if (SelectInst *SI = dyn_cast<SelectInst>(&I)){
@@ -144,11 +144,12 @@ bool FPInstrument::runOnModule(Module &M) {
 				if (Callee) {
           std::string name = Callee->getName();
           //TODO: find some better way to do it
-          if(name == "sqrt" || name == "llvm.sqrt.f64" || name == "llvm.floor.f64"
+          if(name == "sqrt"|| name == "sqrtf" || name == "p32_sqrt" || name == "llvm.sqrt.f64" || name == "llvm.floor.f64"
             	|| name == "tan" || name == "sin" || name == "llvm.sin.f64" 
             	|| name == "cos" || name == "llvm.cos.f64" || name == "atan"
             	|| name == "llvm.fma.f64" || name == "llvm.fabs.f64" || name == "log" || name == "asin"
-							|| name.find("convertDoubleToP") == 0 || name.find("ToDouble") == 0 || name.find("_mul") <= 10
+							|| name.find("posit64_fromd") == 0 || name.find("convertDoubleToP") == 0 
+							|| name.find("ToDouble") == 0 || name.find("_mul") <= 10
 							|| name.find("_add") <= 10 || name.find("_div") <= 10 || name.find("_sub") <= 10){
 							AllInsList.push_back(&I);
           }
@@ -162,7 +163,8 @@ bool FPInstrument::runOnModule(Module &M) {
 				}
         else if(PHINode *PN = dyn_cast<PHINode>(&I)){
           Type *phi_type = PN->getType();
-          if(phi_type->getTypeID() == Type::DoubleTyID || phi_type->getTypeID() == Type::FloatTyID)
+        //  if(phi_type->getTypeID() == Type::DoubleTyID || phi_type->getTypeID() == Type::FloatTyID)
+				//TODO check later, we need to consider int phi nodes in posits
 						AllInsList.push_back(&I);
 				}
     	}
@@ -217,9 +219,29 @@ bool FPInstrument::runOnModule(Module &M) {
           if(phi_type->getTypeID() == Type::DoubleTyID || phi_type->getTypeID() == Type::FloatTyID){
           	handlePhi(&I, PN, *F);
 					}
-        }
-      }
-    } 
+					else{
+						bool flag = false;
+    				for (unsigned PI = 0, PE = PN->getNumIncomingValues(); PI != PE; ++PI) {
+      				Value *IncValue = PN->getIncomingValue(PI);
+						
+							llvm::errs()<<"handlePhi IncValue:"<<*IncValue<<"\n";
+							if(isa<Instruction>(IncValue))
+								if (CallInst *CI = dyn_cast<CallInst>(dyn_cast<Instruction>(IncValue))){
+          				Function *Callee = CI->getCalledFunction();
+          				if (Callee) {
+            				std::string name = Callee->getName();
+										if(name.find("convertDoubleTo") == 0 || name.find("p_") == 0 || name.find("posit64_fromd") == 0){
+											flag = true;
+										}	 
+									}
+								}
+							}
+							if(flag)
+          			handlePhi(&I, PN, *F);
+        		}
+      		}
+    		}
+		} 
     for (auto &BB : *F) {
       for (auto &I : BB) {
         if (LoadInst *Load = dyn_cast<LoadInst>(&I)){
@@ -236,11 +258,11 @@ bool FPInstrument::runOnModule(Module &M) {
        else if (StoreInst *Store = dyn_cast<StoreInst>(&I)){
           Value *Addr = Store->getPointerOperand();
 					Value *OP = Store->getOperand(0);
-					if(TrackIToFCast.count(dyn_cast<Instruction>(OP))){
-        		Value *OP1 = dyn_cast<Instruction>(OP)->getOperand(0);
-          	setReal(&I, Addr, OP1, *F); //For every store we set real value in shadowmap
-       		}
-					else
+				//	if(TrackIToFCast.count(dyn_cast<Instruction>(OP))){
+        //		Value *OP1 = dyn_cast<Instruction>(OP)->getOperand(0);
+         // 	setReal(&I, Addr, OP1, *F); //For every store we set real value in shadowmap
+       	//	}
+				//	else
           	setReal(&I, Addr, OP, *F); //For every store we set real value in shadowmap
 			}
       else if (FPToSIInst *FSI = dyn_cast<FPToSIInst>(&I)){
@@ -316,7 +338,7 @@ bool FPInstrument::runOnModule(Module &M) {
             std::string name = Callee->getName();
             //TODO: find some better way to do it
             int FuncCode = 0;
-            if(name == "sqrt" || name == "llvm.sqrt.f64"){ 
+            if(name == "sqrt"|| name == "sqrtf" || name == "p32_sqrt" || name == "llvm.sqrt.f64"){ 
               FuncCode = 1;
               handleMathFunc(&I, &BB, CI, *F, FuncCode);  //we handle math functions for fp
             }
@@ -557,29 +579,50 @@ If value is function argument then index for shadow memory is the function addre
 other cases index is the address where value is stored.
 **/
 void FPInstrument::setReal(Instruction *I, Value *ToAddr, Value *OP, Function &F){
+	llvm::errs()<<"setReal I:"<<*I<<"\n";
   Module *M = F.getParent();
   IRBuilder<> IRB(I);
   Type *OpTy = OP->getType();
 	bool flag = false;
-  	Type* Int64Ty = Type::getInt64Ty(M->getContext());
-  	Type* VoidTy = Type::getVoidTy(M->getContext());
-  	Type* PtrVoidTy = PointerType::getUnqual(Type::getInt8Ty(M->getContext()));
+  Type* Int64Ty = Type::getInt64Ty(M->getContext());
+  Type* VoidTy = Type::getVoidTy(M->getContext());
+  Type* PtrVoidTy = PointerType::getUnqual(Type::getInt8Ty(M->getContext()));
 	Type *StoreTy = I->getOperand(0)->getType();
+
+	
   if (BitCastInst *BI = dyn_cast<BitCastInst>(ToAddr)){
 		Type *BITy = BI->getOperand(0)->getType();
-		if(BITy->getPointerElementType()->getTypeID() == Type::FloatTyID || BITy->getPointerElementType()->getTypeID() == Type::DoubleTyID){
+		if(BITy->getPointerElementType()->getTypeID() == Type::FloatTyID 
+				|| BITy->getPointerElementType()->getTypeID() == Type::DoubleTyID){
 			flag = true;
 		}
 		else if(BITy->getPointerElementType()->getTypeID() == Type::StructTyID){
 			StructType *STyL = cast<StructType>(BITy->getPointerElementType());
 			int num = STyL->getNumElements();
 			for(int i = 0; i < num; i++) {
-    		if(STyL->getElementType(i)->getTypeID() == Type::DoubleTyID || STyL->getElementType(i)->getTypeID() == Type::FloatTyID)
+				if(search(STyL->getElementType(i), "posit"))
+					llvm::errs()<<"found posit\n";
+    		if(STyL->getElementType(i)->getTypeID() == Type::DoubleTyID 
+					|| STyL->getElementType(i)->getTypeID() == Type::FloatTyID)
 					flag = true;
   		}
 		}
 	}
-	if(flag){
+	if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(ToAddr)) {
+		if(search(GEP->getOperand(0)->getType(), "posit")){
+			flag = true;
+		}
+	}
+	if (CallInst *CI = dyn_cast<CallInst>(OP)){ //handle math library functions
+  	Function *Callee = CI->getCalledFunction();
+    if (Callee) {
+    	std::string name = Callee->getName();
+			if(name.find("convertDoubleTo") == 0 ){
+				flag = true;
+			}
+		}
+	}
+//	if(flag){
   		BitCastInst* BCToAddr = new BitCastInst(ToAddr, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
     	Instruction *OpIns = dyn_cast<Instruction>(I->getOperand(0));
     	SetRealTemp = M->getOrInsertFunction("__set_real_i", VoidTy, PtrVoidTy, Int64Ty);
@@ -593,7 +636,8 @@ void FPInstrument::setReal(Instruction *I, Value *ToAddr, Value *OP, Function &F
   			Constant* ConsInsIndex = ConstantInt::get(Type::getInt64Ty(M->getContext()), index); 
 				IRB.CreateCall(SetRealTemp, {BCToAddr, ConsInsIndex});
     	}
-	}
+//	}
+	llvm::errs()<<"setReal:"<<*OP<<"\n";
 	if(StoreTy->getTypeID() == Type::DoubleTyID || StoreTy->getTypeID() == Type::FloatTyID){
   	BitCastInst* BCToAddr = new BitCastInst(ToAddr, PointerType::getUnqual(Type::getInt8Ty(M->getContext())),"", I);
 
@@ -607,7 +651,7 @@ void FPInstrument::setReal(Instruction *I, Value *ToAddr, Value *OP, Function &F
     	Constant* argNo = ConstantInt::get(Type::getInt64Ty(M->getContext()), index); //TODO: Remove this
  			IRB.CreateCall(SetRealFunArg, {argNo, BCFunc, BCToAddr, OP});
   	}
-  	else if (isa<ConstantFP>(OP)) {
+  	else if (isa<ConstantFP>(OP) || TrackIToFCast.count(dyn_cast<Instruction>(OP))) {
 //    	if its constant we don't need to look for its address, we need to create new shadow space for this constant
 			//Do not comment this
 			if(OpTy->getTypeID() == Type::FloatTyID){
@@ -618,11 +662,9 @@ void FPInstrument::setReal(Instruction *I, Value *ToAddr, Value *OP, Function &F
     		SetRealConstant = M->getOrInsertFunction("__set_real_cons_d", VoidTy, PtrVoidTy, OpTy);
   			IRB.CreateCall(SetRealConstant, {BCToAddr, OP});
 			}
-
   	}
   	else{
     	//if its not a constant, then it could be temp, temp mapping is stored in LoadMap
-
     	Instruction *OpIns = dyn_cast<Instruction>(I->getOperand(0));
     	SetRealTemp = M->getOrInsertFunction("__set_real", VoidTy, PtrVoidTy, Int64Ty, OpTy);
 
@@ -850,75 +892,56 @@ void FPInstrument::handleCallPLib(Instruction *I, CallInst *CI, BasicBlock *BB, 
   InsIndex = InsMap.at(I);
   Constant* ConsInsIndex = ConstantInt::get(Type::getInt64Ty(M->getContext()), InsIndex); 
 	Constant* ConsOpcode;
+	Value *Index1;
+	Value *Index2;
+	bool isReg1 = false;
+	bool isReg2 = false;
 	if (Callee) {
 		std::string name = Callee->getName();
+		llvm::errs()<<"handleCallPLib Callee name:"<<name<<"\n";
 		//TODO: find some better way to do it
 		int FuncCode = 0;
-		if(name.find("convertDoubleTo") == 0){
+		if(name.find("convertDoubleTo") == 0 || name.find("posit64_fromd") == 0){
 			Value *Op = CI->getArgOperand(0);
 			Type *OpTy = Op->getType();
 			FuncInit = M->getOrInsertFunction("__convertDtoP", VoidTy, OpTy, Int64Ty);
 			IRBN.CreateCall(FuncInit, {Op, ConsInsIndex});
     }        
-		else if(name.find("_add") <= 10){
-  		ConsOpcode = ConstantInt::get(Type::getInt64Ty(M->getContext()), 12); 
+		else{ 
+			if(name.find("q32_fdp_add") <= 10)
+				return;
+			if(name.find("q32_fdp_sub") <= 10)
+				return;
+			if(name.find("_add") <= 10)
+  			ConsOpcode = ConstantInt::get(Type::getInt64Ty(M->getContext()), 12); 
+			else if(name.find("_sub") <= 10)
+  			ConsOpcode = ConstantInt::get(Type::getInt64Ty(M->getContext()), 14); 
+			else if(name.find("_mul") <= 10)
+  			ConsOpcode = ConstantInt::get(Type::getInt64Ty(M->getContext()), 16); 
+			else if(name.find("_div") <= 10)
+  			ConsOpcode = ConstantInt::get(Type::getInt64Ty(M->getContext()), 19); 
+			else
+				return;
 			Value *Op1 = CI->getArgOperand(0);
 			Type *OpTy1 = Op1->getType();
-			size_t Op1Index = InsMap.at(dyn_cast<Instruction>(Op1));
-			Constant* ConsOp1Idx = ConstantInt::get(Type::getInt64Ty(M->getContext()), Op1Index);
-
+			Constant* ConsIdx1 = handleOperand(I, Op1, F, &Index1, &isReg1);
 			Value *Op2 = CI->getArgOperand(1);
 			Type *OpTy2 = Op2->getType();
-			size_t Op2Index = InsMap.at(dyn_cast<Instruction>(Op2));
-			Constant* ConsOp2Idx = ConstantInt::get(Type::getInt64Ty(M->getContext()), Op2Index);
-
+			Constant* ConsIdx2 = handleOperand(I, Op2, F, &Index2, &isReg2);
 			FuncInit = M->getOrInsertFunction("__compute_real_p", VoidTy, Int64Ty, Int64Ty, Int64Ty, CI->getType(), Int64Ty);
-			IRBN.CreateCall(FuncInit, {ConsOpcode, ConsOp1Idx, ConsOp2Idx, CI, ConsInsIndex});
-		}
-		else if(name.find("_sub") <= 10){
-  		ConsOpcode = ConstantInt::get(Type::getInt64Ty(M->getContext()), 14); 
-			Value *Op1 = CI->getArgOperand(0);
-			Type *OpTy1 = Op1->getType();
-			size_t Op1Index = InsMap.at(dyn_cast<Instruction>(Op1));
-			Constant* ConsOp1Idx = ConstantInt::get(Type::getInt64Ty(M->getContext()), Op1Index);
-
-			Value *Op2 = CI->getArgOperand(1);
-			Type *OpTy2 = Op2->getType();
-			size_t Op2Index = InsMap.at(dyn_cast<Instruction>(Op2));
-			Constant* ConsOp2Idx = ConstantInt::get(Type::getInt64Ty(M->getContext()), Op2Index);
-
-			FuncInit = M->getOrInsertFunction("__compute_real_p", VoidTy, Int64Ty, Int64Ty, Int64Ty, CI->getType(), Int64Ty);
-			IRBN.CreateCall(FuncInit, {ConsOpcode, ConsOp1Idx, ConsOp2Idx, CI, ConsInsIndex});
-		}
-		else if(name.find("_mul") <= 10){
-  		ConsOpcode = ConstantInt::get(Type::getInt64Ty(M->getContext()), 16); 
-			Value *Op1 = CI->getArgOperand(0);
-			Type *OpTy1 = Op1->getType();
-			size_t Op1Index = InsMap.at(dyn_cast<Instruction>(Op1));
-			Constant* ConsOp1Idx = ConstantInt::get(Type::getInt64Ty(M->getContext()), Op1Index);
-
-			Value *Op2 = CI->getArgOperand(1);
-			Type *OpTy2 = Op2->getType();
-			size_t Op2Index = InsMap.at(dyn_cast<Instruction>(Op2));
-			Constant* ConsOp2Idx = ConstantInt::get(Type::getInt64Ty(M->getContext()), Op2Index);
-
-			FuncInit = M->getOrInsertFunction("__compute_real_p", VoidTy, Int64Ty, Int64Ty, Int64Ty, CI->getType(), Int64Ty);
-			IRBN.CreateCall(FuncInit, {ConsOpcode, ConsOp1Idx, ConsOp2Idx, CI, ConsInsIndex});
-		}
-		else if(name.find("_div") <= 10){
-  		ConsOpcode = ConstantInt::get(Type::getInt64Ty(M->getContext()), 19); 
-			Value *Op1 = CI->getArgOperand(0);
-			Type *OpTy1 = Op1->getType();
-			size_t Op1Index = InsMap.at(dyn_cast<Instruction>(Op1));
-			Constant* ConsOp1Idx = ConstantInt::get(Type::getInt64Ty(M->getContext()), Op1Index);
-
-			Value *Op2 = CI->getArgOperand(1);
-			Type *OpTy2 = Op2->getType();
-			size_t Op2Index = InsMap.at(dyn_cast<Instruction>(Op2));
-			Constant* ConsOp2Idx = ConstantInt::get(Type::getInt64Ty(M->getContext()), Op2Index);
-
-			FuncInit = M->getOrInsertFunction("__compute_real_p", VoidTy, Int64Ty, Int64Ty, Int64Ty, CI->getType(), Int64Ty);
-			IRBN.CreateCall(FuncInit, {ConsOpcode, ConsOp1Idx, ConsOp2Idx, CI, ConsInsIndex});
+		
+			if(isReg1 && isReg2){
+				IRBN.CreateCall(FuncInit, {ConsOpcode, Index1, Index2, CI, ConsInsIndex});
+			}
+			else if(isReg1){
+				IRBN.CreateCall(FuncInit, {ConsOpcode, Index1, ConsIdx2, CI, ConsInsIndex});
+			}
+			else if(isReg2){
+				IRBN.CreateCall(FuncInit, {ConsOpcode, ConsIdx1, Index2, CI, ConsInsIndex});
+			}
+			else{
+				IRBN.CreateCall(FuncInit, {ConsOpcode, ConsIdx1, ConsIdx2, CI, ConsInsIndex});
+			}
 		}
 	}
 }
@@ -1101,7 +1124,7 @@ void FPInstrument::handleLoad(Instruction *I, LoadInst *LI, BasicBlock *BB, Func
 	Type *load_type = LI->getType();
 
 	bool BTFlagF = false;
-	bool BTFlagD = false;
+	bool BTFlagD = true;
   Value *Addr = LI->getPointerOperand();
   if (BitCastInst *BI = dyn_cast<BitCastInst>(Addr)){
 		llvm::errs()<<"LOAD I:"<<*I<<"\n";
@@ -1125,6 +1148,11 @@ void FPInstrument::handleLoad(Instruction *I, LoadInst *LI, BasicBlock *BB, Func
 				if(STyL->getElementType(i)->getTypeID() == Type::FloatTyID)
 					BTFlagF = true;
   		}
+		}
+	}
+	if (GetElementPtrInst *GEP = dyn_cast<GetElementPtrInst>(Addr)) {
+		if(search(GEP->getOperand(0)->getType(), "posit")){
+			BTFlagD = true;
 		}
 	}
 	if(flag){
@@ -1160,17 +1188,17 @@ void FPInstrument::handleLoad(Instruction *I, LoadInst *LI, BasicBlock *BB, Func
 				IRB.CreateCall(GetAddr, {BCToAddr, ConsInsIndex, LI, CBTFlagD});
 			}
 		}
-			else if(BTFlagD){
+		if(BTFlagD){
   			size_t InsIndex;
 				if(InsMap.count(I) != 0){
   				InsIndex = InsMap.at(I);
   				Constant* CBTFlagD = ConstantInt::get(Type::getInt1Ty(M->getContext()), BTFlagD);
   				Constant* ConsInsIndex = ConstantInt::get(Type::getInt64Ty(M->getContext()), InsIndex); 
-  				GetAddr = M->getOrInsertFunction("__load_d_i", VoidTy, PtrVoidTy, Int64Ty, Int1Ty);
+  				GetAddr = M->getOrInsertFunction("__load_i", VoidTy, PtrVoidTy, Int64Ty, Int1Ty);
 					IRB.CreateCall(GetAddr, {BCToAddr, ConsInsIndex, CBTFlagD});
 				}
-			}
-			else
+		}
+		else
 				errs()<<"Error!!! __load_d I:"<<*I<<"\n";
 		}
 //	else
@@ -1316,17 +1344,29 @@ void FPInstrument::handleMathFunc(Instruction *I, BasicBlock *BB, CallInst *CI, 
 	
   Constant* ConsIdx1 = handleOperand(I, OP, F, &Index1, &isReg1);
 
-	if(OpTy->getTypeID() == Type::FloatTyID){
-  	HandleFunc = M->getOrInsertFunction("__handle_math_f", VoidTy, Int64Ty, OpTy, Int64Ty, OpTy, Int64Ty);
+  std::string name = Callee->getName();
+	if(name == "p32_sqrt"){
+  	HandleFunc = M->getOrInsertFunction("__handle_math_p", VoidTy, Int64Ty, Int64Ty, CI->getType(), Int64Ty);
+		if(isReg1){
+			IRB.CreateCall(HandleFunc, {ConsFuncCode, Index1, CI, ConsInsIndex});
+		}
+		else{
+			IRB.CreateCall(HandleFunc, {ConsFuncCode, ConsIdx1, CI, ConsInsIndex});
+		}
 	}
-	else if(OpTy->getTypeID() == Type::DoubleTyID){
-  	HandleFunc = M->getOrInsertFunction("__handle_math_d", VoidTy, Int64Ty, OpTy, Int64Ty, OpTy, Int64Ty);
-	}
-	if(isReg1){
-		IRB.CreateCall(HandleFunc, {ConsFuncCode, OP, Index1, CI, ConsInsIndex});
-	}
-	else{
-		IRB.CreateCall(HandleFunc, {ConsFuncCode, OP, ConsIdx1, CI, ConsInsIndex});
+	else{ 
+		if(OpTy->getTypeID() == Type::FloatTyID){
+  		HandleFunc = M->getOrInsertFunction("__handle_math_f", VoidTy, Int64Ty, OpTy, Int64Ty, OpTy, Int64Ty);
+		}
+		else if(OpTy->getTypeID() == Type::DoubleTyID){
+  		HandleFunc = M->getOrInsertFunction("__handle_math_d", VoidTy, Int64Ty, OpTy, Int64Ty, OpTy, Int64Ty);
+		}
+		if(isReg1){
+			IRB.CreateCall(HandleFunc, {ConsFuncCode, OP, Index1, CI, ConsInsIndex});
+		}
+		else{
+			IRB.CreateCall(HandleFunc, {ConsFuncCode, OP, ConsIdx1, CI, ConsInsIndex});
+		}
 	}
 }
 /**
@@ -1385,17 +1425,6 @@ void FPInstrument::handleNewPhi(Function &F){
   			size_t Idx = InsMap.at(dyn_cast<Instruction>(IValue));
         Constant* consIndex = ConstantInt::get(Type::getInt64Ty(M->getContext()), Idx); 
         iPHI->addIncoming(consIndex, IBB);
-				
-        if(OldPhi->getType()->getTypeID() == Type::DoubleTyID){
-//					FuncInit = M->getOrInsertFunction("__handlePhiD", VoidTy, Int64Ty, Int64Ty, OldPhi->getType());	
-				}
-				
-        if(OldPhi->getType()->getTypeID()  == Type::FloatTyID){
-	//				FuncInit = M->getOrInsertFunction("__handlePhiF", VoidTy, Int64Ty, Int64Ty, OldPhi->getType());
-				}
-  		//	IRBuilder<> IRBN(dyn_cast<Instruction>(IValue));
-				//IRBN.CreateCall(FuncInit, {consIndex1, NewPhi, OldPhi});
-				
       }
       else if (isa<ConstantFP>(IncValue) || TrackIToFCast.count(IValue) || isa<BitCastInst>(IncValue)) {  
         Constant* consIndex = ConstantInt::get(Type::getInt64Ty(M->getContext()), 0); 
@@ -1422,25 +1451,6 @@ void FPInstrument::handleNewPhi(Function &F){
     }
 		NumPhi++;
   }
-/*
-  Type* DoubleTy = Type::getDoubleTy(M->getContext());
-//  BasicBlock *BB = PN->getIncomingBlock(PN);
-//  Instruction *N = getNextInstruction(PN, BB);
-	Instruction *Ins = AllPhiList.back();
-	N = getNextInstruction(Ins, Ins->getParent());
-  IRBuilder<> IRBN(dyn_cast<Instruction>(N));
-	for(size_t i = 0; i<NumPhi; i++){
-		if(ArgsV[i].size() == 3){ //Usually
-			FuncInit = M->getOrInsertFunction("__handlePhiD2", VoidTy, Int64Ty, DoubleTy, DoubleTy);	
-		}
-		else if(ArgsV[i].size() == 4){
-			FuncInit = M->getOrInsertFunction("__handlePhiD3", VoidTy, Int64Ty, DoubleTy, DoubleTy, DoubleTy);	
-		}
-		else
-			llvm::errs()<<"Error !!!! Phi node has more than 3 operands\n";
-*/
-//		IRBN.CreateCall(FuncInit, ArgsV[i]);
-//	}
 }
 
 /**
